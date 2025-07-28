@@ -60,7 +60,7 @@
             background-color: #fefefe;
             margin: auto;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 81x;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             max-width: 400px;
             width: 90%;
@@ -74,6 +74,16 @@
 
         <!-- Display User ID -->
         <p id="userIdDisplay" class="text-sm text-gray-500 text-center mb-4">Memuat ID Pengguna...</p>
+
+        <!-- Authentication Buttons -->
+        <div class="flex justify-center mb-6 space-x-4">
+            <button id="githubSignInButton" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                Login dengan GitHub
+            </button>
+            <button id="signOutButton" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105 hidden">
+                Sign Out
+            </button>
+        </div>
 
         <!-- Form untuk Menambahkan/Mengedit Game (Dipindahkan di luar tab) -->
         <div class="mb-8 p-6 bg-blue-50 rounded-lg shadow-md">
@@ -364,15 +374,15 @@
     <script type="module">
         // Firebase SDK imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GithubAuthProvider, signInWithPopup, linkWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, setDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js"; // Import getAnalytics
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
 
         // Global Firebase variables
         let app;
         let db;
         let auth;
-        let analytics; // Deklarasi variabel analytics
+        let analytics;
         let userId = null;
         let authReady = false; // Flag to indicate if authentication is ready
 
@@ -403,20 +413,36 @@
                 app = initializeApp(currentFirebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
-                analytics = getAnalytics(app); // Inisialisasi Analytics
+                analytics = getAnalytics(app); // Initialize Analytics
 
                 // Authenticate user
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         userId = user.uid;
                         document.getElementById('userIdDisplay').textContent = `ID Pengguna: ${userId}`;
+                        document.getElementById('signOutButton').classList.remove('hidden'); // Show sign out button
+                        document.getElementById('githubSignInButton').textContent = 'Link dengan GitHub'; // Change text for linking
+                        if (!user.isAnonymous) {
+                            // If already signed in with a persistent method (like GitHub), hide GitHub sign-in button
+                             document.getElementById('githubSignInButton').classList.add('hidden');
+                             document.getElementById('userIdDisplay').textContent = `ID Pengguna: ${user.uid} (${user.displayName || user.email || 'GitHub User'})`;
+                        } else {
+                            document.getElementById('githubSignInButton').classList.remove('hidden');
+                        }
+
                         authReady = true;
                         console.log("Firebase Auth Ready. User ID:", userId);
                         // Start loading data after auth is ready
                         await loadAllDataFromFirestore();
                         showTab('game-list'); // Show initial tab after data loads
                     } else {
-                        // Sign in anonymously if no token or user not logged in
+                        // Not signed in, try anonymous or show sign-in options
+                        userId = null;
+                        document.getElementById('userIdDisplay').textContent = "Anda belum login.";
+                        document.getElementById('signOutButton').classList.add('hidden'); // Hide sign out button
+                        document.getElementById('githubSignInButton').classList.remove('hidden');
+                        document.getElementById('githubSignInButton').textContent = 'Login dengan GitHub'; // Reset text
+                        authReady = false; // Set authReady to false if user is null
                         try {
                             if (initialAuthToken) {
                                 await signInWithCustomToken(auth, initialAuthToken);
@@ -506,6 +532,10 @@
         const messageModal = document.getElementById('messageModal');
         const messageModalText = document.getElementById('messageModalText');
         const messageModalClose = document.getElementById('messageModalClose');
+
+        // GitHub Auth elements
+        const githubSignInButton = document.getElementById('githubSignInButton');
+        const signOutButton = document.getElementById('signOutButton');
 
 
         // Array untuk menyimpan koleksi game (akan diisi dari Firestore)
@@ -1523,6 +1553,82 @@
         currentStatusOptionsList.addEventListener('click', (e) => {
             if (e.target.classList.contains('delete-custom-option-button')) {
                 handleDeleteCustomOption(e, customStatuses);
+            }
+        });
+
+        // --- GitHub Sign-In and Sign-Out Functions ---
+        githubSignInButton.addEventListener('click', async () => {
+            if (!authReady) {
+                displayMessage("Aplikasi belum siap. Harap tunggu otentikasi selesai.", "error");
+                return;
+            }
+
+            const provider = new GithubAuthProvider();
+            provider.addScope('user:email'); // Request email access from GitHub
+
+            try {
+                if (auth.currentUser && auth.currentUser.isAnonymous) {
+                    // If currently anonymous, link the GitHub account
+                    await linkWithPopup(auth.currentUser, provider);
+                    displayMessage("Akun GitHub berhasil ditautkan!", "success");
+                } else {
+                    // Otherwise, sign in directly with GitHub
+                    await signInWithPopup(auth, provider);
+                    displayMessage("Berhasil login dengan GitHub!", "success");
+                }
+            } catch (error) {
+                if (error.code === 'auth/popup-closed-by-user') {
+                    displayMessage("Login GitHub dibatalkan.", "error");
+                } else if (error.code === 'auth/credential-already-in-use') {
+                    displayMessage("Akun GitHub ini sudah digunakan dengan akun lain. Coba login dengan akun lain.", "error");
+                } else if (error.code === 'auth/account-exists-with-different-credential') {
+                    displayConfirmation(
+                        "Akun ini sudah ada dengan metode login yang berbeda. Apakah Anda ingin menautkan akun ini ke akun GitHub Anda?",
+                        async () => {
+                            try {
+                                const pendingCred = GithubAuthProvider.credentialFromError(error);
+                                const email = error.email;
+                                // Find if the user is logged in with another provider
+                                const methods = await auth.fetchSignInMethodsForEmail(email);
+                                if (methods && methods.length > 0) {
+                                    const firstMethod = methods[0];
+                                    // Assuming the user is currently anonymous and wants to link
+                                    if (auth.currentUser && auth.currentUser.isAnonymous) {
+                                        // Sign in the anonymous user with the conflicting method
+                                        // This requires knowledge of the original login method, which is complex.
+                                        // For simplicity here, we'll just sign out and ask them to log in with the existing account.
+                                        await signOut(auth);
+                                        displayMessage("Akun sudah ada. Mohon login dengan metode yang sudah ada.", "error");
+                                    } else {
+                                        // If already logged in with another account (non-anonymous), we can link
+                                        await linkWithPopup(auth.currentUser, provider);
+                                        displayMessage("Akun berhasil ditautkan!", "success");
+                                    }
+                                } else {
+                                    displayMessage("Terjadi kesalahan tak terduga saat menautkan akun. Coba lagi.", "error");
+                                }
+                            } catch (linkError) {
+                                console.error("Error linking account:", linkError);
+                                displayMessage("Gagal menautkan akun: " + linkError.message, "error");
+                            }
+                        }
+                    );
+                }
+                else {
+                    console.error("Error during GitHub sign-in:", error);
+                    displayMessage("Gagal login dengan GitHub: " + error.message, "error");
+                }
+            }
+        });
+
+        signOutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                displayMessage("Berhasil logout!", "success");
+                // The onAuthStateChanged listener will handle UI updates
+            } catch (error) {
+                console.error("Error signing out:", error);
+                displayMessage("Gagal logout: " + error.message, "error");
             }
         });
 
