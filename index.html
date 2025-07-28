@@ -1062,7 +1062,6 @@
                                     if (context.parsed !== null) {
                                         label += context.parsed + ' game';
                                     }
-                                    return label;
                                 }
                             }
                         }
@@ -1182,15 +1181,21 @@
                 }
             } catch (error) {
                 console.error("Error dengan otentikasi GitHub:", error);
-                if (error.code === 'auth/account-exists-with-different-credential') {
-                    // Ini adalah error yang dialami pengguna.
-                    // Akun GitHub sudah terhubung ke akun Firebase lain.
-                    const email = error.customData.email;
+                // Menangani error umum terkait akun yang sudah ada atau kredensial yang sudah digunakan
+                if (error.code === 'auth/account-exists-with-different-credential' || error.code === 'auth/credential-already-in-use') {
+                    let message = '';
+                    if (error.code === 'auth/account-exists-with-different-credential') {
+                        const email = error.customData.email;
+                        message = `Akun GitHub ini sudah digunakan dengan email lain (${email}). Apakah Anda ingin masuk dengan akun yang sudah ada ini? Data Anda akan digabungkan jika Anda sebelumnya login anonim.`;
+                    } else { // auth/credential-already-in-use
+                        message = `Akun GitHub yang Anda coba gunakan sudah terhubung dengan akun lain. Apakah Anda ingin masuk dengan akun yang sudah ada ini? Data Anda akan digabungkan jika Anda sebelumnya login anonim.`;
+                    }
+
                     const credential = GithubAuthProvider.credentialFromError(error);
                     const oldAnonymousUid = auth.currentUser?.isAnonymous ? auth.currentUser.uid : null; // Tangkap UID anonim
 
                     displayConfirmation(
-                        `Akun GitHub ini sudah digunakan dengan email lain (${email}). Apakah Anda ingin masuk dengan akun yang sudah ada ini? Data Anda akan digabungkan jika Anda sebelumnya login anonim.`,
+                        message,
                         async () => {
                             try {
                                 // Masuk dengan kredensial akun yang sudah ada (dalam kasus ini, kredensial GitHub)
