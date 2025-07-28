@@ -366,25 +366,44 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, setDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js"; // Import getAnalytics
 
         // Global Firebase variables
         let app;
         let db;
         let auth;
+        let analytics; // Deklarasi variabel analytics
         let userId = null;
         let authReady = false; // Flag to indicate if authentication is ready
 
         // Getting Canvas environment variables
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const canvasFirebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Fallback Firebase configuration (from your original provided script)
+        const fallbackFirebaseConfig = {
+            apiKey: "AIzaSyAzJTL179V9bT-DfefZq9gcG8Tz88VzLmQ",
+            authDomain: "koleksi-game.firebaseapp.com",
+            projectId: "koleksi-game",
+            storageBucket: "koleksi-game.firebasestorage.app",
+            messagingSenderId: "222959670551",
+            appId: "1:222959670551:web:048b1e2c4ef16b7bd31352",
+            measurementId: "G-BYYCM7R4M8"
+        };
+
+        // Determine which firebaseConfig to use
+        const currentFirebaseConfig = canvasFirebaseConfig.projectId ? canvasFirebaseConfig : fallbackFirebaseConfig;
+        console.log("Menggunakan konfigurasi Firebase:", currentFirebaseConfig);
+
 
         // Initialize Firebase
         function initializeFirebase() {
             try {
-                app = initializeApp(firebaseConfig);
+                app = initializeApp(currentFirebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
+                analytics = getAnalytics(app); // Inisialisasi Analytics
 
                 // Authenticate user
                 onAuthStateChanged(auth, async (user) => {
