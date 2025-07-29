@@ -48,6 +48,7 @@
         let gameStatusPieChart = null;
         let platformPieChart = null;
         let lokasiMentahanPieChart = null;
+        let digitalPlatformPieChart = null; // New chart for Digital Platform
         let autoDownloadIntervalId = null;
         let currentAutoDownloadInterval = 5; // Default 5 minutes
         let userId = null; // User ID from Firebase Auth
@@ -55,7 +56,7 @@
 
         // Default options for dropdowns (not including 'manual' option)
         const defaultPlatforms = ['PC', 'PS', 'PS2', 'PS3'];
-        const defaultStores = ['Steam', 'Epic Games', 'GOG'];
+        const defaultStores = ['Steam', 'Epic Games', 'GOG']; // These are now Digital Platforms
         const defaultStatuses = ['Dimainkan', 'Belum Dimainkan', 'Selesai', 'Wishlist'];
         const defaultLokasiMentahanOptions = ['HDD Eksternal 4TB', 'HDD Eksternal 2TB'];
 
@@ -66,7 +67,7 @@
         const gamePlatformSelect = document.getElementById('gamePlatform');
         const manualPlatformInputContainer = document.getElementById('manualPlatformInputContainer');
         const manualGamePlatformInput = document.getElementById('manualGamePlatform');
-        const gameStoreSelect = document.getElementById('gameStore');
+        const gameStoreSelect = document.getElementById('gameStore'); // This is now Digital Platform select
         const manualStoreInputContainer = document.getElementById('manualStoreInputContainer');
         const manualGameStoreInput = document.getElementById('manualGameStore');
         const gameStatusSelect = document.getElementById('gameStatus');
@@ -79,15 +80,18 @@
         const searchGameInput = document.getElementById('searchGame');
         const filterStatusSelect = document.getElementById('filterStatus');
         const filterPlatformSelect = document.getElementById('filterPlatform');
+        const filterDigitalPlatformSelect = document.getElementById('filterDigitalPlatform'); // New filter for Digital Platform
         const filterLokasiMentahanSelect = document.getElementById('filterLokasiMentahan');
         const sortGamesSelect = document.getElementById('sortGames');
         const noGamesMessage = document.getElementById('noGamesMessage');
         const gameStatusChartCanvas = document.getElementById('gameStatusChart');
         const platformChartCanvas = document.getElementById('platformChart');
         const lokasiMentahanChartCanvas = document.getElementById('lokasiMentahanChart');
+        const digitalPlatformChartCanvas = document.getElementById('digitalPlatformChart'); // New chart canvas
         const gameStatusLegend = document.getElementById('gameStatusLegend');
         const platformLegend = document.getElementById('platformLegend');
         const lokasiMentahanLegend = document.getElementById('lokasiMentahanLegend');
+        const digitalPlatformLegend = document.getElementById('digitalPlatformLegend'); // New legend
         const paginationControls = document.getElementById('paginationControls');
         const exportDataButton = document.getElementById('exportDataButton');
         const importDataButton = document.getElementById('importDataButton');
@@ -103,7 +107,7 @@
         const platformOptionInput = document.getElementById('platformOptionInput');
         const addPlatformOptionButton = document.getElementById('addPlatformOptionButton');
         const currentPlatformOptionsList = document.getElementById('currentPlatformOptionsList');
-        const storeOptionInput = document.getElementById('storeOptionInput');
+        const storeOptionInput = document.getElementById('storeOptionInput'); // This is now Digital Platform option input
         const addStoreOptionButton = document.getElementById('addStoreOptionButton');
         const currentStoreOptionsList = document.getElementById('currentStoreOptionsList');
         const lokasiOptionInput = document.getElementById('lokasiOptionInput');
@@ -370,18 +374,19 @@
         function updateAllDropdowns() {
             // Combine default and custom options for each category
             const allPlatforms = [...new Set([...defaultPlatforms, ...customPlatforms])].sort();
-            const allStores = [...new Set([...defaultStores, ...customStores])].sort();
+            const allStores = [...new Set([...defaultStores, ...customStores])].sort(); // These are now Digital Platforms
             const allStatuses = [...new Set([...defaultStatuses, ...customStatuses])].sort();
             const allLokasiMentahan = [...new Set([...defaultLokasiMentahanOptions, ...customLocations])].sort();
 
             // Populate game form dropdowns
             populateSelect(gamePlatformSelect, allPlatforms, true);
-            populateSelect(gameStoreSelect, allStores, true);
+            populateSelect(gameStoreSelect, allStores, true); // Populate Digital Platform select
             populateSelect(gameStatusSelect, allStatuses, false); // Status dropdown doesn't have 'manual'
             populateSelect(lokasiMentahanSelect, allLokasiMentahan, true, true); // Lokasi has placeholder and manual
 
             // Populate filter dropdowns (they don't need 'manual' option)
             populateSelect(filterPlatformSelect, ['all', ...allPlatforms], false); // 'all' option handled
+            populateSelect(filterDigitalPlatformSelect, ['all', ...allStores], false); // New filter for Digital Platform
             populateSelect(filterStatusSelect, ['all', ...allStatuses], false);
             populateSelect(filterLokasiMentahanSelect, ['all', ...allLokasiMentahan], false);
 
@@ -393,6 +398,7 @@
 
             // Restore previously selected values for filters if available
             filterPlatformSelect.value = filterPlatformSelect.dataset.currentValue || 'all';
+            filterDigitalPlatformSelect.value = filterDigitalPlatformSelect.dataset.currentValue || 'all'; // For Digital Platform filter
             filterLokasiMentahanSelect.value = filterLokasiMentahanSelect.dataset.currentValue || 'all';
             filterStatusSelect.value = filterStatusSelect.dataset.currentValue || 'all'; // Also for status filter
         }
@@ -441,6 +447,7 @@
             const searchTerm = searchGameInput.value.toLowerCase();
             const filterStatus = filterStatusSelect.value;
             const filterPlatform = filterPlatformSelect.value;
+            const filterDigitalPlatform = filterDigitalPlatformSelect.value; // Get digital platform filter value
             const filterLokasiMentahan = filterLokasiMentahanSelect.value;
             const sortOption = sortGamesSelect.value;
 
@@ -451,8 +458,9 @@
                                       game.store.toLowerCase().includes(searchTerm);
                 const matchesStatus = filterStatus === 'all' || game.status === filterStatus;
                 const matchesPlatform = filterPlatform === 'all' || game.platform === filterPlatform;
+                const matchesDigitalPlatform = filterDigitalPlatform === 'all' || game.store === filterDigitalPlatform; // Match digital platform
                 const matchesLokasiMentahan = filterLokasiMentahan === 'all' || game.lokasiMentahan === filterLokasiMentahan;
-                return matchesSearch && matchesStatus && matchesPlatform && matchesLokasiMentahan;
+                return matchesSearch && matchesStatus && matchesPlatform && matchesDigitalPlatform && matchesLokasiMentahan;
             });
 
             // Urutkan game
@@ -496,7 +504,7 @@
                         <div class="flex-grow w-full mb-4">
                             <h3 class="text-lg font-semibold text-gray-900">${game.title}</h3>
                             <p class="text-sm text-gray-600">Platform: ${game.platform}</p>
-                            <p class="text-sm text-gray-600">Toko: ${game.store}</p>
+                            <p class="text-sm text-gray-600">Platform Digital: ${game.store}</p>
                             <p class="text-sm text-gray-600">Lokasi: ${game.lokasiMentahan || '-'}</p>
                             <span class="inline-block px-3 py-1 text-xs font-medium rounded-full ${getStatusColorClass(game.status)}">
                                 ${game.status}
@@ -603,6 +611,13 @@
                 return acc;
             }, {});
 
+            const digitalPlatformCounts = games.reduce((acc, game) => { // New count for Digital Platform
+                if (game.store) {
+                    acc[game.store] = (acc[game.store] || 0) + 1;
+                }
+                return acc;
+            }, {});
+
             const lokasiMentahanCounts = games.reduce((acc, game) => {
                 if (game.lokasiMentahan) {
                     acc[game.lokasiMentahan] = (acc[game.lokasiMentahan] || 0) + 1;
@@ -628,6 +643,11 @@
             const platformData = Object.values(platformCounts);
             const platformColors = platformLabels.map((_, i) => `hsl(${i * 60}, 70%, 60%)`);
 
+            // Data untuk Chart Platform Digital
+            const digitalPlatformLabels = Object.keys(digitalPlatformCounts); // Labels for Digital Platform
+            const digitalPlatformData = Object.values(digitalPlatformCounts); // Data for Digital Platform
+            const digitalPlatformColors = digitalPlatformLabels.map((_, i) => `hsl(${i * 45 + 120}, 70%, 50%)`); // Colors for Digital Platform
+
             // Data untuk Chart Lokasi
             const lokasiMentahanLabels = Object.keys(lokasiMentahanCounts);
             const lokasiMentahanData = Object.values(lokasiMentahanCounts);
@@ -642,6 +662,9 @@
             }
             if (lokasiMentahanPieChart) {
                 lokasiMentahanPieChart.destroy();
+            }
+            if (digitalPlatformPieChart) { // Destroy Digital Platform chart
+                digitalPlatformPieChart.destroy();
             }
 
             // Inisialisasi Chart Status Game
@@ -724,6 +747,44 @@
                 </div>
             `;
 
+            // Inisialisasi Chart Platform Digital
+            digitalPlatformPieChart = new Chart(digitalPlatformChartCanvas, {
+                type: 'pie',
+                data: {
+                    labels: digitalPlatformLabels,
+                    datasets: [{
+                        data: digitalPlatformData,
+                        backgroundColor: digitalPlatformColors,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: false,
+                            text: 'Statistik Platform Digital'
+                        }
+                    }
+                }
+            });
+
+            // Buat legend kustom untuk platform digital
+            digitalPlatformLegend.innerHTML = `
+                <div class="flex flex-wrap justify-center gap-x-4 gap-y-2">
+                    ${digitalPlatformLabels.map((label, index) => `
+                        <div class="flex items-center">
+                            <span class="inline-block w-3 h-3 rounded-full" style="background-color: ${digitalPlatformColors[index]};"></span>
+                            <span class="ml-2 text-gray-700">${label}: ${digitalPlatformData[index]}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
             // Inisialisasi Chart Lokasi
             lokasiMentahanPieChart = new Chart(lokasiMentahanChartCanvas, {
                 type: 'pie',
@@ -776,7 +837,7 @@
             if (selectedStore === 'manual') {
                 selectedStore = manualGameStoreInput.value.trim();
                 if (!selectedStore) {
-                    displayMessage("Harap masukkan nama toko manual.", "error");
+                    displayMessage("Harap masukkan nama platform digital manual.", "error");
                     return;
                 }
             }
@@ -803,7 +864,7 @@
             const gameData = {
                 title: gameTitleInput.value.trim(),
                 platform: selectedPlatform,
-                store: selectedStore,
+                store: selectedStore, // This is now Digital Platform
                 status: gameStatusSelect.value,
                 lokasiMentahan: selectedLokasiMentahan, // Menggunakan nilai dari dropdown atau input manual
             };
@@ -831,7 +892,7 @@
                 renderAll(); // Rerender "Kelola Game" tab content
             }
             else {
-                displayMessage("Harap isi semua kolom wajib (Judul, Platform, Toko).", "error");
+                displayMessage("Harap isi semua kolom wajib (Judul, Platform, Platform Digital).", "error");
             }
         });
 
@@ -866,7 +927,7 @@
                         manualGamePlatformInput.value = gameToEdit.platform;
                     }
 
-                    // Game Store
+                    // Game Store (Digital Platform)
                     const allStores = [...defaultStores, ...customStores];
                     if (allStores.includes(gameToEdit.store)) {
                         gameStoreSelect.value = gameToEdit.store;
@@ -968,6 +1029,11 @@
         // New filter event listeners
         filterPlatformSelect.addEventListener('change', () => {
             filterPlatformSelect.dataset.currentValue = filterPlatformSelect.value;
+            currentPage = 1; // Reset halaman saat filter berubah
+            renderGames();
+        });
+        filterDigitalPlatformSelect.addEventListener('change', () => { // New event listener for Digital Platform filter
+            filterDigitalPlatformSelect.dataset.currentValue = filterDigitalPlatformSelect.value;
             currentPage = 1; // Reset halaman saat filter berubah
             renderGames();
         });
@@ -1431,9 +1497,9 @@
 
             <!-- Konten Tab -->
             <div id="game-list" class="tab-content">
-                <!-- Filter, Pencarian, dan Pengurutan -->
+                <!-- Filter -->
                 <div class="mb-6 p-4 bg-gray-50 rounded-lg shadow-md">
-                    <h2 class="text-xl font-semibold text-gray-700 mb-3">Filter, Pencarian & Pengurutan</h2>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-3">Filter</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
                             <label for="searchGame" class="block text-sm font-medium text-gray-700 mb-1">Cari Game</label>
@@ -1450,6 +1516,13 @@
                         <div>
                             <label for="filterPlatform" class="block text-sm font-medium text-gray-700 mb-1">Filter Platform</label>
                             <select id="filterPlatform"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 shadow-sm">
+                                <!-- Options populated by JS -->
+                            </select>
+                        </div>
+                        <div>
+                            <label for="filterDigitalPlatform" class="block text-sm font-medium text-gray-700 mb-1">Filter Platform Digital</label>
+                            <select id="filterDigitalPlatform"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500 shadow-sm">
                                 <!-- Options populated by JS -->
                             </select>
@@ -1491,7 +1564,7 @@
                 <!-- Statistik Koleksi -->
                 <div class="mb-6 p-4 bg-gray-50 rounded-lg shadow-md">
                     <h2 class="text-lg font-semibold text-gray-700 mb-3">Statistik Koleksi</h2>
-                    <div id="statistics-charts" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div id="statistics-charts" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <div id="gameStatisticsSection" class="p-4 bg-cyan-100 rounded-lg shadow-md flex flex-col items-center">
                             <h3 class="text-base font-semibold text-cyan-800 mb-2">Statistik Game (Berdasarkan Status)</h3>
                             <div class="relative w-full h-64">
@@ -1505,6 +1578,13 @@
                                 <canvas id="platformChart"></canvas>
                             </div>
                             <div id="platformLegend" class="mt-4 text-xs"></div>
+                        </div>
+                        <div id="digitalPlatformStatisticsSection" class="p-4 bg-purple-100 rounded-lg shadow-md flex flex-col items-center">
+                            <h3 class="text-base font-semibold text-purple-800 mb-2">Statistik Platform Digital</h3>
+                            <div class="relative w-full h-64">
+                                <canvas id="digitalPlatformChart"></canvas>
+                            </div>
+                            <div id="digitalPlatformLegend" class="mt-4 text-xs"></div>
                         </div>
                         <div id="lokasiMentahanStatisticsSection" class="p-4 bg-teal-100 rounded-lg shadow-md flex flex-col items-center">
                             <h3 class="text-base font-semibold text-teal-800 mb-2">Statistik Lokasi</h3>
