@@ -444,47 +444,48 @@
                             }
                         }
 
+                        // Jika pengguna login dengan metode persisten (GitHub/Google)
                         if (!user.isAnonymous) {
-                            // Jika login dengan metode persisten (seperti GitHub/Google), tampilkan nama dan sembunyikan tombol
                             document.getElementById('userIdDisplay').textContent = `ID Pengguna: ${userId} (${displayName})`;
                             document.getElementById('githubSignInButton').classList.add('hidden');
                             document.getElementById('googleSignInButton').classList.add('hidden');
+                            document.getElementById('signOutButton').classList.remove('hidden'); // Tampilkan tombol sign out
+                            authReady = true; // Set authReady to true when a user is logged in.
+                            console.log("Firebase Auth Ready. User ID:", userId);
+                            await loadAllDataFromFirestore();
+                            showTab('game-list'); // Tampilkan tab awal setelah data dimuat
                         } else {
-                            // Jika anonim, tampilkan ID anonim dan tawarkan untuk menautkan
-                            document.getElementById('userIdDisplay').textContent = `ID Pengguna: ${userId} (Anonim)`;
+                            // Jika pengguna masih anonim (misalnya, dari sesi sebelumnya yang tidak dihapus),
+                            // arahkan mereka untuk login dengan penyedia.
+                            userId = null; // Pastikan userId null jika anonim dan tidak ada login lain
+                            document.getElementById('userIdDisplay').textContent = "Silakan login dengan GitHub atau Google untuk mengakses koleksi game Anda.";
                             document.getElementById('githubSignInButton').classList.remove('hidden');
-                            document.getElementById('githubSignInButton').textContent = 'Tautkan dengan GitHub';
+                            document.getElementById('githubSignInButton').textContent = 'Login dengan GitHub';
                             document.getElementById('googleSignInButton').classList.remove('hidden');
-                            document.getElementById('googleSignInButton').textContent = 'Tautkan dengan Google';
+                            document.getElementById('googleSignInButton').textContent = 'Login dengan Google';
+                            document.getElementById('signOutButton').classList.add('hidden');
+                            authReady = true; // Set authReady to true so login buttons are clickable
+                            console.log("Pengguna anonim. Menunggu login melalui GitHub atau Google.");
+                            games = []; // Bersihkan data game jika pengguna anonim
+                            currentPage = 1;
+                            renderAll(); // Render ulang untuk menampilkan status kosong dan tombol login
                         }
-                        document.getElementById('signOutButton').classList.remove('hidden'); // Tampilkan tombol sign out
-                        authReady = true;
-                        console.log("Firebase Auth Ready. User ID:", userId);
-                        // Mulai memuat data setelah otentikasi siap
-                        await loadAllDataFromFirestore();
-                        showTab('game-list'); // Tampilkan tab awal setelah data dimuat
+
                     } else {
-                        // Tidak login, tampilkan opsi login
+                        // Tidak ada pengguna yang login (status awal atau sudah logout)
                         userId = null;
-                        document.getElementById('userIdDisplay').textContent = "Anda belum login.";
+                        document.getElementById('userIdDisplay').textContent = "Anda belum login. Silakan login.";
                         document.getElementById('signOutButton').classList.add('hidden'); // Sembunyikan tombol sign out
                         document.getElementById('githubSignInButton').classList.remove('hidden');
                         document.getElementById('githubSignInButton').textContent = 'Login dengan GitHub'; // Reset teks
                         document.getElementById('googleSignInButton').classList.remove('hidden');
                         document.getElementById('googleSignInButton').textContent = 'Login dengan Google'; // Reset teks
-                        authReady = false; // Set authReady ke false jika pengguna adalah null
-                        try {
-                            // Remove anonymous sign-in
-                            // if (initialAuthToken) {
-                            //     await signInWithCustomToken(auth, initialAuthToken);
-                            // } else {
-                            //     await signInAnonymously(auth);
-                            // }
-                            console.log("Pengguna tidak login. Menunggu login melalui GitHub atau Google.");
-                        } catch (error) {
-                            console.error("Firebase Auth Error:", error);
-                            displayMessage("Gagal otentikasi dengan Firebase: " + error.message, "error");
-                        }
+                        authReady = true; // Penting: Set authReady ke true di sini agar tombol dapat diklik.
+                        console.log("Pengguna tidak login. Menunggu login melalui GitHub atau Google.");
+                        // Bersihkan data game yang mungkin dimuat sebelumnya jika tidak ada pengguna yang login
+                        games = [];
+                        currentPage = 1;
+                        renderAll(); // Render ulang untuk menampilkan status kosong dan tombol login
                     }
                 });
             } catch (error) {
