@@ -8,6 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Memuat Chart.js untuk diagram lingkaran -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Memuat Firebase SDK (pastikan versi ini kompatibel dengan proyek Anda) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <style>
         /* Mengatur font default menjadi Inter dan mengecilkan ukurannya */
         body {
@@ -42,52 +45,43 @@
             border-bottom-color: #4c51bf;
             border-bottom-width: 2px;
         }
-        /* Basic modal styling */
-        .modal {
-            display: none; /* Hidden by default */
-            position: fixed; /* Stay in place */
-            z-index: 100; /* Sit on top */
-            left: 0;
-            top: 0;
-            width: 100%; /* Full width */
-            height: 100%; /* Full height */
-            overflow: auto; /* Enable scroll if needed */
-            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-            justify-content: center;
-            align-items: center;
-        }
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 20px;
-            border-radius: 81x;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-        }
     </style>
 </head>
 <body class="p-4 sm:p-6 md:p-8 lg:p-10 bg-gray-100 min-h-screen flex items-center justify-center">
     <div class="container mx-auto bg-white rounded-lg shadow-xl p-6 md:p-8 lg:p-10 max-w-4xl w-full">
         <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-800 mb-6 text-center">Koleksi Game</h1>
 
-        <!-- Display User ID -->
-        <p id="userIdDisplay" class="text-sm text-gray-500 text-center mb-4">Memuat ID Pengguna...</p>
+        <!-- Area Login/Status Pengguna -->
+        <div id="authSection" class="mb-6 p-4 bg-blue-100 rounded-lg shadow-md text-center">
+            <p id="userStatus" class="text-lg font-semibold text-blue-800 mb-4">Anda belum login.</p>
+            <div id="authButtons" class="flex justify-center mt-4 space-x-4">
+                <!-- Tombol untuk Login GitHub -->
+                <button id="signInGitHubButton" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 0C5.372 0 0 5.372 0 12c0 5.303 3.438 9.8 8.207 11.387.6.11.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.725-4.043-1.61-4.043-1.61-.546-1.387-1.332-1.756-1.332-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.838 1.238 1.838 1.238 1.07 1.835 2.809 1.305 3.492.998.108-.775.418-1.305.762-1.605-2.665-.3-5.464-1.332-5.464-5.93 0-1.31.465-2.382 1.235-3.22-.12-.3-.535-1.52.117-3.176 0 0 1.008-.323 3.301 1.23.957-.266 1.983-.4 3.003-.404 1.02.004 2.046.138 3.003.404 2.29-1.553 3.297-1.23 3.297-1.23.653 1.656.238 2.876.118 3.176.77.838 1.233 1.91 1.233 3.22 0 4.61-2.804 5.625-5.475 5.92.43.37.81 1.102.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .32.21.69.825.57C20.565 21.796 24 17.303 24 12c0-6.628-5.372-12-12-12z"/>
+                    </svg>
+                    Login with GitHub
+                </button>
 
-        <!-- Authentication Buttons -->
-        <div class="flex justify-center mb-6 space-x-4">
-            <button id="githubSignInButton" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
-                Login dengan GitHub
-            </button>
-            <button id="signOutButton" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105 hidden">
-                Sign Out
+                <!-- Tombol untuk Login Google -->
+                <button id="signInGoogleButton" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M44.5 20H24V28.5H35.25C34.72 31.02 33.02 33.2 30.66 34.72L30.66 34.73L36.73 39.38C39.23 37.19 40.89 34.05 41.87 30.43C42.86 26.81 43.15 22.95 42.66 19.04C42.17 15.13 41.01 11.33 39.24 7.8C37.47 4.27 35.12 1.13 32.22 0H0V48H48V0H44.5V20Z" fill="#EA4335"/>
+                        <path d="M0 24L17 38V10L0 24Z" fill="#34A853"/>
+                        <path d="M24 0V17H44.5L24 0Z" fill="#4285F4"/>
+                        <path d="M24 31V48H35.25L24 31Z" fill="#FBBC05"/>
+                    </svg>
+                    Login with Google
+                </button>
+            </div>
+            <button id="signOutButton" class="hidden mt-4 bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-md shadow-lg transition duration-300 ease-in-out transform hover:scale-105">
+                Logout
             </button>
         </div>
 
         <!-- Form untuk Menambahkan/Mengedit Game (Dipindahkan di luar tab) -->
         <div class="mb-8 p-6 bg-blue-50 rounded-lg shadow-md">
-            <h2 id="formTitle" class="text-xl font-semibold text-blue-800 mb-4"> </h2>
+            <h2 id="formTitle" class="text-xl font-semibold text-blue-800 mb-4">Tambah Game Baru</h2>
             <form id="gameForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label for="gameTitle" class="block text-sm font-medium text-gray-700 mb-1">Judul Game</label>
@@ -351,132 +345,7 @@
 
     </div>
 
-    <!-- Custom Modal for Confirmation -->
-    <div id="customModal" class="modal">
-        <div class="modal-content">
-            <p id="modalMessage" class="text-lg font-semibold text-gray-800 mb-4"></p>
-            <div class="flex justify-center space-x-4">
-                <button id="modalConfirmYes" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">Ya</button>
-                <button id="modalConfirmNo" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">Tidak</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Custom Modal for Messages -->
-    <div id="messageModal" class="modal">
-        <div class="modal-content">
-            <p id="messageModalText" class="text-lg font-semibold text-gray-800 mb-4"></p>
-            <button id="messageModalClose" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">OK</button>
-        </div>
-    </div>
-
-
-    <script type="module">
-        // Firebase SDK imports
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GithubAuthProvider, signInWithPopup, linkWithPopup, signOut, signInWithCredential } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, setDoc, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-analytics.js";
-
-        // Global Firebase variables
-        let app;
-        let db;
-        let auth;
-        let analytics;
-        let userId = null;
-        let authReady = false; // Flag to indicate if authentication is ready
-
-        // Getting Canvas environment variables
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const canvasFirebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // Fallback Firebase configuration (from your original provided script)
-        const fallbackFirebaseConfig = {
-            apiKey: "AIzaSyAzJTL179V9bT-DfefZq9gcG8Tz88VzLmQ",
-            authDomain: "koleksi-game.firebaseapp.com",
-            projectId: "koleksi-game",
-            storageBucket: "koleksi-game.firebasestorage.app",
-            messagingSenderId: "222959670551",
-            appId: "1:222959670551:web:048b1e2c4ef16b7bd31352",
-            measurementId: "G-BYYCM7R4M8"
-        };
-
-        // Determine which firebaseConfig to use
-        const currentFirebaseConfig = canvasFirebaseConfig.projectId ? canvasFirebaseConfig : fallbackFirebaseConfig;
-        console.log("Menggunakan konfigurasi Firebase:", currentFirebaseConfig);
-
-
-        // Initialize Firebase
-        function initializeFirebase() {
-            try {
-                app = initializeApp(currentFirebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                analytics = getAnalytics(app); // Initialize Analytics
-
-                // Authenticate user
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        // Menentukan nama tampilan yang lebih robust
-                        let displayName = 'Pengguna GitHub'; // Default fallback
-                        if (user.displayName) {
-                            displayName = user.displayName;
-                        } else if (user.email) {
-                            displayName = user.email;
-                        } else if (user.providerData && user.providerData.length > 0) {
-                            // Cari nama tampilan dari data penyedia jika objek pengguna utama tidak memilikinya
-                            const githubProvider = user.providerData.find(p => p.providerId === 'github.com');
-                            if (githubProvider && githubProvider.displayName) {
-                                displayName = githubProvider.displayName;
-                            } else if (githubProvider && githubProvider.email) {
-                                displayName = githubProvider.email;
-                            }
-                        }
-
-                        if (!user.isAnonymous) {
-                            // Jika login dengan metode persisten (seperti GitHub), tampilkan nama dan sembunyikan tombol
-                            document.getElementById('userIdDisplay').textContent = `ID Pengguna: ${userId} (${displayName})`;
-                            document.getElementById('githubSignInButton').classList.add('hidden');
-                        } else {
-                            // Jika anonim, tampilkan ID anonim dan tawarkan untuk menautkan
-                            document.getElementById('userIdDisplay').textContent = `ID Pengguna: ${userId} (Anonim)`;
-                            document.getElementById('githubSignInButton').classList.remove('hidden');
-                            document.getElementById('githubSignInButton').textContent = 'Link dengan GitHub';
-                        }
-                        document.getElementById('signOutButton').classList.remove('hidden'); // Tampilkan tombol sign out
-                        authReady = true;
-                        console.log("Firebase Auth Ready. User ID:", userId);
-                        // Mulai memuat data setelah otentikasi siap
-                        await loadAllDataFromFirestore();
-                        showTab('game-list'); // Tampilkan tab awal setelah data dimuat
-                    } else {
-                        // Tidak login, coba anonim atau tampilkan opsi login
-                        userId = null;
-                        document.getElementById('userIdDisplay').textContent = "Anda belum login.";
-                        document.getElementById('signOutButton').classList.add('hidden'); // Sembunyikan tombol sign out
-                        document.getElementById('githubSignInButton').classList.remove('hidden');
-                        document.getElementById('githubSignInButton').textContent = 'Login dengan GitHub'; // Reset teks
-                        authReady = false; // Set authReady ke false jika pengguna adalah null
-                        try {
-                            if (initialAuthToken) {
-                                await signInWithCustomToken(auth, initialAuthToken);
-                            } else {
-                                await signInAnonymously(auth);
-                            }
-                        } catch (error) {
-                            console.error("Firebase Auth Error:", error);
-                            displayMessage("Gagal otentikasi dengan Firebase: " + error.message, "error");
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error("Firebase Initialization Error:", error);
-                displayMessage("Gagal menginisialisasi Firebase: " + error.message, "error");
-            }
-        }
-
+    <script>
         // Mendapatkan referensi elemen DOM
         const gameForm = document.getElementById('gameForm');
         const formTitle = document.getElementById('formTitle');
@@ -512,8 +381,8 @@
         const exportDataButton = document.getElementById('exportDataButton');
         const importDataButton = document.getElementById('importDataButton');
         const importFileInput = document.getElementById('importFileInput');
-        const autoDownloadToggle = document.getElementById('autoDownloadToggle');
-        const autoDownloadIntervalInput = document.getElementById('autoDownloadInterval');
+        const autoDownloadToggle = document.getElementById('autoDownloadToggle'); // Changed from autoSaveToggle
+        const autoDownloadIntervalInput = document.getElementById('autoDownloadInterval'); // New element
 
         // Tab elements
         const tabButtons = document.querySelectorAll('.tab-button');
@@ -540,23 +409,17 @@
         const addStatusOptionButton = document.getElementById('addStatusOptionButton');
         const currentStatusOptionsList = document.getElementById('currentStatusOptionsList');
 
-        // Custom Modal elements
-        const customModal = document.getElementById('customModal');
-        const modalMessage = document.getElementById('modalMessage');
-        const modalConfirmYes = document.getElementById('modalConfirmYes');
-        const modalConfirmNo = document.getElementById('modalConfirmNo');
-        const messageModal = document.getElementById('messageModal');
-        const messageModalText = document.getElementById('messageModalText');
-        const messageModalClose = document.getElementById('messageModalClose');
-
-        // GitHub Auth elements
-        const githubSignInButton = document.getElementById('githubSignInButton');
+        // Authentication elements
+        const userStatusElement = document.getElementById('userStatus');
+        const authButtonsDiv = document.getElementById('authButtons');
+        const signInGitHubButton = document.getElementById('signInGitHubButton');
+        const signInGoogleButton = document.getElementById('signInGoogleButton');
         const signOutButton = document.getElementById('signOutButton');
 
 
-        // Array untuk menyimpan koleksi game (akan diisi dari Firestore)
+        // Array untuk menyimpan koleksi game
         let games = [];
-        // Variabel untuk melacak game yang sedang diedit (Firestore doc ID)
+        // Variabel untuk melacak game yang sedang diedit
         let editingGameId = null;
 
         // Variabel untuk pagination
@@ -578,82 +441,43 @@
         const defaultStatuses = ['Dimainkan', 'Belum Dimainkan', 'Selesai', 'Wishlist'];
         const defaultLokasiMentahanOptions = ['HDD Eksternal 4TB', 'HDD Eksternal 2TB'];
 
-        // Custom options loaded/saved to Firestore
+        // Custom options loaded/saved to localStorage
         let customPlatforms = [];
         let customStores = [];
         let customLocations = [];
         let customStatuses = [];
 
-        // --- Fungsi Firestore ---
+        // --- Firebase Configuration ---
+        // GANTI DENGAN KONFIGURASI PROYEK FIREBASE ANDA SENDIRI!
+        // Anda bisa mendapatkan ini dari Firebase Console -> Project settings -> General -> Your apps -> Firebase SDK snippet -> Config
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY", // Ganti dengan API Key Anda
+            authDomain: "YOUR_AUTH_DOMAIN", // Ganti dengan Auth Domain Anda
+            projectId: "YOUR_PROJECT_ID", // Ganti dengan Project ID Anda
+            storageBucket: "YOUR_STORAGE_BUCKET", // Ganti dengan Storage Bucket Anda
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID", // Ganti dengan Messaging Sender ID Anda
+            appId: "YOUR_APP_ID" // Ganti dengan App ID Anda
+        };
 
-        // Helper untuk mendapatkan jalur koleksi
-        function getGamesCollectionRef() {
-            if (!userId) {
-                console.error("ID Pengguna tidak tersedia untuk operasi Firestore.");
-                return null;
+        // Inisialisasi Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // --- Fungsi untuk memuat game dari localStorage (akan diganti dengan Firestore nanti jika diperlukan) ---
+        function loadGames() {
+            const storedGames = localStorage.getItem('gameCollection');
+            if (storedGames) {
+                try {
+                    games = JSON.parse(storedGames);
+                } catch (e) {
+                    console.error("Error parsing games from localStorage:", e);
+                    displayMessage("Gagal memuat data dari penyimpanan lokal. Data mungkin rusak.", "error");
+                    games = []; // Reset games if parsing fails
+                }
             }
-            return collection(db, `artifacts/${appId}/users/${userId}/games`);
-        }
+            currentPage = 1; // Reset halaman ke 1 saat memuat ulang game
 
-        function getCustomOptionsDocRef() {
-            if (!userId) {
-                console.error("ID Pengguna tidak tersedia untuk operasi Firestore.");
-                return null;
-            }
-            return doc(db, `artifacts/${appId}/users/${userId}/app_data/custom_options`);
-        }
-
-        // Muat semua data dari Firestore (game dan opsi kustom)
-        async function loadAllDataFromFirestore() {
-            if (!authReady) {
-                console.warn("Firestore belum siap. Otentikasi belum selesai.");
-                return;
-            }
-
-            console.log("Memuat data game dari Firestore...");
-            const gamesColRef = getGamesCollectionRef();
-            if (gamesColRef) {
-                onSnapshot(gamesColRef, (snapshot) => {
-                    const loadedGames = [];
-                    snapshot.forEach(doc => {
-                        loadedGames.push({ id: doc.id, ...doc.data() });
-                    });
-                    games = loadedGames;
-                    console.log("Game dimuat dari Firestore:", games);
-                    currentPage = 1; // Reset halaman pada pembaruan data
-                    renderAll();
-                }, (error) => {
-                    console.error("Error mendapatkan pembaruan game real-time:", error);
-                    displayMessage("Gagal memuat game dari database: " + error.message, "error");
-                });
-            }
-
-            console.log("Memuat opsi kustom dari Firestore...");
-            const customOptionsDocRef = getCustomOptionsDocRef();
-            if (customOptionsDocRef) {
-                onSnapshot(customOptionsDocRef, (docSnap) => {
-                    if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        customPlatforms = data.platforms || [];
-                        customStores = data.stores || [];
-                        customLocations = data.locations || [];
-                        customStatuses = data.statuses || [];
-                        console.log("Opsi kustom dimuat dari Firestore:", data);
-                    } else {
-                        console.log("Tidak ada opsi kustom ditemukan, menggunakan default.");
-                        customPlatforms = [];
-                        customStores = [];
-                        customLocations = [];
-                        customStatuses = [];
-                    }
-                    updateAllDropdowns(); // Perbarui UI setelah opsi kustom dimuat
-                }, (error) => {
-                    console.error("Error mendapatkan pembaruan opsi kustom real-time:", error);
-                    displayMessage("Gagal memuat opsi kustom dari database: " + error.message, "error");
-                });
-            }
-
-            // Muat status auto-download dan interval dari localStorage (tetap di localStorage)
+            // Muat status auto-download dan interval
             const autoDownloadEnabled = localStorage.getItem('autoDownloadEnabled') === 'true';
             const storedInterval = localStorage.getItem('autoDownloadInterval');
             if (storedInterval) {
@@ -661,88 +485,87 @@
             }
             autoDownloadIntervalInput.value = currentAutoDownloadInterval;
             autoDownloadToggle.checked = autoDownloadEnabled;
-            toggleAutoDownload(autoDownloadEnabled, currentAutoDownloadInterval); // Kirim interval saat ini
+            toggleAutoDownload(autoDownloadEnabled, currentAutoDownloadInterval); // Pass current interval
+
+            // Load custom dropdown options and update all dropdowns
+            loadCustomDropdownOptions();
+            updateAllDropdowns();
+
+            // Inisialisasi tampilan dengan tab pertama aktif
+            showTab('game-list');
         }
 
-        // Simpan opsi dropdown kustom ke Firestore
-        async function saveCustomDropdownOptionsToFirestore() {
-            if (!authReady) {
-                displayMessage("Aplikasi belum siap. Harap tunggu otentikasi selesai.", "error");
-                return false;
-            }
-            const customOptionsDocRef = getCustomOptionsDocRef();
-            if (!customOptionsDocRef) return false;
-
+        // --- Fungsi untuk menyimpan game ke localStorage (akan diganti dengan Firestore nanti jika diperlukan) ---
+        function saveGames() {
             try {
-                await setDoc(customOptionsDocRef, {
-                    platforms: customPlatforms,
-                    stores: customStores,
-                    locations: customLocations,
-                    statuses: customStatuses
-                }, { merge: true });
-                console.log("Opsi kustom disimpan ke Firestore.");
-                return true;
+                localStorage.setItem('gameCollection', JSON.stringify(games));
+                return true; // Berhasil disimpan
             } catch (e) {
-                console.error("Error menyimpan opsi kustom ke Firestore:", e);
-                displayMessage("Gagal menyimpan opsi kustom: " + e.message, "error");
-                return false;
-            }
-        }
-
-        // Fungsi untuk memigrasikan data dari satu UID ke UID lain
-        async function migrateUserData(oldUid, newUid) {
-            if (!db) {
-                console.error("Firestore tidak diinisialisasi untuk migrasi data.");
-                return;
-            }
-
-            console.log(`Memulai migrasi data dari ${oldUid} ke ${newUid}`);
-
-            const oldGamesCollectionRef = collection(db, `artifacts/${appId}/users/${oldUid}/games`);
-            const newGamesCollectionRef = collection(db, `artifacts/${appId}/users/${newUid}/games`);
-            const oldCustomOptionsDocRef = doc(db, `artifacts/${appId}/users/${oldUid}/app_data/custom_options`);
-            const newCustomOptionsDocRef = doc(db, `artifacts/${appId}/users/${newUid}/app_data/custom_options`);
-
-            try {
-                // 1. Migrasikan game
-                const oldGamesSnapshot = await getDocs(oldGamesCollectionRef);
-                const batch = getFirestore(app).batch(); // Gunakan batch untuk penulisan atomik
-
-                oldGamesSnapshot.forEach((gameDoc) => {
-                    const newDocRef = doc(newGamesCollectionRef, gameDoc.id); // Pertahankan ID asli jika memungkinkan
-                    batch.set(newDocRef, gameDoc.data());
-                });
-
-                // 2. Migrasikan opsi kustom
-                const oldCustomOptionsSnap = await getDoc(oldCustomOptionsDocRef);
-                if (oldCustomOptionsSnap.exists()) {
-                    batch.set(newCustomOptionsDocRef, oldCustomOptionsSnap.data(), { merge: true });
+                if (e.name === 'QuotaExceededError') {
+                    displayMessage("Penyimpanan penuh! Tidak dapat menyimpan game. Coba hapus beberapa game.", "error");
+                } else {
+                    displayMessage("Gagal menyimpan game: " + e.message, "error");
                 }
-
-                await batch.commit();
-                console.log("Migrasi data game dan opsi kustom selesai.");
-
-                // Opsional: Hapus data lama setelah migrasi berhasil (saat ini dinonaktifkan untuk keamanan)
-                // oldGamesSnapshot.forEach((gameDoc) => {
-                //     batch.delete(doc(oldGamesCollectionRef, gameDoc.id));
-                // });
-                // batch.delete(oldCustomOptionsDocRef);
-                // await batch.commit();
-                // console.log("Data lama berhasil dihapus.");
-
-            } catch (e) {
-                console.error("Error selama migrasi data:", e);
-                throw e; // Lemparkan kembali untuk ditangkap oleh pemanggil untuk displayMessage
+                console.error("Error saving to localStorage:", e);
+                return false; // Gagal disimpan
             }
         }
 
-        // --- Fungsi generik untuk mengisi elemen select ---
+        // --- Load Custom Dropdown Options from localStorage ---
+        function loadCustomDropdownOptions() {
+            const storedCustomPlatforms = localStorage.getItem('customPlatforms');
+            if (storedCustomPlatforms) {
+                try {
+                    customPlatforms = JSON.parse(storedCustomPlatforms);
+                } catch (e) {
+                    console.error("Error parsing custom platforms:", e);
+                    customPlatforms = [];
+                }
+            }
+            const storedCustomStores = localStorage.getItem('customStores');
+            if (storedCustomStores) {
+                try {
+                    customStores = JSON.parse(storedCustomStores);
+                } catch (e) {
+                    console.error("Error parsing custom stores:", e);
+                    customStores = [];
+                }
+            }
+            const storedCustomLocations = localStorage.getItem('customLocations');
+            if (storedCustomLocations) {
+                try {
+                    customLocations = JSON.parse(storedCustomLocations);
+                } catch (e) {
+                    console.error("Error parsing custom locations:", e);
+                    customLocations = [];
+                }
+            }
+            const storedCustomStatuses = localStorage.getItem('customStatuses');
+            if (storedCustomStatuses) {
+                try {
+                    customStatuses = JSON.parse(storedCustomStatuses);
+                } catch (e) {
+                    console.error("Error parsing custom statuses:", e);
+                    customStatuses = [];
+                }
+            }
+        }
+
+        // --- Save Custom Dropdown Options to localStorage ---
+        function saveCustomDropdownOptions() {
+            localStorage.setItem('customPlatforms', JSON.stringify(customPlatforms));
+            localStorage.setItem('customStores', JSON.stringify(customStores));
+            localStorage.setItem('customLocations', JSON.stringify(customLocations));
+            localStorage.setItem('customStatuses', JSON.stringify(customStatuses));
+        }
+
+        // --- Generic function to populate a select element ---
         function populateSelect(selectElement, optionsArray, includeManual = true, addPlaceholder = false) {
             selectElement.innerHTML = '';
             if (addPlaceholder) {
                 const placeholderOption = document.createElement('option');
                 placeholderOption.value = "";
-                placeholderOption.textContent = "Pilih Lokasi"; // Placeholder untuk dropdown Lokasi
+                placeholderOption.textContent = "Pilih Lokasi"; // Placeholder for Lokasi dropdown
                 selectElement.appendChild(placeholderOption);
             }
             optionsArray.forEach(option => {
@@ -759,7 +582,7 @@
             }
         }
 
-        // --- Render daftar opsi kustom di tab Manajemen Data ---
+        // --- Render custom options list in Data Management tab ---
         function renderCustomOptionsList(optionsArray, listElement) {
             listElement.innerHTML = '';
             if (optionsArray.length === 0) {
@@ -777,52 +600,46 @@
             });
         }
 
-        // --- Perbarui semua dropdown yang relevan dengan opsi default dan kustom ---
+        // --- Update all relevant dropdowns with default and custom options ---
         function updateAllDropdowns() {
-            // Gabungkan opsi default dan kustom untuk setiap kategori
+            // Combine default and custom options for each category
             const allPlatforms = [...new Set([...defaultPlatforms, ...customPlatforms])].sort();
             const allStores = [...new Set([...defaultStores, ...customStores])].sort();
             const allStatuses = [...new Set([...defaultStatuses, ...customStatuses])].sort();
             const allLokasiMentahan = [...new Set([...defaultLokasiMentahanOptions, ...customLocations])].sort();
 
-            // Isi dropdown formulir game
+            // Populate game form dropdowns
             populateSelect(gamePlatformSelect, allPlatforms, true);
             populateSelect(gameStoreSelect, allStores, true);
-            populateSelect(gameStatusSelect, allStatuses, false); // Dropdown Status tidak memiliki 'manual'
-            populateSelect(lokasiMentahanSelect, allLokasiMentahan, true, true); // Lokasi memiliki placeholder dan manual
+            populateSelect(gameStatusSelect, allStatuses, false); // Status dropdown doesn't have 'manual'
+            populateSelect(lokasiMentahanSelect, allLokasiMentahan, true, true); // Lokasi has placeholder and manual
 
-            // Isi dropdown filter (mereka tidak memerlukan opsi 'manual')
-            populateSelect(filterPlatformSelect, ['all', ...allPlatforms], false); // Opsi 'all' ditangani
+            // Populate filter dropdowns (they don't need 'manual' option)
+            populateSelect(filterPlatformSelect, ['all', ...allPlatforms], false); // 'all' option handled
             populateSelect(filterStatusSelect, ['all', ...allStatuses], false);
             populateSelect(filterLokasiMentahanSelect, ['all', ...allLokasiMentahan], false);
 
-            // Render daftar opsi kustom di tab manajemen data
+            // Render custom options lists in data management tab
             renderCustomOptionsList(customPlatforms, currentPlatformOptionsList);
             renderCustomOptionsList(customStores, currentStoreOptionsList);
             renderCustomOptionsList(customLocations, currentLokasiOptionsList);
             renderCustomOptionsList(customStatuses, currentStatusOptionsList);
 
-            // Pulihkan nilai yang dipilih sebelumnya untuk filter jika tersedia
+            // Restore previously selected values for filters if available
             filterPlatformSelect.value = filterPlatformSelect.dataset.currentValue || 'all';
             filterLokasiMentahanSelect.value = filterLokasiMentahanSelect.dataset.currentValue || 'all';
-            filterStatusSelect.value = filterStatusSelect.dataset.currentValue || 'all'; // Juga untuk filter status
+            filterStatusSelect.value = filterStatusSelect.dataset.currentValue || 'all'; // Also for status filter
         }
 
-        // --- Logika generik tambah opsi kustom ---
-        async function handleAddCustomOption(inputElement, customArray, listElement) {
-            if (!authReady) {
-                displayMessage("Aplikasi belum siap. Harap tunggu otentikasi selesai.", "error");
-                return;
-            }
-
+        // --- Generic add custom option logic ---
+        function handleAddCustomOption(inputElement, customArray, listElement) {
             const newItem = inputElement.value.trim();
             if (newItem && !customArray.includes(newItem)) {
                 customArray.push(newItem);
-                if (await saveCustomDropdownOptionsToFirestore()) {
-                    displayMessage(`${newItem} berhasil ditambahkan!`, "success");
-                    inputElement.value = '';
-                    updateAllDropdowns(); // Isi ulang semua dropdown dan daftar
-                }
+                saveCustomDropdownOptions();
+                displayMessage(`${newItem} berhasil ditambahkan!`, "success");
+                inputElement.value = '';
+                updateAllDropdowns(); // Re-populate all dropdowns and lists
             } else if (customArray.includes(newItem)) {
                 displayMessage(`"${newItem}" sudah ada.`, "error");
             } else {
@@ -830,22 +647,16 @@
             }
         }
 
-        // --- Logika generik hapus opsi kustom ---
+        // --- Generic delete custom option logic ---
         function handleDeleteCustomOption(event, customArray) {
-            if (!authReady) {
-                displayMessage("Aplikasi belum siap. Harap tunggu otentikasi selesai.", "error");
-                return;
-            }
-
             const itemToDelete = event.target.dataset.value;
-            displayConfirmation(`Apakah Anda yakin ingin menghapus "${itemToDelete}"?`, async () => {
+            displayConfirmation(`Apakah Anda yakin ingin menghapus "${itemToDelete}"?`, () => {
                 const index = customArray.indexOf(itemToDelete);
                 if (index > -1) {
                     customArray.splice(index, 1);
-                    if (await saveCustomDropdownOptionsToFirestore()) {
-                        displayMessage(`"${itemToDelete}" berhasil dihapus.`, "success");
-                        updateAllDropdowns(); // Isi ulang semua dropdown dan daftar
-                    }
+                    saveCustomDropdownOptions();
+                    displayMessage(`"${itemToDelete}" berhasil dihapus.`, "success");
+                    updateAllDropdowns(); // Re-populate all dropdowns and lists
                 }
             });
         }
@@ -886,7 +697,7 @@
                 }
             });
 
-            // Handle pagination
+            // Terapkan pagination
             const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
             const startIndex = (currentPage - 1) * gamesPerPage;
             const endIndex = startIndex + gamesPerPage;
@@ -894,48 +705,60 @@
 
             if (gamesToDisplay.length === 0) {
                 noGamesMessage.classList.remove('hidden');
-                paginationControls.innerHTML = '';
-                return;
+                // Pastikan kelas grid dihapus jika tidak ada game
+                gameListContainer.classList.remove('grid', 'grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-3', 'gap-4');
+                gameListContainer.classList.add('space-y-4'); // Tambahkan kembali space-y-4 untuk konsistensi jika kosong
             } else {
                 noGamesMessage.classList.add('hidden');
+                // Terapkan tata letak grid untuk 3 kolom pada layar sedang dan lebih besar
+                gameListContainer.classList.remove('space-y-4');
+                gameListContainer.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-3', 'gap-4');
+
+                gamesToDisplay.forEach(game => {
+                    const gameItem = document.createElement('div');
+                    gameItem.className = 'bg-gray-50 p-4 rounded-md shadow-sm flex flex-col items-start justify-between';
+
+                    gameItem.innerHTML = `
+                        <div class="flex-grow w-full mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">${game.title}</h3>
+                            <p class="text-sm text-gray-600">Platform: ${game.platform}</p>
+                            <p class="text-sm text-gray-600">Toko: ${game.store}</p>
+                            <p class="text-sm text-gray-600">Lokasi: ${game.lokasiMentahan || '-'}</p>
+                            <span class="inline-block px-3 py-1 text-xs font-medium rounded-full ${getStatusColorClass(game.status)}">
+                                ${game.status}
+                            </span>
+                        </div>
+                        <div class="flex space-x-2 mt-auto"> <!-- mt-auto mendorong tombol ke bagian bawah -->
+                            <button data-id="${game.id}"
+                                    class="edit-button bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1 px-3 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
+                                Edit
+                            </button>
+                            <button data-id="${game.id}"
+                                    class="delete-button bg-red-500 hover:bg-red-600 text-white font-bold py-1 px-3 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
+                                Hapus
+                            </button>
+                        </div>
+                    `;
+                    gameListContainer.appendChild(gameItem);
+                });
             }
 
-            gamesToDisplay.forEach(game => {
-                const gameCard = document.createElement('div');
-                gameCard.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center';
-                gameCard.innerHTML = `
-                    <div class="flex-grow mb-3 sm:mb-0">
-                        <h3 class="text-lg font-semibold text-gray-900">${game.title}</h3>
-                        <p class="text-sm text-gray-600">Platform: ${game.platform}</p>
-                        <p class="text-sm text-gray-600">Toko: ${game.store}</p>
-                        <p class="text-sm text-gray-600">Status: <span class="font-medium ${
-                            game.status === 'Dimainkan' ? 'text-blue-600' :
-                            game.status === 'Selesai' ? 'text-green-600' :
-                            game.status === 'Wishlist' ? 'text-purple-600' :
-                            'text-gray-500'
-                        }">${game.status}</span></p>
-                        ${game.lokasiMentahan ? `<p class="text-sm text-gray-600">Mentahan: ${game.lokasiMentahan}</p>` : ''}
-                    </div>
-                    <div class="flex space-x-2 self-end sm:self-center">
-                        <button data-id="${game.id}" class="edit-game-button bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded-md text-sm transition duration-300 ease-in-out transform hover:scale-105">
-                            Edit
-                        </button>
-                        <button data-id="${game.id}" class="delete-game-button bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded-md text-sm transition duration-300 ease-in-out transform hover:scale-105">
-                            Hapus
-                        </button>
-                    </div>
-                `;
-                gameListContainer.appendChild(gameCard);
-            });
-
+            // Render kontrol paginasi
             renderPaginationControls(totalPages);
+
+            // renderStatistics(); // Moved to showTab for 'statistics'
+            // populateFilterOptions(); // Replaced by updateAllDropdowns
         }
 
-        // Render kontrol paginasi
+        // Fungsi untuk merender kontrol paginasi
         function renderPaginationControls(totalPages) {
-            paginationControls.innerHTML = '';
-            if (totalPages <= 1) return;
+            paginationControls.innerHTML = ''; // Kosongkan kontrol yang ada
 
+            if (totalPages <= 1) {
+                return; // Jangan tampilkan paginasi jika hanya ada satu halaman atau kurang
+            }
+
+            // Tombol Sebelumnya
             const prevButton = document.createElement('button');
             prevButton.textContent = 'Sebelumnya';
             prevButton.className = `px-4 py-2 rounded-md transition duration-300 ${currentPage === 1 ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'}`;
@@ -948,11 +771,19 @@
             });
             paginationControls.appendChild(prevButton);
 
-            const pageInfo = document.createElement('span');
-            pageInfo.textContent = `Halaman ${currentPage} dari ${totalPages}`;
-            pageInfo.className = 'mx-4 text-gray-700 font-medium';
-            paginationControls.appendChild(pageInfo);
+            // Nomor Halaman
+            for (let i = 1; i <= totalPages; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.className = `px-4 py-2 rounded-md transition duration-300 ${currentPage === i ? 'bg-blue-700 text-white font-bold' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'}`;
+                pageButton.addEventListener('click', () => {
+                    currentPage = i;
+                    renderGames();
+                });
+                paginationControls.appendChild(pageButton);
+            }
 
+            // Tombol Berikutnya
             const nextButton = document.createElement('button');
             nextButton.textContent = 'Berikutnya';
             nextButton.className = `px-4 py-2 rounded-md transition duration-300 ${currentPage === totalPages ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'}`;
@@ -966,30 +797,83 @@
             paginationControls.appendChild(nextButton);
         }
 
+        // Fungsi pembantu untuk mendapatkan warna status
+        function getStatusColorClass(status) {
+            switch (status) {
+                case 'Dimainkan':
+                    return 'bg-emerald-200 text-emerald-800'; // Brighter green
+                case 'Belum Dimainkan':
+                    return 'bg-orange-200 text-orange-800'; // Vibrant orange
+                case 'Selesai':
+                    return 'bg-sky-200 text-sky-800'; // Richer blue
+                case 'Wishlist':
+                    return 'bg-fuchsia-200 text-fuchsia-800'; // Deeper fuchsia/purple
+                default:
+                    return 'bg-gray-300 text-gray-800'; // Slightly darker gray
+            }
+        }
 
-        // Fungsi untuk merender chart statistik
+        // Fungsi untuk merender statistik koleksi
         function renderStatistics() {
-            // Hancurkan chart yang ada sebelum membuat yang baru untuk mencegah duplikasi
-            if (gameStatusPieChart) gameStatusPieChart.destroy();
-            if (platformPieChart) platformPieChart.destroy();
-            if (lokasiMentahanPieChart) lokasiMentahanPieChart.destroy();
+            const totalGames = games.length;
 
-            // Data untuk Status Game
-            const statusCounts = {};
-            games.forEach(game => {
-                statusCounts[game.status] = (statusCounts[game.status] || 0) + 1;
-            });
+            const statusCounts = games.reduce((acc, game) => {
+                acc[game.status] = (acc[game.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const platformCounts = games.reduce((acc, game) => {
+                const platforms = game.platform.split(',').map(p => p.trim());
+                platforms.forEach(p => {
+                    if (p) {
+                        acc[p] = (acc[p] || 0) + 1;
+                    }
+                });
+                return acc;
+            }, {});
+
+            const lokasiMentahanCounts = games.reduce((acc, game) => {
+                if (game.lokasiMentahan) {
+                    acc[game.lokasiMentahan] = (acc[game.lokasiMentahan] || 0) + 1;
+                }
+                return acc;
+            }, {});
+
+            // Data untuk Chart Status Game
             const statusLabels = Object.keys(statusCounts);
             const statusData = Object.values(statusCounts);
-            const statusColors = statusLabels.map(label => {
-                switch (label) {
-                    case 'Dimainkan': return '#3B82F6'; // blue-500
-                    case 'Belum Dimainkan': return '#F59E0B'; // amber-500
-                    case 'Selesai': return '#10B981'; // emerald-500
-                    case 'Wishlist': return '#8B5CF6'; // violet-500
-                    default: return '#6B7280'; // gray-500
+            const statusColors = statusLabels.map(status => {
+                switch (status) {
+                    case 'Dimainkan': return 'rgb(16, 185, 129)'; // emerald-500
+                    case 'Belum Dimainkan': return 'rgb(249, 115, 22)'; // orange-500
+                    case 'Selesai': return 'rgb(14, 165, 233)'; // sky-500
+                    case 'Wishlist': return 'rgb(192, 38, 211)'; // fuchsia-500
+                    default: return 'rgb(156, 163, 175)'; // gray-400
                 }
             });
+
+            // Data untuk Chart Platform
+            const platformLabels = Object.keys(platformCounts);
+            const platformData = Object.values(platformCounts);
+            const platformColors = platformLabels.map((_, i) => `hsl(${i * 60}, 70%, 60%)`);
+
+            // Data untuk Chart Lokasi
+            const lokasiMentahanLabels = Object.keys(lokasiMentahanCounts);
+            const lokasiMentahanData = Object.values(lokasiMentahanCounts);
+            const lokasiMentahanColors = lokasiMentahanLabels.map((_, i) => `hsl(${i * 90 + 30}, 80%, 50%)`); // Different hue for distinction
+
+            // Hancurkan chart yang ada jika ada
+            if (gameStatusPieChart) {
+                gameStatusPieChart.destroy();
+            }
+            if (platformPieChart) {
+                platformPieChart.destroy();
+            }
+            if (lokasiMentahanPieChart) {
+                lokasiMentahanPieChart.destroy();
+            }
+
+            // Inisialisasi Chart Status Game
             gameStatusPieChart = new Chart(gameStatusChartCanvas, {
                 type: 'pie',
                 data: {
@@ -1005,36 +889,33 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: false // Hide default legend
+                            display: false
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed !== null) {
-                                        label += context.parsed + ' game';
-                                    }
-                                    return label;
-                                }
-                            }
+                        title: {
+                            display: false,
+                            text: 'Statistik Game Berdasarkan Status'
                         }
                     }
                 }
             });
-            generateLegend(gameStatusLegend, statusLabels, statusColors, statusData, ' game');
 
+            // Buat legend kustom untuk status
+            gameStatusLegend.innerHTML = `
+                <div class="flex flex-wrap justify-center gap-x-4 gap-y-2">
+                    <div class="flex items-center">
+                        <span class="inline-block w-3 h-3 rounded-full bg-blue-200 mr-2"></span>
+                        <span class="text-gray-700 font-semibold">Total Game: ${totalGames}</span>
+                    </div>
+                    ${statusLabels.map((label, index) => `
+                        <div class="flex items-center">
+                            <span class="inline-block w-3 h-3 rounded-full" style="background-color: ${statusColors[index]};"></span>
+                            <span class="ml-2 text-gray-700">${label}: ${statusData[index]}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
 
-            // Data untuk Platform
-            const platformCounts = {};
-            games.forEach(game => {
-                platformCounts[game.platform] = (platformCounts[game.platform] || 0) + 1;
-            });
-            const platformLabels = Object.keys(platformCounts);
-            const platformData = Object.values(platformCounts);
-            const platformColors = generateRandomColors(platformLabels.length);
+            // Inisialisasi Chart Platform
             platformPieChart = new Chart(platformChartCanvas, {
                 type: 'pie',
                 data: {
@@ -1052,35 +933,27 @@
                         legend: {
                             display: false
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed !== null) {
-                                        label += context.parsed + ' game';
-                                    }
-                                }
-                            }
+                        title: {
+                            display: false,
+                            text: 'Statistik Platform'
                         }
                     }
                 }
             });
-            generateLegend(platformLegend, platformLabels, platformColors, platformData, ' game');
 
+            // Buat legend kustom untuk platform
+            platformLegend.innerHTML = `
+                <div class="flex flex-wrap justify-center gap-x-4 gap-y-2">
+                    ${platformLabels.map((label, index) => `
+                        <div class="flex items-center">
+                            <span class="inline-block w-3 h-3 rounded-full" style="background-color: ${platformColors[index]};"></span>
+                            <span class="ml-2 text-gray-700">${label}: ${platformData[index]}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
 
-            // Data untuk Lokasi Mentahan
-            const lokasiMentahanCounts = {};
-            games.forEach(game => {
-                if (game.lokasiMentahan) {
-                    lokasiMentahanCounts[game.lokasiMentahan] = (lokasiMentahanCounts[game.lokasiMentahan] || 0) + 1;
-                }
-            });
-            const lokasiMentahanLabels = Object.keys(lokasiMentahanCounts);
-            const lokasiMentahanData = Object.values(lokasiMentahanCounts);
-            const lokasiMentahanColors = generateRandomColors(lokasiMentahanLabels.length);
+            // Inisialisasi Chart Lokasi
             lokasiMentahanPieChart = new Chart(lokasiMentahanChartCanvas, {
                 type: 'pie',
                 data: {
@@ -1098,323 +971,203 @@
                         legend: {
                             display: false
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed !== null) {
-                                        label += context.parsed + ' game';
-                                    }
-                                    return label;
-                                }
-                            }
+                        title: {
+                            display: false,
+                            text: 'Statistik Lokasi'
                         }
                     }
                 }
             });
-            generateLegend(lokasiMentahanLegend, lokasiMentahanLabels, lokasiMentahanColors, lokasiMentahanData, ' game');
 
-            // Sembunyikan atau tampilkan bagian statistik jika tidak ada data
-            document.getElementById('gameStatisticsSection').classList.toggle('hidden', statusData.length === 0);
-            document.getElementById('platformStatisticsSection').classList.toggle('hidden', platformData.length === 0);
-            document.getElementById('lokasiMentahanStatisticsSection').classList.toggle('hidden', lokasiMentahanData.length === 0);
+            // Buat legend kustom untuk lokasi
+            lokasiMentahanLegend.innerHTML = `
+                <div class="flex flex-wrap justify-center gap-x-4 gap-y-2">
+                    ${lokasiMentahanLabels.map((label, index) => `
+                        <div class="flex items-center">
+                            <span class="inline-block w-3 h-3 rounded-full" style="background-color: ${lokasiMentahanColors[index]};"></span>
+                            <span class="ml-2 text-gray-700">${label}: ${lokasiMentahanData[index]}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
         }
 
-        // Fungsi pembantu untuk membuat legenda kustom
-        function generateLegend(legendElement, labels, colors, data, suffix = '') {
-            legendElement.innerHTML = '';
-            labels.forEach((label, index) => {
-                const legendItem = document.createElement('div');
-                legendItem.className = 'flex items-center space-x-2 text-gray-700';
-                legendItem.innerHTML = `
-                    <span class="inline-block w-3 h-3 rounded-full" style="background-color: ${colors[index]}"></span>
-                    <span>${label}: ${data[index]}${suffix}</span>
-                `;
-                legendElement.appendChild(legendItem);
-            });
+        // Fungsi untuk mengisi opsi filter Platform dan Lokasi secara dinamis
+        // This function is largely replaced by updateAllDropdowns() but retained if any specific filtering logic relies on it
+        function populateFilterOptions() {
+            // Options are now populated by updateAllDropdowns. This function might become redundant.
+            // Keeping it for now to avoid breaking existing calls or dependencies until confirmed
+            // that updateAllDropdowns covers all necessary population aspects.
         }
 
-        // Fungsi pembantu untuk menghasilkan warna acak
-        function generateRandomColors(numColors) {
-            const colors = [];
-            for (let i = 0; i < numColors; i++) {
-                const hue = (i * 137.508) % 360; // Use golden angle approximation for even distribution
-                colors.push(`hsl(${hue}, 70%, 50%)`);
-            }
-            return colors;
-        }
 
-        // Fungsi untuk merender semua yang perlu di-render ulang saat data berubah
-        function renderAll() {
-            renderGames();
-            renderStatistics();
-            updateAllDropdowns();
-        }
-
-        // --- Event Listeners ---
-
-        // GitHub Sign-in/Link Button
-        githubSignInButton.addEventListener('click', async () => {
-            if (!authReady) {
-                displayMessage("Aplikasi belum siap. Harap tunggu otentikasi selesai.", "error");
-                return;
-            }
-            const provider = new GithubAuthProvider();
-            try {
-                // Tentukan apakah kita menautkan akun anonim yang sudah ada atau masuk dari awal
-                const isAnonymousSession = auth.currentUser && auth.currentUser.isAnonymous;
-                let result;
-
-                if (isAnonymousSession) {
-                    // Jika saat ini login secara anonim, coba tautkan akun GitHub
-                    result = await linkWithPopup(auth.currentUser, provider);
-                    console.log("Akun GitHub berhasil ditautkan:", result.user);
-                    displayMessage("Akun GitHub berhasil ditautkan!", "success");
-                } else {
-                    // Jika tidak login atau login dengan penyedia berbeda, masuk dengan GitHub
-                    result = await signInWithPopup(auth, provider);
-                    console.log("Berhasil masuk dengan GitHub:", result.user);
-                    displayMessage("Berhasil masuk dengan GitHub!", "success");
-                }
-            } catch (error) {
-                console.error("Error dengan otentikasi GitHub:", error);
-                // Menangani error umum terkait akun yang sudah ada atau kredensial yang sudah digunakan
-                if (error.code === 'auth/account-exists-with-different-credential' || error.code === 'auth/credential-already-in-use') {
-                    let message = '';
-                    if (error.code === 'auth/account-exists-with-different-credential') {
-                        const email = error.customData.email;
-                        message = `Akun GitHub ini sudah digunakan dengan email lain (${email}). Apakah Anda ingin masuk dengan akun yang sudah ada ini? Data Anda akan digabungkan jika Anda sebelumnya login anonim.`;
-                    } else { // auth/credential-already-in-use
-                        message = `Akun GitHub yang Anda coba gunakan sudah terhubung dengan akun lain. Apakah Anda ingin masuk dengan akun yang sudah ada ini? Data Anda akan digabungkan jika Anda sebelumnya login anonim.`;
-                    }
-
-                    const credential = GithubAuthProvider.credentialFromError(error);
-                    const oldAnonymousUid = auth.currentUser?.isAnonymous ? auth.currentUser.uid : null; // Tangkap UID anonim
-
-                    displayConfirmation(
-                        message,
-                        async () => {
-                            try {
-                                // Masuk dengan kredensial akun yang sudah ada (dalam kasus ini, kredensial GitHub)
-                                // Ini akan mengarahkan pengguna untuk masuk ke akun Firebase yang sudah ada yang menggunakan login GitHub ini.
-                                const signInResult = await signInWithCredential(auth, credential);
-                                const newUid = signInResult.user.uid;
-                                console.log("Berhasil masuk dengan kredensial GitHub yang bertentangan. UID Baru:", newUid);
-                                displayMessage("Berhasil masuk dengan akun yang sudah ada!", "success");
-
-                                // Jika sesi sebelumnya anonim dan UID berubah, migrasikan data
-                                if (oldAnonymousUid && oldAnonymousUid !== newUid) {
-                                    console.log(`Memigrasikan data dari anonim (${oldAnonymousUid}) ke akun GitHub (${newUid})...`);
-                                    await migrateUserData(oldAnonymousUid, newUid);
-                                    displayMessage("Data berhasil dimigrasikan!", "success");
-                                }
-
-                            } catch (mergeError) {
-                                console.error("Error saat masuk dengan kredensial yang sudah ada atau migrasi data:", mergeError);
-                                displayMessage("Gagal masuk dengan akun yang sudah ada atau memigrasikan data: " + mergeError.message, "error");
-                            }
-                        }
-                    );
-                } else if (error.code === 'auth/popup-closed-by-user') {
-                    displayMessage("Proses login GitHub dibatalkan.", "info");
-                } else {
-                    displayMessage("Terjadi kesalahan saat masuk dengan GitHub: " + error.message, "error");
-                }
-            }
-        });
-
-
-        // Sign Out Button
-        signOutButton.addEventListener('click', async () => {
-            if (!authReady) {
-                displayMessage("Aplikasi belum siap. Harap tunggu otentikasi selesai.", "error");
-                return;
-            }
-            displayConfirmation('Apakah Anda yakin ingin keluar?', async () => {
-                try {
-                    await signOut(auth);
-                    games = []; // Clear games data on sign out
-                    currentPage = 1;
-                    renderAll(); // Rerender to show empty state
-                    displayMessage("Berhasil keluar.", "success");
-                } catch (error) {
-                    console.error("Error signing out:", error);
-                    displayMessage("Gagal keluar: " + error.message, "error");
-                }
-            });
-        });
-
-        // Formulir Tambah/Edit Game
+        // Event listener untuk submit form (Tambah/Update Game)
         gameForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!authReady) {
-                displayMessage("Aplikasi belum siap. Harap tunggu otentikasi selesai.", "error");
-                return;
-            }
+            e.preventDefault(); // Mencegah refresh halaman
 
-            let platformValue = gamePlatformSelect.value;
-            if (platformValue === 'manual') {
-                platformValue = manualGamePlatformInput.value.trim();
-                if (platformValue && !customPlatforms.includes(platformValue)) {
-                    customPlatforms.push(platformValue);
-                    await saveCustomDropdownOptionsToFirestore(); // Save new custom platform
+            let selectedStore = gameStoreSelect.value;
+            if (selectedStore === 'manual') {
+                selectedStore = manualGameStoreInput.value.trim();
+                if (!selectedStore) {
+                    displayMessage("Harap masukkan nama toko manual.", "error");
+                    return;
                 }
             }
 
-            let storeValue = gameStoreSelect.value;
-            if (storeValue === 'manual') {
-                storeValue = manualGameStoreInput.value.trim();
-                if (storeValue && !customStores.includes(storeValue)) {
-                    customStores.push(storeValue);
-                    await saveCustomDropdownOptionsToFirestore(); // Save new custom store
+            let selectedPlatform = gamePlatformSelect.value;
+            if (selectedPlatform === 'manual') {
+                selectedPlatform = manualGamePlatformInput.value.trim();
+                if (!selectedPlatform) {
+                    displayMessage("Harap masukkan nama platform manual.", "error");
+                    return;
                 }
             }
 
-            let lokasiMentahanValue = lokasiMentahanSelect.value;
-            if (lokasiMentahanValue === 'manual') {
-                lokasiMentahanValue = manualLokasiMentahanInput.value.trim();
-                if (lokasiMentahanValue && !customLocations.includes(lokasiMentahanValue)) {
-                    customLocations.push(lokasiMentahanValue);
-                    await saveCustomDropdownOptionsToFirestore(); // Save new custom location
+            let selectedLokasiMentahan = lokasiMentahanSelect.value;
+            if (selectedLokasiMentahan === 'manual') {
+                selectedLokasiMentahan = manualLokasiMentahanInput.value.trim();
+                if (!selectedLokasiMentahan) {
+                    displayMessage("Harap masukkan nama lokasi manual.", "error");
+                    return;
                 }
             }
+
 
             const gameData = {
                 title: gameTitleInput.value.trim(),
-                platform: platformValue,
-                store: storeValue,
+                platform: selectedPlatform,
+                store: selectedStore,
                 status: gameStatusSelect.value,
-                lokasiMentahan: lokasiMentahanValue || null // Ensure it's null if empty
+                lokasiMentahan: selectedLokasiMentahan, // Menggunakan nilai dari dropdown atau input manual
             };
 
-            const gamesColRef = getGamesCollectionRef();
-            if (!gamesColRef) return;
-
-            try {
-                if (editingGameId) {
-                    // Mode edit
-                    await updateDoc(doc(gamesColRef, editingGameId), gameData);
-                    displayMessage("Game berhasil diperbarui!", "success");
+            if (gameData.title && gameData.platform && gameData.store) {
+                let successMessage = "";
+                if (editingGameId !== null) {
+                    const gameIndex = games.findIndex(game => game.id === editingGameId);
+                    if (gameIndex !== -1) {
+                        games[gameIndex] = { ...games[gameIndex], ...gameData };
+                        successMessage = "Game berhasil diperbarui!";
+                    }
+                    editingGameId = null;
+                    formTitle.textContent = "Tambah Game Baru";
+                    submitButton.textContent = "Tambah Game";
+                    cancelEditButton.classList.add('hidden');
                 } else {
-                    // Mode tambah
-                    await addDoc(gamesColRef, gameData);
-                    displayMessage("Game berhasil ditambahkan!", "success");
+                    const newGame = { id: Date.now(), ...gameData };
+                    games.push(newGame);
+                    successMessage = "Game berhasil ditambahkan!";
                 }
-                gameForm.reset(); // Reset formulir
-                editingGameId = null; // Reset mode edit
-                submitButton.textContent = 'Tambah Game';
-                formTitle.textContent = ''; // Clear title
-                cancelEditButton.classList.add('hidden'); // Sembunyikan tombol batal edit
-                manualPlatformInputContainer.classList.add('hidden');
-                manualGamePlatformInput.value = '';
-                manualStoreInputContainer.classList.add('hidden');
-                manualGameStoreInput.value = '';
-                manualLokasiMentahanInputContainer.classList.add('hidden');
-                manualLokasiMentahanInput.value = '';
-                updateAllDropdowns(); // Re-populate dropdowns to show new custom options
-            } catch (e) {
-                console.error("Error menambah/memperbarui dokumen: ", e);
-                displayMessage("Gagal menambah/memperbarui game: " + e.message, "error");
+
+                if (saveGames()) {
+                    displayMessage(successMessage, "success");
+                    gameForm.reset();
+                    manualStoreInputContainer.classList.add('hidden');
+                    manualGameStoreInput.value = '';
+                    manualPlatformInputContainer.classList.add('hidden');
+                    manualGamePlatformInput.value = '';
+                    manualLokasiMentahanInputContainer.classList.add('hidden');
+                    manualLokasiMentahanInput.value = '';
+                    currentPage = 1; // Reset halaman ke 1 setelah menambahkan/mengedit game
+                    renderAll(); // Rerender "Kelola Game" tab content
+                }
+            }
+            else {
+                displayMessage("Harap isi semua kolom wajib (Judul, Platform, Toko).", "error");
             }
         });
 
-        // Event listener untuk tombol Edit/Hapus pada daftar game (delegasi event)
-        gameListContainer.addEventListener('click', async (e) => {
-            if (e.target.classList.contains('edit-game-button')) {
-                if (!authReady) {
-                    displayMessage("Aplikasi belum siap. Harap tunggu otentikasi selesai.", "error");
-                    return;
-                }
-                const gameId = e.target.dataset.id;
+        // Event listener untuk tombol Edit dan Hapus (menggunakan delegasi event)
+        gameListContainer.addEventListener('click', (e) => {
+            // Tombol Hapus
+            if (e.target.classList.contains('delete-button')) {
+                const gameId = parseInt(e.target.dataset.id);
+                displayConfirmation("Apakah Anda yakin ingin menghapus game ini?", () => {
+                    games = games.filter(game => game.id !== gameId);
+                    saveGames();
+                    currentPage = 1; // Reset halaman ke 1 setelah menghapus game
+                    renderAll(); // Rerender "Kelola Game" tab content
+                    displayMessage("Game berhasil dihapus!", "success");
+                });
+            }
+            // Tombol Edit
+            else if (e.target.classList.contains('edit-button')) {
+                const gameId = parseInt(e.target.dataset.id);
                 const gameToEdit = games.find(game => game.id === gameId);
                 if (gameToEdit) {
                     gameTitleInput.value = gameToEdit.title;
-                    gamePlatformSelect.value = gameToEdit.platform;
-                    if (![...defaultPlatforms, ...customPlatforms].includes(gameToEdit.platform)) {
+
+                    // Update dropdowns and manual inputs for editing
+                    // Game Platform
+                    const allPlatforms = [...defaultPlatforms, ...customPlatforms];
+                    if (allPlatforms.includes(gameToEdit.platform)) {
+                        gamePlatformSelect.value = gameToEdit.platform;
+                        manualPlatformInputContainer.classList.add('hidden');
+                        manualGamePlatformInput.value = '';
+                    } else {
                         gamePlatformSelect.value = 'manual';
                         manualPlatformInputContainer.classList.remove('hidden');
                         manualGamePlatformInput.value = gameToEdit.platform;
-                    } else {
-                        manualPlatformInputContainer.classList.add('hidden');
                     }
 
-                    gameStoreSelect.value = gameToEdit.store;
-                    if (![...defaultStores, ...customStores].includes(gameToEdit.store)) {
+                    // Game Store
+                    const allStores = [...defaultStores, ...customStores];
+                    if (allStores.includes(gameToEdit.store)) {
+                        gameStoreSelect.value = gameToEdit.store;
+                        manualStoreInputContainer.classList.add('hidden');
+                        manualGameStoreInput.value = '';
+                    } else {
                         gameStoreSelect.value = 'manual';
                         manualStoreInputContainer.classList.remove('hidden');
                         manualGameStoreInput.value = gameToEdit.store;
-                    } else {
-                        manualStoreInputContainer.classList.add('hidden');
                     }
 
                     gameStatusSelect.value = gameToEdit.status;
-                    lokasiMentahanSelect.value = gameToEdit.lokasiMentahan || '';
-                     if (gameToEdit.lokasiMentahan && ![...defaultLokasiMentahanOptions, ...customLocations].includes(gameToEdit.lokasiMentahan)) {
+
+                    // Lokasi Mentahan
+                    const allLokasiMentahan = [...defaultLokasiMentahanOptions, ...customLocations];
+                    if (allLokasiMentahan.includes(gameToEdit.lokasiMentahan)) {
+                        lokasiMentahanSelect.value = gameToEdit.lokasiMentahan;
+                        manualLokasiMentahanInputContainer.classList.add('hidden');
+                        manualLokasiMentahanInput.value = '';
+                    } else if (gameToEdit.lokasiMentahan) {
                         lokasiMentahanSelect.value = 'manual';
                         manualLokasiMentahanInputContainer.classList.remove('hidden');
                         manualLokasiMentahanInput.value = gameToEdit.lokasiMentahan;
                     } else {
+                        lokasiMentahanSelect.value = '';
                         manualLokasiMentahanInputContainer.classList.add('hidden');
+                        manualLokasiMentahanInput.value = '';
                     }
 
-
-                    submitButton.textContent = 'Perbarui Game';
-                    formTitle.textContent = 'Edit Game';
                     editingGameId = gameId;
-                    cancelEditButton.classList.remove('hidden'); // Tampilkan tombol batal edit
-                    window.scrollTo({ top: 0, behavior: 'smooth' }); // Gulir ke atas formulir
+                    formTitle.textContent = "Edit Game";
+                    submitButton.textContent = "Update Game";
+                    cancelEditButton.classList.remove('hidden');
+
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                 }
-            } else if (e.target.classList.contains('delete-game-button')) {
-                if (!authReady) {
-                    displayMessage("Aplikasi belum siap. Harap tunggu otentikasi selesai.", "error");
-                    return;
-                }
-                const gameId = e.target.dataset.id;
-                displayConfirmation('Apakah Anda yakin ingin menghapus game ini?', async () => {
-                    const gamesColRef = getGamesCollectionRef();
-                    if (!gamesColRef) return;
-                    try {
-                        await deleteDoc(doc(gamesColRef, gameId));
-                        displayMessage("Game berhasil dihapus!", "success");
-                    } catch (e) {
-                        console.error("Error menghapus dokumen: ", e);
-                        displayMessage("Gagal menghapus game: " + e.message, "error");
-                    }
-                });
             }
         });
 
-        // Event listener untuk tombol batal edit
+        // Event listener untuk tombol Batal Edit
         cancelEditButton.addEventListener('click', () => {
-            gameForm.reset();
             editingGameId = null;
-            submitButton.textContent = 'Tambah Game';
-            formTitle.textContent = '';
+            gameForm.reset();
+            formTitle.textContent = "Tambah Game Baru";
+            submitButton.textContent = "Tambah Game";
             cancelEditButton.classList.add('hidden');
-            manualPlatformInputContainer.classList.add('hidden');
-            manualGamePlatformInput.value = '';
             manualStoreInputContainer.classList.add('hidden');
             manualGameStoreInput.value = '';
+            manualPlatformInputContainer.classList.add('hidden');
+            manualGamePlatformInput.value = '';
             manualLokasiMentahanInputContainer.classList.add('hidden');
             manualLokasiMentahanInput.value = '';
         });
 
-        // Event listener untuk pilihan 'manual' pada dropdown platform
-        gamePlatformSelect.addEventListener('change', (e) => {
-            if (e.target.value === 'manual') {
-                manualPlatformInputContainer.classList.remove('hidden');
-            } else {
-                manualPlatformInputContainer.classList.add('hidden');
-                manualGamePlatformInput.value = '';
-            }
-        });
-
-        // Event listener untuk pilihan 'manual' pada dropdown store
-        gameStoreSelect.addEventListener('change', (e) => {
-            if (e.target.value === 'manual') {
+        // Event listener untuk perubahan dropdown Toko/Platform Digital
+        gameStoreSelect.addEventListener('change', () => {
+            if (gameStoreSelect.value === 'manual') {
                 manualStoreInputContainer.classList.remove('hidden');
             } else {
                 manualStoreInputContainer.classList.add('hidden');
@@ -1422,9 +1175,19 @@
             }
         });
 
-        // Event listener untuk pilihan 'manual' pada dropdown lokasi mentahan
-        lokasiMentahanSelect.addEventListener('change', (e) => {
-            if (e.target.value === 'manual') {
+        // Event listener untuk perubahan dropdown Platform
+        gamePlatformSelect.addEventListener('change', () => {
+            if (gamePlatformSelect.value === 'manual') {
+                manualPlatformInputContainer.classList.remove('hidden');
+            } else {
+                manualPlatformInputContainer.classList.add('hidden');
+                manualGamePlatformInput.value = '';
+            }
+        });
+
+        // Event listener for Lokasi dropdown
+        lokasiMentahanSelect.addEventListener('change', () => {
+            if (lokasiMentahanSelect.value === 'manual') {
                 manualLokasiMentahanInputContainer.classList.remove('hidden');
             } else {
                 manualLokasiMentahanInputContainer.classList.add('hidden');
@@ -1432,171 +1195,192 @@
             }
         });
 
-        // Event listener untuk pencarian
-        searchGameInput.addEventListener('input', renderGames);
-
-        // Event listener untuk filter status
+        // Event listener untuk pencarian, filter, dan pengurutan
+        searchGameInput.addEventListener('input', () => {
+            currentPage = 1; // Reset halaman saat pencarian berubah
+            renderGames();
+        });
         filterStatusSelect.addEventListener('change', () => {
-            filterStatusSelect.dataset.currentValue = filterStatusSelect.value; // Store current value
+            currentPage = 1; // Reset halaman saat filter berubah
+            renderGames();
+        });
+        sortGamesSelect.addEventListener('change', () => {
+            currentPage = 1; // Reset halaman saat pengurutan berubah
             renderGames();
         });
 
-        // Event listener untuk filter platform
+        // New filter event listeners
         filterPlatformSelect.addEventListener('change', () => {
-            filterPlatformSelect.dataset.currentValue = filterPlatformSelect.value; // Store current value
+            filterPlatformSelect.dataset.currentValue = filterPlatformSelect.value;
+            currentPage = 1; // Reset halaman saat filter berubah
             renderGames();
         });
-
-        // Event listener untuk filter lokasi mentahan
         filterLokasiMentahanSelect.addEventListener('change', () => {
-            filterLokasiMentahanSelect.dataset.currentValue = filterLokasiMentahanSelect.value; // Store current value
+            filterLokasiMentahanSelect.dataset.currentValue = filterLokasiMentahanSelect.value;
+            currentPage = 1; // Reset halaman saat filter berubah
             renderGames();
         });
 
-        // Event listener untuk pengurutan
-        sortGamesSelect.addEventListener('change', renderGames);
+        // Fungsi untuk menampilkan pesan kustom (mengganti alert)
+        function displayMessage(message, type) {
+            const messageBox = document.createElement('div');
+            messageBox.className = `fixed top-4 right-4 p-4 rounded-md shadow-lg text-white z-50 transition-all duration-300 ease-in-out transform ${type === 'error' ? 'bg-red-500' : 'bg-green-500'} opacity-0 translate-y-[-20px]`;
+            messageBox.textContent = message;
+            document.body.appendChild(messageBox);
 
-        // Event listener untuk tombol ekspor data
-        exportDataButton.addEventListener('click', () => {
-            if (!authReady) {
-                displayMessage("Aplikasi belum siap. Harap tunggu otentikasi selesai.", "error");
-                return;
-            }
-            const dataToExport = {
-                games: games,
-                customOptions: {
-                    platforms: customPlatforms,
-                    stores: customStores,
-                    locations: customLocations,
-                    statuses: customStatuses
-                }
-            };
-            const dataStr = JSON.stringify(dataToExport, null, 2);
+            setTimeout(() => {
+                messageBox.classList.remove('opacity-0', 'translate-y-[-20px]');
+                messageBox.classList.add('opacity-100', 'translate-y-0');
+            }, 10);
+
+            setTimeout(() => {
+                messageBox.classList.remove('opacity-100', 'translate-y-0');
+                messageBox.classList.add('opacity-0', 'translate-y-[-20px]');
+                messageBox.addEventListener('transitionend', () => messageBox.remove());
+            }, 3000);
+        }
+
+        // Fungsi untuk menampilkan konfirmasi kustom (mengganti confirm)
+        function displayConfirmation(message, onConfirm) {
+            const modalOverlay = document.createElement('div');
+            modalOverlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modalOverlay.innerHTML = `
+                <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+                    <p class="text-lg font-semibold text-gray-800 mb-4">${message}</p>
+                    <div class="flex justify-center space-x-4">
+                        <button id="confirmYes" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">Ya</button>
+                        <button id="confirmNo" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">Tidak</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modalOverlay);
+
+            document.getElementById('confirmYes').addEventListener('click', () => {
+                onConfirm();
+                modalOverlay.remove();
+            });
+
+            document.getElementById('confirmNo').addEventListener('click', () => {
+                modalOverlay.remove();
+            });
+        }
+
+        // Fungsi untuk merender semua komponen yang perlu diperbarui
+        function renderAll() {
+            renderGames();
+            updateAllDropdowns(); // Re-populate all dropdowns including custom options and filter options
+        }
+
+        // --- Fitur Ekspor Data ke File JSON (digunakan untuk auto-download) ---
+        function exportData() {
+            const dataStr = JSON.stringify(games, null, 2); // Indentasi 2 spasi untuk keterbacaan
             const blob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `koleksi_game_data_${new Date().toISOString().slice(0, 10)}.json`;
+            a.download = 'game_collection.json';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            displayMessage("Data berhasil diekspor!", "success");
-        });
+            displayMessage("Data game berhasil diunduh!", "success");
+        }
 
-        // Event listener untuk tombol impor data
+        exportDataButton.addEventListener('click', exportData); // Menggunakan fungsi exportData
+
+        // --- Fitur Impor Data dari File JSON ---
         importDataButton.addEventListener('click', () => {
-            if (!authReady) {
-                displayMessage("Aplikasi belum siap. Harap tunggu otentikasi selesai.", "error");
-                return;
-            }
-            importFileInput.click(); // Trigger the hidden file input
+            importFileInput.click(); // Trigger klik pada input file tersembunyi
         });
 
         importFileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    if (importedData.games && Array.isArray(importedData.games)) {
-                        // For simplicity, we'll overwrite existing data.
-                        // In a more complex app, you might ask to merge or replace.
-                        const gamesColRef = getGamesCollectionRef();
-                        if (!gamesColRef) return;
-
-                        // Clear existing games first (optional, for clean overwrite)
-                        // This part is tricky with real-time listeners.
-                        // A safer approach for importing is to add/update documents one by one.
-
-                        for (const game of importedData.games) {
-                            // Firestore auto-generates IDs if you use addDoc.
-                            // If you want to retain IDs from export, use setDoc with a specific ID.
-                            // For simplicity, assuming new IDs for imported games, or merge by title.
-                            // Here we will add as new documents.
-                            const { id, ...gameWithoutId } = game; // Remove ID to let Firestore generate new one or use existing
-                            // If `id` exists in imported data, try to set it, otherwise add new
-                            if (id) {
-                                await setDoc(doc(gamesColRef, id), gameWithoutId, { merge: true });
-                            } else {
-                                await addDoc(gamesColRef, gameWithoutId);
-                            }
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedGames = JSON.parse(e.target.result);
+                        // Validasi sederhana: pastikan ini adalah array dan setiap item memiliki setidaknya 'id' dan 'title'
+                        if (Array.isArray(importedGames) && importedGames.every(g => g.id && g.title)) {
+                            displayConfirmation("Mengimpor data akan menimpa koleksi game Anda saat ini. Lanjutkan?", () => {
+                                games = importedGames;
+                                if (saveGames()) {
+                                    displayMessage("Data game berhasil diimpor!", "success");
+                                    currentPage = 1;
+                                    renderAll();
+                                }
+                            });
+                        } else {
+                            displayMessage("Format file JSON tidak valid. Pastikan berisi array objek game.", "error");
                         }
-                        displayMessage("Game berhasil diimpor!", "success");
+                    } catch (error) {
+                        displayMessage("Gagal membaca atau mengurai file JSON. Pastikan formatnya benar.", "error");
+                        console.error("Error importing file:", error);
                     }
-
-                    if (importedData.customOptions) {
-                        if (importedData.customOptions.platforms) {
-                            customPlatforms = [...new Set([...customPlatforms, ...importedData.customOptions.platforms])].sort();
-                        }
-                        if (importedData.customOptions.stores) {
-                            customStores = [...new Set([...customStores, ...importedData.customOptions.stores])].sort();
-                        }
-                        if (importedData.customOptions.locations) {
-                            customLocations = [...new Set([...customLocations, ...importedData.customOptions.locations])].sort();
-                        }
-                        if (importedData.customOptions.statuses) {
-                            customStatuses = [...new Set([...customStatuses, ...importedData.customOptions.statuses])].sort();
-                        }
-                        await saveCustomDropdownOptionsToFirestore(); // Save merged custom options
-                        displayMessage("Opsi kustom berhasil diimpor dan digabungkan!", "success");
-                    }
-                } catch (error) {
-                    console.error("Error importing data:", error);
-                    displayMessage("Gagal mengimpor data: File JSON tidak valid atau terjadi kesalahan.", "error");
-                }
-            };
-            reader.readAsText(file);
-        });
-
-        // Auto-download toggle
-        autoDownloadToggle.addEventListener('change', (e) => {
-            const isEnabled = e.target.checked;
-            localStorage.setItem('autoDownloadEnabled', isEnabled);
-            toggleAutoDownload(isEnabled, currentAutoDownloadInterval);
-            displayMessage(`Auto-download ${isEnabled ? 'diaktifkan' : 'dinonaktifkan'}.`, "info");
-        });
-
-        // Auto-download interval change
-        autoDownloadIntervalInput.addEventListener('change', (e) => {
-            const newInterval = parseInt(e.target.value);
-            if (newInterval > 0) {
-                currentAutoDownloadInterval = newInterval;
-                localStorage.setItem('autoDownloadInterval', newInterval);
-                if (autoDownloadToggle.checked) {
-                    toggleAutoDownload(false); // Stop current interval
-                    toggleAutoDownload(true, currentAutoDownloadInterval); // Start with new interval
-                    displayMessage(`Interval auto-download diatur ke ${newInterval} menit.`, "info");
-                }
-            } else {
-                e.target.value = currentAutoDownloadInterval; // Revert to last valid
-                displayMessage("Interval harus lebih besar dari 0.", "error");
+                };
+                reader.readAsText(file);
             }
         });
 
+        // --- Fitur Auto-download ---
         function toggleAutoDownload(enable, intervalMinutes) {
             if (autoDownloadIntervalId) {
-                clearInterval(autoDownloadIntervalId);
+                clearInterval(autoDownloadIntervalId); // Clear any existing interval
                 autoDownloadIntervalId = null;
             }
-            if (enable) {
+
+            if (enable && intervalMinutes && intervalMinutes > 0) {
+                const intervalMs = intervalMinutes * 60 * 1000;
                 autoDownloadIntervalId = setInterval(() => {
-                    exportDataButton.click(); // Programmatically click export button
-                    console.log(`Auto-download triggered at ${new Date().toLocaleTimeString()}`);
-                }, intervalMinutes * 60 * 1000); // Convert minutes to milliseconds
-                console.log(`Auto-download dijadwalkan setiap ${intervalMinutes} menit.`);
+                    exportData(); // Call the download function
+                }, intervalMs);
+                console.log(`Auto-download diaktifkan setiap ${intervalMinutes} menit.`);
+                displayMessage(`Auto-download diaktifkan setiap ${intervalMinutes} menit!`, "success");
+            } else if (enable && (!intervalMinutes || intervalMinutes <= 0)) {
+                displayMessage("Interval auto-download harus lebih dari 0 menit.", "error");
+                autoDownloadToggle.checked = false; // Uncheck if invalid interval
+            } else {
+                console.log("Auto-download dinonaktifkan.");
+                displayMessage("Auto-download dinonaktifkan.", "success");
             }
+            localStorage.setItem('autoDownloadEnabled', enable);
+            localStorage.setItem('autoDownloadInterval', intervalMinutes);
         }
 
-        // --- Event Listeners untuk Menambahkan Opsi Dropdown Kustom ---
-        addPlatformOptionButton.addEventListener('click', () => handleAddCustomOption(platformOptionInput, customPlatforms, currentPlatformOptionsList));
-        addStoreOptionButton.addEventListener('click', () => handleAddCustomOption(storeOptionInput, customStores, currentStoreOptionsList));
-        addLokasiOptionButton.addEventListener('click', () => handleAddCustomOption(lokasiOptionInput, customLocations, currentLokasiOptionsList));
-        addStatusOptionButton.addEventListener('click', () => handleAddCustomOption(statusOptionInput, customStatuses, currentStatusOptionsList));
+        autoDownloadToggle.addEventListener('change', () => {
+            const enable = autoDownloadToggle.checked;
+            const interval = parseInt(autoDownloadIntervalInput.value);
+            toggleAutoDownload(enable, interval);
+        });
 
-        // Event delegation for deleting custom options
+        autoDownloadIntervalInput.addEventListener('change', () => {
+            const enable = autoDownloadToggle.checked;
+            const interval = parseInt(autoDownloadIntervalInput.value);
+            if (interval <= 0) {
+                displayMessage("Interval harus lebih dari 0.", "error");
+                autoDownloadIntervalInput.value = currentAutoDownloadInterval; // Revert to last valid
+                return;
+            }
+            currentAutoDownloadInterval = interval; // Update current interval
+            toggleAutoDownload(enable, currentAutoDownloadInterval);
+        });
+
+
+        // --- New Event Listeners for adding custom dropdown items ---
+        addPlatformOptionButton.addEventListener('click', () => {
+            handleAddCustomOption(platformOptionInput, customPlatforms, currentPlatformOptionsList);
+        });
+        addStoreOptionButton.addEventListener('click', () => {
+            handleAddCustomOption(storeOptionInput, customStores, currentStoreOptionsList);
+        });
+        addLokasiOptionButton.addEventListener('click', () => {
+            handleAddCustomOption(lokasiOptionInput, customLocations, currentLokasiOptionsList);
+        });
+        addStatusOptionButton.addEventListener('click', () => {
+            handleAddCustomOption(statusOptionInput, customStatuses, currentStatusOptionsList);
+        });
+
+        // --- New Event Listeners for deleting custom dropdown items (delegation) ---
         currentPlatformOptionsList.addEventListener('click', (e) => {
             if (e.target.classList.contains('delete-custom-option-button')) {
                 handleDeleteCustomOption(e, customPlatforms);
@@ -1618,69 +1402,120 @@
             }
         });
 
-        // --- Tab Navigation ---
+        // --- Tab Functionality ---
+        function showTab(tabId) {
+            // Sembunyikan semua konten tab dan hapus kelas 'active' dari semua tombol tab
+            for (const key in tabContents) {
+                if (tabContents.hasOwnProperty(key)) {
+                    tabContents[key].classList.add('hidden');
+                }
+            }
+            tabButtons.forEach(button => {
+                button.classList.remove('active', 'bg-indigo-700', 'text-white', 'border-b-2', 'border-indigo-700');
+                button.classList.add('text-gray-700', 'hover:text-indigo-700');
+            });
+
+            // Tampilkan konten tab yang dipilih dan tambahkan kelas 'active' ke tombol yang sesuai
+            const selectedTabContent = tabContents[tabId];
+            if (selectedTabContent) {
+                selectedTabContent.classList.remove('hidden');
+            }
+            const activeTabButton = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+            if (activeTabButton) {
+                activeTabButton.classList.add('active', 'bg-indigo-700', 'text-white', 'border-b-2', 'border-indigo-700');
+                activeTabButton.classList.remove('text-gray-700', 'hover:text-indigo-700');
+            }
+
+            // Panggil fungsi render yang spesifik untuk tab jika diperlukan
+            if (tabId === 'game-list') {
+                renderAll(); // Rerender game list, filters, form state
+            } else if (tabId === 'statistics') {
+                renderStatistics(); // Rerender charts
+            } else if (tabId === 'data-management') {
+                updateAllDropdowns(); // Ensure custom lists are updated when navigating to this tab
+            }
+        }
+
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
-                const tabId = button.dataset.tab;
-                showTab(tabId);
+                showTab(button.dataset.tab);
             });
         });
 
-        function showTab(tabId) {
-            tabButtons.forEach(button => {
-                if (button.dataset.tab === tabId) {
-                    button.classList.add('active');
-                } else {
-                    button.classList.remove('active');
-                }
-            });
+        // --- Firebase Authentication Logic ---
 
-            for (const id in tabContents) {
-                if (id === tabId) {
-                    tabContents[id].classList.remove('hidden');
+        // Event listener untuk Login GitHub
+        signInGitHubButton.addEventListener('click', async () => {
+            const provider = new firebase.auth.GithubAuthProvider();
+            try {
+                await auth.signInWithPopup(provider);
+                displayMessage("Berhasil login dengan GitHub!", "success");
+            } catch (error) {
+                console.error("Error during GitHub login:", error);
+                if (error.code === 'auth/popup-closed-by-user') {
+                    displayMessage("Login GitHub dibatalkan oleh pengguna.", "error");
+                } else if (error.code === 'auth/cancelled-popup-request') {
+                    displayMessage("Permintaan login GitHub dibatalkan karena pop-up sudah terbuka.", "error");
                 } else {
-                    tabContents[id].classList.add('hidden');
+                    displayMessage(`Gagal login dengan GitHub: ${error.message}`, "error");
                 }
             }
+        });
 
-            // Render statistics only when the statistics tab is shown
-            if (tabId === 'statistics') {
-                renderStatistics();
+        // Event listener untuk Login Google
+        signInGoogleButton.addEventListener('click', async () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            try {
+                await auth.signInWithPopup(provider);
+                displayMessage("Berhasil login dengan Google!", "success");
+            } catch (error) {
+                console.error("Error during Google login:", error);
+                if (error.code === 'auth/popup-closed-by-user') {
+                    displayMessage("Login Google dibatalkan oleh pengguna.", "error");
+                } else if (error.code === 'auth/cancelled-popup-request') {
+                    displayMessage("Permintaan login Google dibatalkan karena pop-up sudah terbuka.", "error");
+                } else {
+                    displayMessage(`Gagal login dengan Google: ${error.message}`, "error");
+                }
             }
-        }
+        });
+
+        // Event listener untuk Logout
+        signOutButton.addEventListener('click', async () => {
+            try {
+                await auth.signOut();
+                displayMessage("Berhasil logout!", "success");
+            } catch (error) {
+                console.error("Error during logout:", error);
+                displayMessage(`Gagal logout: ${error.message}`, "error");
+            }
+        });
+
+        // Listener untuk perubahan status otentikasi
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                // Pengguna login
+                userStatusElement.textContent = `Anda login sebagai: ${user.displayName || user.email}`;
+                authButtonsDiv.classList.add('hidden'); // Sembunyikan tombol login
+                signOutButton.classList.remove('hidden'); // Tampilkan tombol logout
+                // Di sini Anda bisa memuat data game yang terkait dengan pengguna ini
+                // Jika Anda ingin data game disimpan per pengguna, Anda perlu memodifikasi saveGames/loadGames
+                // untuk menggunakan ID pengguna (user.uid) sebagai bagian dari path penyimpanan.
+                // Misalnya: localStorage.setItem(`gameCollection_${user.uid}`, JSON.stringify(games));
+                // Atau jika menggunakan Firestore, koleksi `games` bisa dibuat sub-koleksi di bawah `users/{uid}`.
+            } else {
+                // Pengguna logout
+                userStatusElement.textContent = "Anda belum login.";
+                authButtonsDiv.classList.remove('hidden'); // Tampilkan tombol login
+                signOutButton.classList.add('hidden'); // Sembunyikan tombol logout
+                // games = []; // Mungkin ingin mengosongkan game jika tidak login
+            }
+            renderAll(); // Render ulang daftar game dan UI lainnya
+        });
 
 
-        // --- Custom Modal Functions ---
-        let resolveConfirmation;
-
-        function displayConfirmation(message, onConfirm) {
-            modalMessage.textContent = message;
-            customModal.style.display = 'flex'; // Use flex to center
-            return new Promise((resolve) => {
-                resolveConfirmation = resolve;
-                modalConfirmYes.onclick = () => {
-                    customModal.style.display = 'none';
-                    onConfirm();
-                    resolve(true);
-                };
-                modalConfirmNo.onclick = () => {
-                    customModal.style.display = 'none';
-                    resolve(false);
-                };
-            });
-        }
-
-        function displayMessage(message, type = "info") {
-            messageModalText.textContent = message;
-            // You can add different styling based on type (success, error, info) if needed
-            messageModal.style.display = 'flex'; // Use flex to center
-            messageModalClose.onclick = () => {
-                messageModal.style.display = 'none';
-            };
-        }
-
-        // Initialize Firebase and load data on window load
-        window.onload = initializeFirebase;
+        // Memuat game dan merender semua saat halaman pertama kali dimuat
+        window.onload = loadGames;
     </script>
 </body>
 </html>
