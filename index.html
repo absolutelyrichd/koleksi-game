@@ -44,7 +44,7 @@
         let customStatuses = [];
         let editingGameId = null;
         let currentPage = 1;
-        const gamesPerPage = 6;
+        const gamesPerPage = 9; // Changed from 6 to 9
         let gameStatusPieChart = null;
         let platformPieChart = null;
         let lokasiMentahanPieChart = null;
@@ -488,13 +488,13 @@
             if (gamesToDisplay.length === 0) {
                 noGamesMessage.classList.remove('hidden');
                 // Pastikan kelas grid dihapus jika tidak ada game
-                gameListContainer.classList.remove('grid', 'grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-3', 'gap-4');
+                gameListContainer.classList.remove('grid', 'grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-3', 'gap-4'); // Added lg:grid-cols-3
                 gameListContainer.classList.add('space-y-4'); // Tambahkan kembali space-y-4 untuk konsistensi jika kosong
             } else {
                 noGamesMessage.classList.add('hidden');
                 // Terapkan tata letak grid untuk 3 kolom pada layar sedang dan lebih besar
                 gameListContainer.classList.remove('space-y-4');
-                gameListContainer.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-3', 'gap-4');
+                gameListContainer.classList.add('grid', 'grid-cols-1', 'sm:grid-cols-2', 'md:grid-cols-3', 'lg:grid-cols-3', 'gap-4'); // Added lg:grid-cols-3
 
                 gamesToDisplay.forEach(game => {
                     const gameItem = document.createElement('div');
