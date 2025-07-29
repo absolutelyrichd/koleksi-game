@@ -464,7 +464,7 @@
                         await loadAllDataFromFirestore();
                         showTab('game-list'); // Tampilkan tab awal setelah data dimuat
                     } else {
-                        // Tidak login, coba anonim atau tampilkan opsi login
+                        // Tidak login, tampilkan opsi login
                         userId = null;
                         document.getElementById('userIdDisplay').textContent = "Anda belum login.";
                         document.getElementById('signOutButton').classList.add('hidden'); // Sembunyikan tombol sign out
@@ -474,11 +474,13 @@
                         document.getElementById('googleSignInButton').textContent = 'Login dengan Google'; // Reset teks
                         authReady = false; // Set authReady ke false jika pengguna adalah null
                         try {
-                            if (initialAuthToken) {
-                                await signInWithCustomToken(auth, initialAuthToken);
-                            } else {
-                                await signInAnonymously(auth);
-                            }
+                            // Remove anonymous sign-in
+                            // if (initialAuthToken) {
+                            //     await signInWithCustomToken(auth, initialAuthToken);
+                            // } else {
+                            //     await signInAnonymously(auth);
+                            // }
+                            console.log("Pengguna tidak login. Menunggu login melalui GitHub atau Google.");
                         } catch (error) {
                             console.error("Firebase Auth Error:", error);
                             displayMessage("Gagal otentikasi dengan Firebase: " + error.message, "error");
