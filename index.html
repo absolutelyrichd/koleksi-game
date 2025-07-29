@@ -1230,17 +1230,19 @@
         // Initial setup on window load
         window.onload = async function() {
             showLoading("Menginisialisasi aplikasi...");
-            // Attempt to sign in with custom token if available, otherwise anonymously
+            // Attempt to sign in with custom token if available, otherwise prompt for Google login
             if (initialAuthToken) {
                 try {
                     await signInWithCustomToken(auth, initialAuthToken);
                 } catch (error) {
                     console.error("Error signing in with custom token:", error);
-                    // Fallback to anonymous if custom token fails
-                    await signInAnonymously(auth);
+                    // If custom token fails, user will need to log in manually via Google
+                    displayMessage("Gagal masuk otomatis. Silakan masuk dengan Google.", "error");
+                    hideLoading(); // Hide loading if auto-login fails
                 }
             } else {
-                await signInAnonymously(auth);
+                // If no initialAuthToken, user will need to log in manually via Google
+                hideLoading(); // Hide loading if no auto-login attempt
             }
 
             // Load auto-download settings from localStorage
