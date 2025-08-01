@@ -79,21 +79,14 @@
         ];
 
         // DOM element references
+        const gameFormModal = document.getElementById('gameFormModal');
+        const openAddGameModalButton = document.getElementById('openAddGameModalButton');
+        const closeModalButton = document.getElementById('closeModalButton');
         const gameForm = document.getElementById('gameForm');
         const formTitle = document.getElementById('formTitle');
-        const gameTitleInput = document.getElementById('gameTitle');
-        const gamePlatformSelect = document.getElementById('gamePlatform');
-        const manualPlatformInputContainer = document.getElementById('manualPlatformInputContainer');
-        const manualGamePlatformInput = document.getElementById('manualGamePlatform');
-        const gameStoreSelect = document.getElementById('gameStore');
-        const manualStoreInputContainer = document.getElementById('manualStoreInputContainer');
-        const manualGameStoreInput = document.getElementById('manualGameStore');
-        const gameStatusSelect = document.getElementById('gameStatus');
-        const lokasiMentahanSelect = document.getElementById('lokasiMentahan');
-        const manualLokasiMentahanInputContainer = document.getElementById('manualLokasiMentahanInputContainer');
-        const manualLokasiMentahanInput = document.getElementById('manualLokasiMentahan');
+        const gameFormContainer = document.getElementById('gameFormContainer');
+        const addGameRowButton = document.getElementById('addGameRowButton');
         const submitButton = document.getElementById('submitButton');
-        const cancelEditButton = document.getElementById('cancelEditButton');
         const gameListContainer = document.getElementById('gameList');
         const searchGameInput = document.getElementById('searchGame');
         const filterStatusSelect = document.getElementById('filterStatus');
@@ -284,12 +277,8 @@
                 if (gameData.id) {
                     const gameDocRef = doc(gamesColRef, gameData.id);
                     await setDoc(gameDocRef, gameData, { merge: true });
-                    displayMessage("Game berhasil diperbarui!", "success");
                 } else {
-                    const newGame = { ...gameData };
-                    const docRef = await addDoc(gamesColRef, newGame);
-                    newGame.id = docRef.id;
-                    displayMessage("Game berhasil ditambahkan!", "success");
+                    await addDoc(gamesColRef, gameData);
                 }
                 hideLoading();
                 return true;
@@ -399,11 +388,13 @@
             const allStatuses = [...new Set([...defaultStatuses, ...customStatuses])].sort();
             const allLokasiMentahan = [...new Set([...defaultLokasiMentahanOptions, ...customLocations])].sort();
 
-            populateSelect(gamePlatformSelect, allPlatforms, true);
-            populateSelect(gameStoreSelect, allStores, true);
-            populateSelect(gameStatusSelect, allStatuses, false);
-            populateSelect(lokasiMentahanSelect, allLokasiMentahan, true, true);
+            // Dropdowns in the modal form
+            document.querySelectorAll('[id^="gamePlatform-"]').forEach(select => populateSelect(select, allPlatforms, true));
+            document.querySelectorAll('[id^="gameStore-"]').forEach(select => populateSelect(select, allStores, true));
+            document.querySelectorAll('[id^="gameStatus-"]').forEach(select => populateSelect(select, allStatuses, false));
+            document.querySelectorAll('[id^="lokasiMentahan-"]').forEach(select => populateSelect(select, allLokasiMentahan, true, true));
 
+            // Filter dropdowns
             populateSelect(filterPlatformSelect, ['all', ...allPlatforms], false);
             populateSelect(filterDigitalPlatformSelect, ['all', ...allStores], false);
             populateSelect(filterStatusSelect, ['all', ...allStatuses], false);
@@ -414,6 +405,7 @@
             renderCustomOptionsList(customLocations, currentLokasiOptionsList);
             renderCustomOptionsList(customStatuses, currentStatusOptionsList);
 
+            // Maintain current filter selection
             filterPlatformSelect.value = filterPlatformSelect.dataset.currentValue || 'all';
             filterDigitalPlatformSelect.value = filterDigitalPlatformSelect.dataset.currentValue || 'all';
             filterLokasiMentahanSelect.value = filterLokasiMentahanSelect.dataset.currentValue || 'all';
@@ -631,33 +623,32 @@
         // Fungsi untuk membuat atau memperbarui diagram
         function createOrUpdateChart(chartInstance, canvasId, data, title, legendElement) {
             const ctx = document.getElementById(canvasId).getContext('2d');
-
+            
+            // Destroy the old chart instance if it exists to prevent errors and memory leaks.
             if (chartInstance) {
-                chartInstance.data = data;
-                chartInstance.options.plugins.title.text = title;
-                chartInstance.update();
-            } else {
-                chartInstance = new Chart(ctx, {
-                    type: 'pie',
-                    data: data,
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false, // Allows setting a custom size
-                        plugins: {
-                            legend: {
-                                display: false,
-                            },
-                            title: {
-                                display: true,
-                                text: title,
-                                font: {
-                                    size: 16
-                                }
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'pie',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Allows setting a custom size
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        title: {
+                            display: true,
+                            text: title,
+                            font: {
+                                size: 16
                             }
                         }
                     }
-                });
-            }
+                }
+            });
 
             // Render custom legend
             renderChartLegend(data, legendElement);
@@ -703,7 +694,7 @@
 
             // Data untuk chart Digital Platform
             const digitalPlatformData = prepareChartData(games, 'store');
-            digitalPlatformPieChart = createOrUpdateChart(digitalPlatformPieChart, 'digitalPlatformChart', digitalPlatformData, 'Platform Digital', digitalPlatformLegend);
+            digitalPlatformPieChart = createOrUpdateChart(digitalPlatformChartCanvas, 'digitalPlatformChart', digitalPlatformData, 'Platform Digital', digitalPlatformLegend);
 
             // Data untuk chart Lokasi Mentahan
             const lokasiMentahanData = prepareChartData(games, 'lokasiMentahan');
@@ -746,7 +737,10 @@
             // Other event listeners
             gameForm.addEventListener('submit', handleFormSubmit);
             gameListContainer.addEventListener('click', handleGameListActions);
-            cancelEditButton.addEventListener('click', resetForm);
+            openAddGameModalButton.addEventListener('click', openAddGameModal);
+            closeModalButton.addEventListener('click', closeAddGameModal);
+            addGameRowButton.addEventListener('click', addGameFormRow);
+
             searchGameInput.addEventListener('input', renderGames);
             filterStatusSelect.addEventListener('change', () => {
                 filterStatusSelect.dataset.currentValue = filterStatusSelect.value;
@@ -784,14 +778,31 @@
                 sidebar.classList.toggle('-translate-x-full');
             });
 
-            // Handle manual input fields
-            gamePlatformSelect.addEventListener('change', (e) => toggleManualInput(e, manualPlatformInputContainer));
-            gameStoreSelect.addEventListener('change', (e) => toggleManualInput(e, manualStoreInputContainer));
-            lokasiMentahanSelect.addEventListener('change', (e) => toggleManualInput(e, manualLokasiMentahanInputContainer));
-            addPlatformOptionButton.addEventListener('click', () => handleAddCustomOption(platformOptionInput, customPlatforms));
-            addStoreOptionButton.addEventListener('click', () => handleAddCustomOption(storeOptionInput, customStores));
-            addLokasiOptionButton.addEventListener('click', () => handleAddCustomOption(lokasiOptionInput, customLocations));
-            addStatusOptionButton.addEventListener('click', () => handleAddCustomOption(statusOptionInput, customStatuses));
+            // Event listeners for dynamic form rows
+            gameFormContainer.addEventListener('change', (e) => {
+                if (e.target.classList.contains('gamePlatform-select')) {
+                    toggleManualInput(e.target, e.target.dataset.index, 'platform');
+                }
+                if (e.target.classList.contains('gameStore-select')) {
+                    toggleManualInput(e.target, e.target.dataset.index, 'store');
+                }
+                if (e.target.classList.contains('lokasiMentahan-select')) {
+                    toggleManualInput(e.target, e.target.dataset.index, 'lokasiMentahan');
+                }
+            });
+            gameFormContainer.addEventListener('click', (e) => {
+                if (e.target.classList.contains('delete-row-button')) {
+                    const row = e.target.closest('.game-form-row');
+                    if (row) {
+                        row.remove();
+                    }
+                }
+            });
+
+            addPlatformOptionButton.addEventListener('click', () => handleAddCustomOption(platformOptionInput, customPlatforms, currentPlatformOptionsList));
+            addStoreOptionButton.addEventListener('click', () => handleAddCustomOption(storeOptionInput, customStores, currentStoreOptionsList));
+            addLokasiOptionButton.addEventListener('click', () => handleAddCustomOption(lokasiOptionInput, customLocations, currentLokasiOptionsList));
+            addStatusOptionButton.addEventListener('click', () => handleAddCustomOption(statusOptionInput, customStatuses, currentStatusOptionsList));
 
             document.getElementById('currentPlatformOptionsList').addEventListener('click', (e) => {
                 if (e.target.classList.contains('delete-custom-option-button')) {
@@ -822,45 +833,198 @@
             autoDownloadIntervalInput.addEventListener('input', handleAutoDownloadIntervalChange);
         });
 
-        function handleFormSubmit(e) {
+        // --- Modal and Form Row Logic ---
+        function openAddGameModal() {
+            gameFormModal.classList.remove('hidden');
+            gameForm.reset();
+            gameFormContainer.innerHTML = '';
+            addGameFormRow();
+            formTitle.textContent = 'Tambah Game Baru';
+            addGameRowButton.classList.remove('hidden');
+            editingGameId = null;
+        }
+
+        function closeAddGameModal() {
+            gameFormModal.classList.add('hidden');
+        }
+
+        function addGameFormRow(game = null) {
+            const index = gameFormContainer.children.length;
+            const gameRow = document.createElement('div');
+            gameRow.className = 'game-form-row bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4';
+            gameRow.innerHTML = `
+                <div class="flex items-center justify-between mb-4">
+                    <h4 class="text-lg font-semibold text-gray-700">Game #${index + 1}</h4>
+                    <button type="button" class="delete-row-button text-red-500 hover:text-red-700 font-bold ${index === 0 && !game ? 'hidden' : ''}">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+                <input type="hidden" id="gameId-${index}" value="${game ? game.id : ''}">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="gameTitle-${index}" class="block text-sm font-medium text-gray-700">Judul Game</label>
+                        <input type="text" id="gameTitle-${index}" data-index="${index}" placeholder="Misal: The Witcher 3: Wild Hunt" required
+                               class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="gamePlatform-${index}" class="block text-sm font-medium text-gray-700">Platform</label>
+                        <select id="gamePlatform-${index}" data-index="${index}" required
+                                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 gamePlatform-select">
+                        </select>
+                        <div id="manualPlatformInputContainer-${index}" class="mt-2 hidden">
+                            <input type="text" id="manualGamePlatform-${index}" placeholder="Masukkan nama platform"
+                                   class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="gameStore-${index}" class="block text-sm font-medium text-gray-700">Platform Digital</label>
+                        <select id="gameStore-${index}" data-index="${index}" required
+                                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 gameStore-select">
+                        </select>
+                        <div id="manualStoreInputContainer-${index}" class="mt-2 hidden">
+                            <input type="text" id="manualGameStore-${index}" placeholder="Masukkan nama platform digital"
+                                   class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="gameStatus-${index}" class="block text-sm font-medium text-gray-700">Status</label>
+                        <select id="gameStatus-${index}" data-index="${index}" required
+                                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        </select>
+                    </div>
+                    <div>
+                        <label for="lokasiMentahan-${index}" class="block text-sm font-medium text-gray-700">Lokasi File Mentahan</label>
+                        <select id="lokasiMentahan-${index}" data-index="${index}" required
+                                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 lokasiMentahan-select">
+                        </select>
+                        <div id="manualLokasiMentahanInputContainer-${index}" class="mt-2 hidden">
+                            <input type="text" id="manualLokasiMentahan-${index}" placeholder="Masukkan lokasi file"
+                                   class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+                    </div>
+                </div>
+            `;
+            gameFormContainer.appendChild(gameRow);
+            updateAllDropdowns();
+
+            // Populate form if editing
+            if (game) {
+                document.getElementById(`gameTitle-${index}`).value = game.title;
+                const platformSelect = document.getElementById(`gamePlatform-${index}`);
+                const platformManualInput = document.getElementById(`manualGamePlatform-${index}`);
+                const storeSelect = document.getElementById(`gameStore-${index}`);
+                const storeManualInput = document.getElementById(`manualGameStore-${index}`);
+                const lokasiSelect = document.getElementById(`lokasiMentahan-${index}`);
+                const lokasiManualInput = document.getElementById(`manualLokasiMentahan-${index}`);
+
+                if ([...defaultPlatforms, ...customPlatforms].includes(game.platform)) {
+                    platformSelect.value = game.platform;
+                } else {
+                    platformSelect.value = 'manual';
+                    platformManualInput.value = game.platform;
+                    platformManualInput.parentElement.classList.remove('hidden');
+                }
+
+                if ([...defaultStores, ...customStores].includes(game.store)) {
+                    storeSelect.value = game.store;
+                } else {
+                    storeSelect.value = 'manual';
+                    storeManualInput.value = game.store;
+                    storeManualInput.parentElement.classList.remove('hidden');
+                }
+
+                document.getElementById(`gameStatus-${index}`).value = game.status;
+                
+                if ([...defaultLokasiMentahanOptions, ...customLocations].includes(game.lokasiMentahan)) {
+                    lokasiSelect.value = game.lokasiMentahan;
+                } else {
+                    lokasiSelect.value = 'manual';
+                    lokasiManualInput.value = game.lokasiMentahan;
+                    lokasiManualInput.parentElement.classList.remove('hidden');
+                }
+            }
+        }
+
+        function toggleManualInput(selectElement, index, type) {
+            let container;
+            let inputElement;
+
+            if (type === 'platform') {
+                container = document.getElementById(`manualPlatformInputContainer-${index}`);
+                inputElement = document.getElementById(`manualGamePlatform-${index}`);
+            } else if (type === 'store') {
+                container = document.getElementById(`manualStoreInputContainer-${index}`);
+                inputElement = document.getElementById(`manualGameStore-${index}`);
+            } else if (type === 'lokasiMentahan') {
+                container = document.getElementById(`manualLokasiMentahanInputContainer-${index}`);
+                inputElement = document.getElementById(`manualLokasiMentahan-${index}`);
+            }
+
+            if (selectElement.value === 'manual') {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+                inputElement.value = '';
+            }
+        }
+
+        async function handleFormSubmit(e) {
             e.preventDefault();
-
-            let title = gameTitleInput.value.trim();
-            let platform = gamePlatformSelect.value;
-            let store = gameStoreSelect.value;
-            let status = gameStatusSelect.value;
-            let lokasiMentahan = lokasiMentahanSelect.value;
-
-            // Use manual input if 'manual' option is selected
-            if (platform === 'manual') {
-                platform = manualGamePlatformInput.value.trim();
-            }
-            if (store === 'manual') {
-                store = manualGameStoreInput.value.trim();
-            }
-            if (lokasiMentahan === 'manual') {
-                lokasiMentahan = manualLokasiMentahanInput.value.trim();
-            }
-
-            if (!title || !platform || !store || !status || !lokasiMentahan) {
-                displayMessage("Harap lengkapi semua bidang form.", "error");
+            const formRows = document.querySelectorAll('.game-form-row');
+            if (formRows.length === 0) {
+                displayMessage("Tidak ada game untuk disimpan.", "error");
                 return;
             }
 
-            const gameData = {
-                title,
-                platform,
-                store,
-                status,
-                lokasiMentahan
-            };
+            const gamesToSave = [];
+            let isValid = true;
+            formRows.forEach((row, index) => {
+                const titleInput = document.getElementById(`gameTitle-${index}`);
+                const platformSelect = document.getElementById(`gamePlatform-${index}`);
+                const platformManualInput = document.getElementById(`manualGamePlatform-${index}`);
+                const storeSelect = document.getElementById(`gameStore-${index}`);
+                const storeManualInput = document.getElementById(`manualGameStore-${index}`);
+                const statusSelect = document.getElementById(`gameStatus-${index}`);
+                const lokasiSelect = document.getElementById(`lokasiMentahan-${index}`);
+                const lokasiManualInput = document.getElementById(`manualLokasiMentahan-${index}`);
+                const gameIdInput = document.getElementById(`gameId-${index}`);
 
-            if (editingGameId) {
-                gameData.id = editingGameId;
+                const title = titleInput.value.trim();
+                const platform = platformSelect.value === 'manual' ? platformManualInput.value.trim() : platformSelect.value;
+                const store = storeSelect.value === 'manual' ? storeManualInput.value.trim() : storeSelect.value;
+                const status = statusSelect.value;
+                const lokasiMentahan = lokasiSelect.value === 'manual' ? lokasiManualInput.value.trim() : lokasiSelect.value;
+
+                if (!title || !platform || !store || !status || !lokasiMentahan) {
+                    isValid = false;
+                    displayMessage(`Harap lengkapi semua bidang untuk Game #${index + 1}.`, "error");
+                    return;
+                }
+
+                gamesToSave.push({
+                    id: gameIdInput.value || null,
+                    title,
+                    platform,
+                    store,
+                    status,
+                    lokasiMentahan
+                });
+            });
+
+            if (isValid) {
+                showLoading("Menyimpan game...");
+                const savePromises = gamesToSave.map(game => saveGameToFirestore(game));
+                try {
+                    await Promise.all(savePromises);
+                    displayMessage(`Berhasil menyimpan ${gamesToSave.length} game!`, "success");
+                    closeAddGameModal();
+                } catch (error) {
+                    console.error("Error saving games:", error);
+                    displayMessage(`Gagal menyimpan game. Periksa konsol untuk detailnya.`, "error");
+                } finally {
+                    hideLoading();
+                }
             }
-
-            saveGameToFirestore(gameData);
-            resetForm();
         }
 
         function handleGameListActions(e) {
@@ -877,60 +1041,11 @@
         }
 
         function editGame(game) {
+            openAddGameModal();
             formTitle.textContent = 'Edit Game';
-            submitButton.textContent = 'Simpan Perubahan';
-            cancelEditButton.classList.remove('hidden');
-            editingGameId = game.id;
-
-            gameTitleInput.value = game.title;
-            // Set dropdowns or show manual input
-            if ([...defaultPlatforms, ...customPlatforms].includes(game.platform)) {
-                gamePlatformSelect.value = game.platform;
-                manualPlatformInputContainer.classList.add('hidden');
-            } else {
-                gamePlatformSelect.value = 'manual';
-                manualGamePlatformInput.value = game.platform;
-                manualPlatformInputContainer.classList.remove('hidden');
-            }
-
-            if ([...defaultStores, ...customStores].includes(game.store)) {
-                gameStoreSelect.value = game.store;
-                manualStoreInputContainer.classList.add('hidden');
-            } else {
-                gameStoreSelect.value = 'manual';
-                manualGameStoreInput.value = game.store;
-                manualStoreInputContainer.classList.remove('hidden');
-            }
-
-            gameStatusSelect.value = game.status;
-
-            if ([...defaultLokasiMentahanOptions, ...customLocations].includes(game.lokasiMentahan)) {
-                lokasiMentahanSelect.value = game.lokasiMentahan;
-                manualLokasiMentahanInputContainer.classList.add('hidden');
-            } else {
-                lokasiMentahanSelect.value = 'manual';
-                manualLokasiMentahanInput.value = game.lokasiMentahan;
-                manualLokasiMentahanInputContainer.classList.remove('hidden');
-            }
-        }
-
-        function resetForm() {
-            gameForm.reset();
-            formTitle.textContent = 'Tambah Game Baru';
-            submitButton.textContent = 'Tambah Game';
-            cancelEditButton.classList.add('hidden');
-            editingGameId = null;
-            manualPlatformInputContainer.classList.add('hidden');
-            manualStoreInputContainer.classList.add('hidden');
-            manualLokasiMentahanInputContainer.classList.add('hidden');
-        }
-
-        function toggleManualInput(event, container) {
-            if (event.target.value === 'manual') {
-                container.classList.remove('hidden');
-            } else {
-                container.classList.add('hidden');
-            }
+            document.getElementById('addGameRowButton').classList.add('hidden');
+            gameFormContainer.innerHTML = ''; // Clear form
+            addGameFormRow(game); // Add a single row with game data
         }
 
         function showLoading(message) {
@@ -1097,6 +1212,31 @@
         </div>
     </div>
 
+    <!-- Modal for adding/editing games -->
+    <div id="gameFormModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 m-4 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
+            <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
+                <h2 id="formTitle" class="text-2xl font-bold text-gray-800">Tambah Game Baru</h2>
+                <button id="closeModalButton" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="gameForm">
+                <div id="gameFormContainer" class="space-y-4">
+                    <!-- Dynamic form rows will be inserted here -->
+                </div>
+                <div class="flex justify-between items-center mt-6">
+                    <button type="button" id="addGameRowButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">
+                        <i class="fas fa-plus mr-2"></i> Tambah Baris Game
+                    </button>
+                    <button id="submitButton" type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">
+                        Simpan Semua Game
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="flex h-screen bg-gray-100">
         <!-- Sidebar -->
         <div id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out bg-white w-64 p-6 shadow-lg md:shadow-none z-40">
@@ -1139,54 +1279,11 @@
             </header>
             <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
                 <div id="game-list" class="tab-content hidden">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-6">Daftar Koleksi Game</h1>
-
-                    <!-- Form Tambah/Edit Game -->
-                    <div class="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-200">
-                        <h2 id="formTitle" class="text-xl font-semibold text-gray-800 mb-4">Tambah Game Baru</h2>
-                        <form id="gameForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="gameTitle" class="block text-sm font-medium text-gray-700">Judul Game</label>
-                                <input type="text" id="gameTitle" placeholder="Misal: The Witcher 3: Wild Hunt" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            <div>
-                                <label for="gamePlatform" class="block text-sm font-medium text-gray-700">Platform</label>
-                                <select id="gamePlatform" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                </select>
-                                <div id="manualPlatformInputContainer" class="mt-2 hidden">
-                                    <input type="text" id="manualGamePlatform" placeholder="Masukkan nama platform" class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                </div>
-                            </div>
-                            <div>
-                                <label for="gameStore" class="block text-sm font-medium text-gray-700">Platform Digital</label>
-                                <select id="gameStore" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                </select>
-                                <div id="manualStoreInputContainer" class="mt-2 hidden">
-                                    <input type="text" id="manualGameStore" placeholder="Masukkan nama platform digital" class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                </div>
-                            </div>
-                            <div>
-                                <label for="gameStatus" class="block text-sm font-medium text-gray-700">Status</label>
-                                <select id="gameStatus" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                </select>
-                            </div>
-                            <div>
-                                <label for="lokasiMentahan" class="block text-sm font-medium text-gray-700">Lokasi File Mentahan</label>
-                                <select id="lokasiMentahan" required class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                </select>
-                                <div id="manualLokasiMentahanInputContainer" class="mt-2 hidden">
-                                    <input type="text" id="manualLokasiMentahan" placeholder="Masukkan lokasi file" class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                </div>
-                            </div>
-                            <div class="col-span-1 md:col-span-2 flex flex-col sm:flex-row gap-2 mt-4">
-                                <button id="submitButton" type="submit" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">
-                                    Tambah Game
-                                </button>
-                                <button id="cancelEditButton" type="button" class="w-full sm:w-auto bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out hidden">
-                                    Batal
-                                </button>
-                            </div>
-                        </form>
+                    <div class="flex items-center justify-between mb-6">
+                        <h1 class="text-3xl font-bold text-gray-900">Daftar Koleksi Game</h1>
+                        <button id="openAddGameModalButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
+                            <i class="fas fa-plus mr-2"></i> Tambah Game Baru
+                        </button>
                     </div>
 
                     <!-- Filter dan Pencarian -->
