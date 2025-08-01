@@ -472,16 +472,11 @@
 
             filteredGames.sort((a, b) => {
                 switch (sortOption) {
-                    case 'title-asc':
-                        return a.title.localeCompare(b.title);
-                    case 'title-desc':
-                        return b.title.localeCompare(a.title);
-                    case 'platform-asc':
-                        return a.platform.localeCompare(b.platform);
-                    case 'status-asc':
-                        return a.status.localeCompare(b.status);
-                    default:
-                        return 0;
+                    case 'title-asc': return a.title.localeCompare(b.title);
+                    case 'title-desc': return b.title.localeCompare(a.title);
+                    case 'platform-asc': return a.platform.localeCompare(b.platform);
+                    case 'status-asc': return a.status.localeCompare(b.status);
+                    default: return 0;
                 }
             });
 
@@ -533,7 +528,6 @@
             if (totalPages <= 1) {
                 return;
             }
-
             const prevButton = document.createElement('button');
             prevButton.textContent = 'Sebelumnya';
             prevButton.className = `px-4 py-2 rounded-md transition duration-300 ${currentPage === 1 ? 'bg-gray-300 text-gray-600 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`;
@@ -572,16 +566,11 @@
 
         function getStatusColorClass(status) {
             switch (status) {
-                case 'Dimainkan':
-                    return 'bg-blue-500 text-white';
-                case 'Selesai':
-                    return 'bg-green-500 text-white';
-                case 'Belum Dimainkan':
-                    return 'bg-yellow-500 text-white';
-                case 'Wishlist':
-                    return 'bg-gray-500 text-white';
-                default:
-                    return 'bg-gray-300 text-gray-800';
+                case 'Dimainkan': return 'bg-blue-500 text-white';
+                case 'Selesai': return 'bg-green-500 text-white';
+                case 'Belum Dimainkan': return 'bg-yellow-500 text-white';
+                case 'Wishlist': return 'bg-gray-500 text-white';
+                default: return 'bg-gray-300 text-gray-800';
             }
         }
 
@@ -606,501 +595,100 @@
             const labels = Object.keys(counts);
             const data = Object.values(counts);
 
-            const backgroundColors = labels.map((_, index) =>
-                elegantColors[index % elegantColors.length]
-            );
-
-            return {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: backgroundColors,
-                    hoverOffset: 4
-                }]
-            };
+            return { labels, data };
         }
 
-        // Fungsi untuk membuat atau memperbarui diagram
-        function createOrUpdateChart(chartInstance, canvasId, data, title, legendElement) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            
-            // Destroy the old chart instance if it exists to prevent errors and memory leaks.
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
+        // Fungsi untuk membuat diagram lingkaran
+        function createPieChart(canvasElement, data, labels, chartTitle, legendContainer) {
+            if (canvasElement) {
+                // Hancurkan chart yang ada sebelum membuat yang baru
+                const existingChart = Chart.getChart(canvasElement);
+                if (existingChart) {
+                    existingChart.destroy();
+                }
 
-            chartInstance = new Chart(ctx, {
-                type: 'pie',
-                data: data,
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false, // Allows setting a custom size
-                    plugins: {
-                        legend: {
-                            display: false,
-                        },
-                        title: {
-                            display: true,
-                            text: title,
-                            font: {
-                                size: 16
+                const chart = new Chart(canvasElement, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: elegantColors.slice(0, labels.length),
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            title: {
+                                display: true,
+                                text: chartTitle,
+                                font: {
+                                    size: 16
+                                },
+                                color: '#374151'
                             }
                         }
                     }
-                }
-            });
+                });
 
-            // Render custom legend
-            renderChartLegend(data, legendElement);
+                // Render custom legend
+                renderChartLegend(legendContainer, labels, chart.data.datasets[0].backgroundColor);
 
-            return chartInstance;
+                return chart;
+            }
+            return null;
         }
 
-        // Fungsi untuk merender legend kustom
-        function renderChartLegend(chartData, legendElement) {
-            if (!legendElement) return;
-
-            legendElement.innerHTML = '';
-            if (chartData.labels.length === 0) {
-                legendElement.innerHTML = '<p class="text-sm text-gray-500">Tidak ada data.</p>';
-                return;
-            }
-
-            chartData.labels.forEach((label, index) => {
-                const color = chartData.datasets[0].backgroundColor[index];
-                const count = chartData.datasets[0].data[index];
-                const total = chartData.datasets[0].data.reduce((sum, value) => sum + value, 0);
-                const percentage = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
-
+        // Fungsi untuk merender legenda kustom
+        function renderChartLegend(legendContainer, labels, colors) {
+            if (!legendContainer) return;
+            legendContainer.innerHTML = '';
+            labels.forEach((label, index) => {
                 const legendItem = document.createElement('div');
                 legendItem.className = 'flex items-center space-x-2';
                 legendItem.innerHTML = `
-                    <div class="w-4 h-4 rounded-full" style="background-color: ${color}"></div>
-                    <span class="text-sm text-gray-600">${label} (${count}) - ${percentage}%</span>
+                    <span class="w-3 h-3 rounded-full" style="background-color: ${colors[index]}"></span>
+                    <span class="text-sm text-gray-700">${label}</span>
                 `;
-                legendElement.appendChild(legendItem);
+                legendContainer.appendChild(legendItem);
             });
         }
 
-        // Fungsi utama untuk merender semua diagram
+        // Render semua chart
         function renderCharts() {
-            // Data untuk chart Status
-            const statusData = prepareChartData(games, 'status');
-            gameStatusPieChart = createOrUpdateChart(gameStatusPieChart, 'gameStatusChart', statusData, 'Status Game', gameStatusLegend);
+            const gameStatusData = prepareChartData(games, 'status');
+            gameStatusPieChart = createPieChart(gameStatusChartCanvas, gameStatusData.data, gameStatusData.labels, 'Distribusi Status Game', gameStatusLegend);
 
-            // Data untuk chart Platform
             const platformData = prepareChartData(games, 'platform');
-            platformPieChart = createOrUpdateChart(platformPieChart, 'platformChart', platformData, 'Platform Game', platformLegend);
+            platformPieChart = createPieChart(platformChartCanvas, platformData.data, platformData.labels, 'Distribusi Platform', platformLegend);
 
-            // Data untuk chart Digital Platform
-            const digitalPlatformData = prepareChartData(games, 'store');
-            digitalPlatformPieChart = createOrUpdateChart(digitalPlatformChartCanvas, 'digitalPlatformChart', digitalPlatformData, 'Platform Digital', digitalPlatformLegend);
-
-            // Data untuk chart Lokasi Mentahan
             const lokasiMentahanData = prepareChartData(games, 'lokasiMentahan');
-            lokasiMentahanPieChart = createOrUpdateChart(lokasiMentahanPieChart, 'lokasiMentahanChart', lokasiMentahanData, 'Lokasi File', lokasiMentahanLegend);
+            lokasiMentahanPieChart = createPieChart(lokasiMentahanChartCanvas, lokasiMentahanData.data, lokasiMentahanData.labels, 'Distribusi Lokasi Mentahan', lokasiMentahanLegend);
+
+            const digitalPlatformData = prepareChartData(games, 'store');
+            digitalPlatformPieChart = createPieChart(digitalPlatformChartCanvas, digitalPlatformData.data, digitalPlatformData.labels, 'Distribusi Platform Digital', digitalPlatformLegend);
         }
 
-        // --- Event Listeners and Initial Setup ---
-        document.addEventListener('DOMContentLoaded', () => {
-            if (initialAuthToken) {
-                signInWithCustomToken(auth, initialAuthToken).catch((error) => {
-                    console.error("Error signing in with custom token:", error);
-                    displayMessage(`Gagal masuk dengan token khusus: ${error.message}`, "error");
-                });
-            } else {
-                // If no custom token, try anonymous sign-in to get a user ID
-                signInAnonymously(auth).catch((error) => {
-                    console.error("Error signing in anonymously:", error);
-                    displayMessage(`Gagal masuk secara anonim: ${error.message}`, "error");
-                });
-            }
-
-            // Tabs functionality
-            tabButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    tabButtons.forEach(btn => btn.classList.remove('bg-indigo-600', 'text-white', 'hover:bg-indigo-700', 'hover:text-gray-100'));
-                    button.classList.add('bg-indigo-600', 'text-white', 'hover:bg-indigo-700', 'hover:text-gray-100');
-                    Object.values(tabContents).forEach(content => content.classList.add('hidden'));
-                    const targetTab = tabContents[button.dataset.tab];
-                    if (targetTab) {
-                        targetTab.classList.remove('hidden');
-                    }
-                });
-            });
-            // Set default tab to 'game-list'
-            const defaultTabButton = document.querySelector('.tab-button[data-tab="game-list"]');
-            if (defaultTabButton) {
-                defaultTabButton.click();
-            }
-
-            // Other event listeners
-            gameForm.addEventListener('submit', handleFormSubmit);
-            gameListContainer.addEventListener('click', handleGameListActions);
-            openAddGameModalButton.addEventListener('click', openAddGameModal);
-            closeModalButton.addEventListener('click', closeAddGameModal);
-            addGameRowButton.addEventListener('click', addGameFormRow);
-
-            searchGameInput.addEventListener('input', renderGames);
-            filterStatusSelect.addEventListener('change', () => {
-                filterStatusSelect.dataset.currentValue = filterStatusSelect.value;
-                renderGames();
-            });
-            filterPlatformSelect.addEventListener('change', () => {
-                filterPlatformSelect.dataset.currentValue = filterPlatformSelect.value;
-                renderGames();
-            });
-            filterDigitalPlatformSelect.addEventListener('change', () => {
-                filterDigitalPlatformSelect.dataset.currentValue = filterDigitalPlatformSelect.value;
-                renderGames();
-            });
-            filterLokasiMentahanSelect.addEventListener('change', () => {
-                filterLokasiMentahanSelect.dataset.currentValue = filterLokasiMentahanSelect.value;
-                renderGames();
-            });
-            sortGamesSelect.addEventListener('change', renderGames);
-            loginButton.addEventListener('click', handleGoogleLogin);
-            logoutButton.addEventListener('click', handleLogout);
-            messageCloseBtn.addEventListener('click', () => {
-                messageModal.classList.add('hidden');
-            });
-            confirmYesBtn.addEventListener('click', () => {
-                if (window.confirmCallback) {
-                    window.confirmCallback();
-                }
-                confirmModal.classList.add('hidden');
-            });
-            confirmNoBtn.addEventListener('click', () => {
-                confirmModal.classList.add('hidden');
-                window.confirmCallback = null;
-            });
-            mobileMenuButton.addEventListener('click', () => {
-                sidebar.classList.toggle('-translate-x-full');
-            });
-
-            // Event listeners for dynamic form rows
-            gameFormContainer.addEventListener('change', (e) => {
-                if (e.target.classList.contains('gamePlatform-select')) {
-                    toggleManualInput(e.target, e.target.dataset.index, 'platform');
-                }
-                if (e.target.classList.contains('gameStore-select')) {
-                    toggleManualInput(e.target, e.target.dataset.index, 'store');
-                }
-                if (e.target.classList.contains('lokasiMentahan-select')) {
-                    toggleManualInput(e.target, e.target.dataset.index, 'lokasiMentahan');
-                }
-            });
-            gameFormContainer.addEventListener('click', (e) => {
-                if (e.target.classList.contains('delete-row-button')) {
-                    const row = e.target.closest('.game-form-row');
-                    if (row) {
-                        row.remove();
-                    }
-                }
-            });
-
-            addPlatformOptionButton.addEventListener('click', () => handleAddCustomOption(platformOptionInput, customPlatforms, currentPlatformOptionsList));
-            addStoreOptionButton.addEventListener('click', () => handleAddCustomOption(storeOptionInput, customStores, currentStoreOptionsList));
-            addLokasiOptionButton.addEventListener('click', () => handleAddCustomOption(lokasiOptionInput, customLocations, currentLokasiOptionsList));
-            addStatusOptionButton.addEventListener('click', () => handleAddCustomOption(statusOptionInput, customStatuses, currentStatusOptionsList));
-
-            document.getElementById('currentPlatformOptionsList').addEventListener('click', (e) => {
-                if (e.target.classList.contains('delete-custom-option-button')) {
-                    handleDeleteCustomOption(e, customPlatforms);
-                }
-            });
-            document.getElementById('currentStoreOptionsList').addEventListener('click', (e) => {
-                if (e.target.classList.contains('delete-custom-option-button')) {
-                    handleDeleteCustomOption(e, customStores);
-                }
-            });
-            document.getElementById('currentLokasiOptionsList').addEventListener('click', (e) => {
-                if (e.target.classList.contains('delete-custom-option-button')) {
-                    handleDeleteCustomOption(e, customLocations);
-                }
-            });
-            document.getElementById('currentStatusOptionsList').addEventListener('click', (e) => {
-                if (e.target.classList.contains('delete-custom-option-button')) {
-                    handleDeleteCustomOption(e, customStatuses);
-                }
-            });
-            
-            // Other functionalities
-            exportDataButton.addEventListener('click', exportData);
-            importDataButton.addEventListener('click', () => importFileInput.click());
-            importFileInput.addEventListener('change', importData);
-            autoDownloadToggle.addEventListener('change', handleAutoDownloadToggle);
-            autoDownloadIntervalInput.addEventListener('input', handleAutoDownloadIntervalChange);
-        });
-
-        // --- Modal and Form Row Logic ---
-        function openAddGameModal() {
-            gameFormModal.classList.remove('hidden');
-            gameForm.reset();
-            gameFormContainer.innerHTML = '';
-            addGameFormRow();
-            formTitle.textContent = 'Tambah Game Baru';
-            addGameRowButton.classList.remove('hidden');
-            editingGameId = null;
-        }
-
-        function closeAddGameModal() {
-            gameFormModal.classList.add('hidden');
-        }
-
-        function addGameFormRow(game = null) {
-            const index = gameFormContainer.children.length;
-            const gameRow = document.createElement('div');
-            gameRow.className = 'game-form-row bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4';
-            gameRow.innerHTML = `
-                <div class="flex items-center justify-between mb-4">
-                    <h4 class="text-lg font-semibold text-gray-700">Game #${index + 1}</h4>
-                    <button type="button" class="delete-row-button text-red-500 hover:text-red-700 font-bold ${index === 0 && !game ? 'hidden' : ''}">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
-                <input type="hidden" id="gameId-${index}" value="${game ? game.id : ''}">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="gameTitle-${index}" class="block text-sm font-medium text-gray-700">Judul Game</label>
-                        <input type="text" id="gameTitle-${index}" data-index="${index}" placeholder="Misal: The Witcher 3: Wild Hunt" required
-                               class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                    </div>
-                    <div>
-                        <label for="gamePlatform-${index}" class="block text-sm font-medium text-gray-700">Platform</label>
-                        <select id="gamePlatform-${index}" data-index="${index}" required
-                                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 gamePlatform-select">
-                        </select>
-                        <div id="manualPlatformInputContainer-${index}" class="mt-2 hidden">
-                            <input type="text" id="manualGamePlatform-${index}" placeholder="Masukkan nama platform"
-                                   class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
-                    </div>
-                    <div>
-                        <label for="gameStore-${index}" class="block text-sm font-medium text-gray-700">Platform Digital</label>
-                        <select id="gameStore-${index}" data-index="${index}" required
-                                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 gameStore-select">
-                        </select>
-                        <div id="manualStoreInputContainer-${index}" class="mt-2 hidden">
-                            <input type="text" id="manualGameStore-${index}" placeholder="Masukkan nama platform digital"
-                                   class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
-                    </div>
-                    <div>
-                        <label for="gameStatus-${index}" class="block text-sm font-medium text-gray-700">Status</label>
-                        <select id="gameStatus-${index}" data-index="${index}" required
-                                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                        </select>
-                    </div>
-                    <div>
-                        <label for="lokasiMentahan-${index}" class="block text-sm font-medium text-gray-700">Lokasi File Mentahan</label>
-                        <select id="lokasiMentahan-${index}" data-index="${index}" required
-                                class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 lokasiMentahan-select">
-                        </select>
-                        <div id="manualLokasiMentahanInputContainer-${index}" class="mt-2 hidden">
-                            <input type="text" id="manualLokasiMentahan-${index}" placeholder="Masukkan lokasi file"
-                                   class="block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                        </div>
-                    </div>
-                </div>
-            `;
-            gameFormContainer.appendChild(gameRow);
-            updateAllDropdowns();
-
-            // Populate form if editing
-            if (game) {
-                document.getElementById(`gameTitle-${index}`).value = game.title;
-                const platformSelect = document.getElementById(`gamePlatform-${index}`);
-                const platformManualInput = document.getElementById(`manualGamePlatform-${index}`);
-                const storeSelect = document.getElementById(`gameStore-${index}`);
-                const storeManualInput = document.getElementById(`manualGameStore-${index}`);
-                const lokasiSelect = document.getElementById(`lokasiMentahan-${index}`);
-                const lokasiManualInput = document.getElementById(`manualLokasiMentahan-${index}`);
-
-                if ([...defaultPlatforms, ...customPlatforms].includes(game.platform)) {
-                    platformSelect.value = game.platform;
-                } else {
-                    platformSelect.value = 'manual';
-                    platformManualInput.value = game.platform;
-                    platformManualInput.parentElement.classList.remove('hidden');
-                }
-
-                if ([...defaultStores, ...customStores].includes(game.store)) {
-                    storeSelect.value = game.store;
-                } else {
-                    storeSelect.value = 'manual';
-                    storeManualInput.value = game.store;
-                    storeManualInput.parentElement.classList.remove('hidden');
-                }
-
-                document.getElementById(`gameStatus-${index}`).value = game.status;
-                
-                if ([...defaultLokasiMentahanOptions, ...customLocations].includes(game.lokasiMentahan)) {
-                    lokasiSelect.value = game.lokasiMentahan;
-                } else {
-                    lokasiSelect.value = 'manual';
-                    lokasiManualInput.value = game.lokasiMentahan;
-                    lokasiManualInput.parentElement.classList.remove('hidden');
-                }
-            }
-        }
-
-        function toggleManualInput(selectElement, index, type) {
-            let container;
-            let inputElement;
-
-            if (type === 'platform') {
-                container = document.getElementById(`manualPlatformInputContainer-${index}`);
-                inputElement = document.getElementById(`manualGamePlatform-${index}`);
-            } else if (type === 'store') {
-                container = document.getElementById(`manualStoreInputContainer-${index}`);
-                inputElement = document.getElementById(`manualGameStore-${index}`);
-            } else if (type === 'lokasiMentahan') {
-                container = document.getElementById(`manualLokasiMentahanInputContainer-${index}`);
-                inputElement = document.getElementById(`manualLokasiMentahan-${index}`);
-            }
-
-            if (selectElement.value === 'manual') {
-                container.classList.remove('hidden');
-            } else {
-                container.classList.add('hidden');
-                inputElement.value = '';
-            }
-        }
-
-        async function handleFormSubmit(e) {
-            e.preventDefault();
-            const formRows = document.querySelectorAll('.game-form-row');
-            if (formRows.length === 0) {
-                displayMessage("Tidak ada game untuk disimpan.", "error");
-                return;
-            }
-
-            const gamesToSave = [];
-            let isValid = true;
-            formRows.forEach((row, index) => {
-                const titleInput = document.getElementById(`gameTitle-${index}`);
-                const platformSelect = document.getElementById(`gamePlatform-${index}`);
-                const platformManualInput = document.getElementById(`manualGamePlatform-${index}`);
-                const storeSelect = document.getElementById(`gameStore-${index}`);
-                const storeManualInput = document.getElementById(`manualGameStore-${index}`);
-                const statusSelect = document.getElementById(`gameStatus-${index}`);
-                const lokasiSelect = document.getElementById(`lokasiMentahan-${index}`);
-                const lokasiManualInput = document.getElementById(`manualLokasiMentahan-${index}`);
-                const gameIdInput = document.getElementById(`gameId-${index}`);
-
-                const title = titleInput.value.trim();
-                const platform = platformSelect.value === 'manual' ? platformManualInput.value.trim() : platformSelect.value;
-                const store = storeSelect.value === 'manual' ? storeManualInput.value.trim() : storeSelect.value;
-                const status = statusSelect.value;
-                const lokasiMentahan = lokasiSelect.value === 'manual' ? lokasiManualInput.value.trim() : lokasiSelect.value;
-
-                if (!title || !platform || !store || !status || !lokasiMentahan) {
-                    isValid = false;
-                    displayMessage(`Harap lengkapi semua bidang untuk Game #${index + 1}.`, "error");
-                    return;
-                }
-
-                gamesToSave.push({
-                    id: gameIdInput.value || null,
-                    title,
-                    platform,
-                    store,
-                    status,
-                    lokasiMentahan
-                });
-            });
-
-            if (isValid) {
-                showLoading("Menyimpan game...");
-                const savePromises = gamesToSave.map(game => saveGameToFirestore(game));
-                try {
-                    await Promise.all(savePromises);
-                    displayMessage(`Berhasil menyimpan ${gamesToSave.length} game!`, "success");
-                    closeAddGameModal();
-                } catch (error) {
-                    console.error("Error saving games:", error);
-                    displayMessage(`Gagal menyimpan game. Periksa konsol untuk detailnya.`, "error");
-                } finally {
-                    hideLoading();
-                }
-            }
-        }
-
-        function handleGameListActions(e) {
-            if (e.target.classList.contains('edit-button')) {
-                const gameId = e.target.dataset.id;
-                const gameToEdit = games.find(g => g.id === gameId);
-                if (gameToEdit) {
-                    editGame(gameToEdit);
-                }
-            } else if (e.target.classList.contains('delete-button')) {
-                const gameId = e.target.dataset.id;
-                displayConfirmation("Apakah Anda yakin ingin menghapus game ini?", () => deleteGameFromFirestore(gameId));
-            }
-        }
-
-        function editGame(game) {
-            openAddGameModal();
-            formTitle.textContent = 'Edit Game';
-            document.getElementById('addGameRowButton').classList.add('hidden');
-            gameFormContainer.innerHTML = ''; // Clear form
-            addGameFormRow(game); // Add a single row with game data
-        }
-
-        function showLoading(message) {
-            document.getElementById('loadingText').textContent = message;
-            loadingOverlay.classList.remove('hidden');
-        }
-
-        function hideLoading() {
-            loadingOverlay.classList.add('hidden');
-        }
-
-        function displayConfirmation(message, onConfirm) {
-            confirmMessage.textContent = message;
-            confirmModal.classList.remove('hidden');
-            window.confirmCallback = onConfirm;
-        }
-
-        function displayMessage(message, type) {
-            messageText.textContent = message;
-            messageModal.classList.remove('hidden');
-            messageModalIcon.innerHTML = '';
-            messageModal.classList.remove('bg-green-100', 'bg-yellow-100', 'bg-red-100', 'bg-blue-100');
-            messageText.classList.remove('text-green-800', 'text-yellow-800', 'text-red-800', 'text-blue-800');
-
-            switch (type) {
-                case 'success':
-                    messageModal.classList.add('bg-green-100');
-                    messageText.classList.add('text-green-800');
-                    messageModalIcon.innerHTML = `<i class="fas fa-check-circle text-green-500"></i>`;
-                    break;
-                case 'info':
-                    messageModal.classList.add('bg-blue-100');
-                    messageText.classList.add('text-blue-800');
-                    messageModalIcon.innerHTML = `<i class="fas fa-info-circle text-blue-500"></i>`;
-                    break;
-                case 'warning':
-                    messageModal.classList.add('bg-yellow-100');
-                    messageText.classList.add('text-yellow-800');
-                    messageModalIcon.innerHTML = `<i class="fas fa-exclamation-triangle text-yellow-500"></i>`;
-                    break;
-                case 'error':
-                    messageModal.classList.add('bg-red-100');
-                    messageText.classList.add('text-red-800');
-                    messageModalIcon.innerHTML = `<i class="fas fa-times-circle text-red-500"></i>`;
-                    break;
-            }
-        }
-
-        function exportData() {
-            const dataStr = JSON.stringify(games, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
+        // --- Data Import/Export ---
+        function handleExportData() {
+            const data = {
+                games: games.map(({ id, ...rest }) => rest), // Remove Firestore ID
+                customPlatforms,
+                customStores,
+                customLocations,
+                customStatuses
+            };
+            const dataStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'game_collection.json';
+            a.download = `koleksi_game_export_${new Date().toISOString()}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1108,313 +696,744 @@
             displayMessage("Data berhasil diekspor!", "success");
         }
 
-        function importData(e) {
-            const file = e.target.files[0];
+        importFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
             if (!file) {
                 return;
             }
             const reader = new FileReader();
-            reader.onload = async (event) => {
+            reader.onload = (e) => {
                 try {
-                    const importedGames = JSON.parse(event.target.result);
-                    if (Array.isArray(importedGames)) {
+                    const importedData = JSON.parse(e.target.result);
+                    displayConfirmation(`Anda akan mengimpor ${importedData.games.length} game dan ${[...importedData.customPlatforms, ...importedData.customStores, ...importedData.customLocations, ...importedData.customStatuses].length} opsi kustom. Ini akan MENIMPA data yang ada. Lanjutkan?`, async () => {
                         showLoading("Mengimpor data...");
-                        // Clear existing data and import new data
-                        const gamesColRef = getUserGamesCollectionRef();
-                        if (gamesColRef) {
-                            const q = query(gamesColRef);
-                            const snapshot = await getDocs(q);
-                            const deletePromises = snapshot.docs.map(d => deleteDoc(d.ref));
-                            await Promise.all(deletePromises);
-                        }
+                        try {
+                            // Clear existing data
+                            const gamesColRef = getUserGamesCollectionRef();
+                            const snapshot = await getDocs(gamesColRef);
+                            const batch = writeBatch(db);
+                            snapshot.docs.forEach(doc => {
+                                batch.delete(doc.ref);
+                            });
+                            await batch.commit();
 
-                        const importPromises = importedGames.map(game => {
-                            const { id, ...gameData } = game;
-                            return saveGameToFirestore(gameData);
-                        });
-                        await Promise.all(importPromises);
-                        displayMessage(`Berhasil mengimpor ${importedGames.length} game!`, "success");
-                    } else {
-                        displayMessage("Format file tidak valid. Harap unggah file JSON yang berisi array.", "error");
-                    }
+                            // Import new data
+                            if (importedData.games && importedData.games.length > 0) {
+                                for (const game of importedData.games) {
+                                    await saveGameToFirestore(game);
+                                }
+                            }
+                            if (importedData.customPlatforms || importedData.customStores || importedData.customLocations || importedData.customStatuses) {
+                                customPlatforms = importedData.customPlatforms || [];
+                                customStores = importedData.customStores || [];
+                                customLocations = importedData.customLocations || [];
+                                customStatuses = importedData.customStatuses || [];
+                                await saveCustomDropdownOptionsToFirestore();
+                            }
+                            displayMessage("Data berhasil diimpor!", "success");
+                        } catch (error) {
+                            console.error("Error during data import:", error);
+                            displayMessage(`Gagal mengimpor data: ${error.message}`, "error");
+                        } finally {
+                            hideLoading();
+                        }
+                    });
                 } catch (error) {
-                    console.error("Error importing data:", error);
-                    displayMessage(`Gagal mengimpor data: ${error.message}`, "error");
-                } finally {
-                    hideLoading();
+                    console.error("Error parsing imported file:", error);
+                    displayMessage("Gagal membaca file. Pastikan itu adalah file JSON yang valid.", "error");
                 }
             };
             reader.readAsText(file);
-        }
+        });
 
-        function startAutoDownload() {
-            if (autoDownloadIntervalId) {
-                clearInterval(autoDownloadIntervalId);
-            }
-            const intervalInMinutes = parseInt(autoDownloadIntervalInput.value, 10) || 5;
-            autoDownloadIntervalId = setInterval(() => {
-                exportData();
-                displayMessage(`Data otomatis diekspor setiap ${intervalInMinutes} menit.`, "info");
-            }, intervalInMinutes * 60 * 1000);
-        }
-
-        function handleAutoDownloadToggle(e) {
-            if (e.target.checked) {
-                startAutoDownload();
+        // --- Auto Download Logic ---
+        function toggleAutoDownload() {
+            if (autoDownloadToggle.checked) {
+                const interval = parseInt(autoDownloadIntervalInput.value, 10) * 60 * 1000;
+                currentAutoDownloadInterval = parseInt(autoDownloadIntervalInput.value, 10);
+                autoDownloadIntervalId = setInterval(handleExportData, interval);
+                displayMessage(`Unduh otomatis diaktifkan setiap ${currentAutoDownloadInterval} menit.`, "info");
             } else {
-                if (autoDownloadIntervalId) {
-                    clearInterval(autoDownloadIntervalId);
-                    autoDownloadIntervalId = null;
+                clearInterval(autoDownloadIntervalId);
+                displayMessage("Unduh otomatis dinonaktifkan.", "info");
+            }
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check for existing auth token and sign in
+            if (initialAuthToken) {
+                try {
+                    showLoading("Masuk secara otomatis...");
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } catch (error) {
+                    console.error("Error signing in with custom token:", error);
+                    displayMessage("Gagal masuk otomatis. Coba masuk manual.", "error");
+                    // Fallback to anonymous sign-in if custom token fails
+                    await signInAnonymously(auth);
+                }
+            } else {
+                // If no custom token, sign in anonymously
+                await signInAnonymously(auth);
+            }
+        });
+
+        // Toggle mobile sidebar
+        mobileMenuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // Add a click listener to the main content area to close the sidebar on mobile
+        mainContent.addEventListener('click', () => {
+            if (!sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+
+        openAddGameModalButton.addEventListener('click', () => {
+            gameFormModal.classList.remove('hidden');
+            formTitle.textContent = 'Tambah Game Baru';
+            submitButton.textContent = 'Tambah Game';
+            gameForm.reset();
+            gameFormContainer.innerHTML = '';
+            addGameRow();
+            editingGameId = null;
+        });
+
+        closeModalButton.addEventListener('click', () => {
+            gameFormModal.classList.add('hidden');
+        });
+
+        gameFormModal.addEventListener('click', (e) => {
+            if (e.target === gameFormModal) {
+                gameFormModal.classList.add('hidden');
+            }
+        });
+
+        addGameRowButton.addEventListener('click', () => {
+            addGameRow();
+        });
+
+        gameForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            let successCount = 0;
+            const gameRows = document.querySelectorAll('.game-row');
+            for (const row of gameRows) {
+                const gameTitle = row.querySelector('[id^="gameTitle-"]').value.trim();
+                const gamePlatform = row.querySelector('[id^="gamePlatform-"]').value;
+                let gamePlatformManual = row.querySelector('[id^="gamePlatformManual-"]')?.value.trim() || '';
+                const gameStore = row.querySelector('[id^="gameStore-"]').value;
+                let gameStoreManual = row.querySelector('[id^="gameStoreManual-"]')?.value.trim() || '';
+                const gameStatus = row.querySelector('[id^="gameStatus-"]').value;
+                const lokasiMentahan = row.querySelector('[id^="lokasiMentahan-"]').value;
+                let lokasiMentahanManual = row.querySelector('[id^="lokasiMentahanManual-"]')?.value.trim() || '';
+
+                if (gameTitle) {
+                    const gameData = {
+                        title: gameTitle,
+                        platform: gamePlatform === 'manual' ? gamePlatformManual : gamePlatform,
+                        store: gameStore === 'manual' ? gameStoreManual : gameStore,
+                        status: gameStatus,
+                        lokasiMentahan: lokasiMentahan === 'manual' ? lokasiMentahanManual : lokasiMentahan,
+                        id: row.dataset.gameId || editingGameId
+                    };
+                    const saved = await saveGameToFirestore(gameData);
+                    if (saved) successCount++;
                 }
             }
+
+            if (successCount > 0) {
+                displayMessage(`Berhasil menyimpan ${successCount} game.`, "success");
+                gameFormModal.classList.add('hidden');
+            } else {
+                displayMessage("Tidak ada game yang disimpan.", "error");
+            }
+        });
+
+        gameListContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('edit-button')) {
+                const gameId = e.target.dataset.id;
+                const gameToEdit = games.find(g => g.id === gameId);
+                if (gameToEdit) {
+                    editingGameId = gameId;
+                    formTitle.textContent = 'Edit Game';
+                    submitButton.textContent = 'Simpan Perubahan';
+                    gameFormContainer.innerHTML = ''; // Clear existing rows
+                    addGameRow(gameToEdit); // Add one row with the game data
+                    gameFormModal.classList.remove('hidden');
+                }
+            } else if (e.target.classList.contains('delete-button')) {
+                const gameId = e.target.dataset.id;
+                displayConfirmation("Apakah Anda yakin ingin menghapus game ini?", () => deleteGameFromFirestore(gameId));
+            }
+        });
+
+        searchGameInput.addEventListener('input', () => {
+            currentPage = 1;
+            renderGames();
+        });
+
+        filterStatusSelect.addEventListener('change', (e) => {
+            currentPage = 1;
+            filterStatusSelect.dataset.currentValue = e.target.value;
+            renderGames();
+        });
+
+        filterPlatformSelect.addEventListener('change', (e) => {
+            currentPage = 1;
+            filterPlatformSelect.dataset.currentValue = e.target.value;
+            renderGames();
+        });
+
+        filterDigitalPlatformSelect.addEventListener('change', (e) => {
+            currentPage = 1;
+            filterDigitalPlatformSelect.dataset.currentValue = e.target.value;
+            renderGames();
+        });
+
+        filterLokasiMentahanSelect.addEventListener('change', (e) => {
+            currentPage = 1;
+            filterLokasiMentahanSelect.dataset.currentValue = e.target.value;
+            renderGames();
+        });
+
+        sortGamesSelect.addEventListener('change', () => {
+            currentPage = 1;
+            renderGames();
+        });
+
+        exportDataButton.addEventListener('click', handleExportData);
+        importDataButton.addEventListener('click', () => importFileInput.click());
+
+        autoDownloadToggle.addEventListener('change', toggleAutoDownload);
+        autoDownloadIntervalInput.addEventListener('change', () => {
+            if (autoDownloadToggle.checked) {
+                clearInterval(autoDownloadIntervalId);
+                toggleAutoDownload();
+            }
+        });
+
+        // Tab functionality
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Deactivate all tabs
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('bg-indigo-700', 'text-white');
+                    btn.classList.add('hover:bg-indigo-600', 'text-indigo-200');
+                });
+                // Hide all content
+                Object.values(tabContents).forEach(content => content.classList.add('hidden'));
+
+                // Activate clicked tab
+                button.classList.add('bg-indigo-700', 'text-white');
+                button.classList.remove('hover:bg-indigo-600', 'text-indigo-200');
+
+                // Show corresponding content
+                const tabId = button.dataset.tab;
+                if (tabContents[tabId]) {
+                    tabContents[tabId].classList.remove('hidden');
+                }
+
+                // Render charts when statistics tab is active to ensure canvas is visible
+                if (tabId === 'statistics' && isAuthReady) {
+                    renderCharts();
+                }
+            });
+        });
+
+        // Listener for adding new custom options
+        addPlatformOptionButton.addEventListener('click', () => handleAddCustomOption(platformOptionInput, customPlatforms));
+        platformOptionInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddCustomOption(platformOptionInput, customPlatforms);
+            }
+        });
+
+        addStoreOptionButton.addEventListener('click', () => handleAddCustomOption(storeOptionInput, customStores));
+        storeOptionInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddCustomOption(storeOptionInput, customStores);
+            }
+        });
+
+        addLokasiOptionButton.addEventListener('click', () => handleAddCustomOption(lokasiOptionInput, customLocations));
+        lokasiOptionInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddCustomOption(lokasiOptionInput, customLocations);
+            }
+        });
+
+        addStatusOptionButton.addEventListener('click', () => handleAddCustomOption(statusOptionInput, customStatuses));
+        statusOptionInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddCustomOption(statusOptionInput, customStatuses);
+            }
+        });
+
+        // Listeners for deleting custom options (delegated)
+        currentPlatformOptionsList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-custom-option-button')) {
+                handleDeleteCustomOption(e, customPlatforms);
+            }
+        });
+        currentStoreOptionsList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-custom-option-button')) {
+                handleDeleteCustomOption(e, customStores);
+            }
+        });
+        currentLokasiOptionsList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-custom-option-button')) {
+                handleDeleteCustomOption(e, customLocations);
+            }
+        });
+        currentStatusOptionsList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-custom-option-button')) {
+                handleDeleteCustomOption(e, customStatuses);
+            }
+        });
+
+        loginButton.addEventListener('click', handleGoogleLogin);
+        logoutButton.addEventListener('click', handleLogout);
+
+        // --- Helper functions for modals and UI ---
+        function showLoading(message = "Memuat...") {
+            loadingOverlay.querySelector('span').textContent = message;
+            loadingOverlay.classList.remove('hidden');
         }
 
-        function handleAutoDownloadIntervalChange() {
-            if (autoDownloadToggle.checked) {
-                startAutoDownload(); // Restart interval with new value
+        function hideLoading() {
+            loadingOverlay.classList.add('hidden');
+        }
+
+        function showConfirmModal(message, onYes) {
+            confirmMessage.textContent = message;
+            confirmModal.classList.remove('hidden');
+            return new Promise((resolve) => {
+                confirmYesBtn.onclick = () => {
+                    confirmModal.classList.add('hidden');
+                    onYes();
+                    resolve(true);
+                };
+                confirmNoBtn.onclick = () => {
+                    confirmModal.classList.add('hidden');
+                    resolve(false);
+                };
+            });
+        }
+
+        // A function to display a custom confirmation modal
+        function displayConfirmation(message, onConfirm) {
+            confirmMessage.textContent = message;
+            confirmModal.classList.remove('hidden');
+
+            const handleYes = () => {
+                confirmModal.classList.add('hidden');
+                onConfirm();
+                // Clean up listeners
+                confirmYesBtn.removeEventListener('click', handleYes);
+                confirmNoBtn.removeEventListener('click', handleNo);
+            };
+
+            const handleNo = () => {
+                confirmModal.classList.add('hidden');
+                // Clean up listeners
+                confirmYesBtn.removeEventListener('click', handleYes);
+                confirmNoBtn.removeEventListener('click', handleNo);
+            };
+
+            confirmYesBtn.addEventListener('click', handleYes);
+            confirmNoBtn.addEventListener('click', handleNo);
+        }
+
+        function displayMessage(message, type = 'info') {
+            messageText.textContent = message;
+            messageModal.classList.remove('hidden');
+            // Set icon based on type
+            let iconHtml = '';
+            if (type === 'success') {
+                iconHtml = '<i class="fas fa-check-circle text-green-500 text-3xl"></i>';
+            } else if (type === 'error') {
+                iconHtml = '<i class="fas fa-times-circle text-red-500 text-3xl"></i>';
+            } else {
+                iconHtml = '<i class="fas fa-info-circle text-blue-500 text-3xl"></i>';
+            }
+            messageModalIcon.innerHTML = iconHtml;
+        }
+
+        messageCloseBtn.addEventListener('click', () => {
+            messageModal.classList.add('hidden');
+        });
+
+        // --- Dynamic Form Row Management ---
+        let rowCounter = 0;
+        function addGameRow(gameData = {}) {
+            rowCounter++;
+            const rowId = `game-row-${rowCounter}`;
+            const newRow = document.createElement('div');
+            newRow.className = 'game-row grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 p-4 bg-gray-50 rounded-lg shadow-inner';
+            newRow.dataset.gameId = gameData.id || '';
+
+            // Update all dropdowns before populating the new row
+            updateAllDropdowns();
+
+            // Create dropdowns with all custom options included
+            const allPlatforms = [...new Set([...defaultPlatforms, ...customPlatforms])].sort();
+            const allStores = [...new Set([...defaultStores, ...customStores])].sort();
+            const allStatuses = [...new Set([...defaultStatuses, ...customStatuses])].sort();
+            const allLokasiMentahan = [...new Set([...defaultLokasiMentahanOptions, ...customLocations])].sort();
+
+            newRow.innerHTML = `
+                <!-- Title -->
+                <div class="col-span-1 md:col-span-5">
+                    <label for="gameTitle-${rowId}" class="block text-sm font-medium text-gray-700">Nama Game</label>
+                    <input type="text" id="gameTitle-${rowId}" value="${gameData.title || ''}" required
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Contoh: The Witcher 3">
+                </div>
+
+                <!-- Platform Dropdown -->
+                <div>
+                    <label for="gamePlatform-${rowId}" class="block text-sm font-medium text-gray-700">Platform</label>
+                    <select id="gamePlatform-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                    <input type="text" id="gamePlatformManual-${rowId}" placeholder="Input Platform Manual"
+                           class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <!-- Store Dropdown -->
+                <div>
+                    <label for="gameStore-${rowId}" class="block text-sm font-medium text-gray-700">Platform Digital</label>
+                    <select id="gameStore-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                    <input type="text" id="gameStoreManual-${rowId}" placeholder="Input Platform Digital Manual"
+                           class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <!-- Status Dropdown -->
+                <div>
+                    <label for="gameStatus-${rowId}" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select id="gameStatus-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+
+                <!-- Lokasi Mentahan Dropdown -->
+                <div>
+                    <label for="lokasiMentahan-${rowId}" class="block text-sm font-medium text-gray-700">Lokasi Mentahan</label>
+                    <select id="lokasiMentahan-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                    <input type="text" id="lokasiMentahanManual-${rowId}" placeholder="Input Lokasi Manual"
+                           class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <!-- Delete Row Button (hidden if only one row) -->
+                <div class="flex items-end justify-center">
+                    <button type="button" class="delete-row-button bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out transform hover:scale-105" title="Hapus Game">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            gameFormContainer.appendChild(newRow);
+            updateAllDropdowns();
+
+            // Populate the dropdowns for the new row with values if gameData exists
+            if (gameData.platform) {
+                const platformSelect = newRow.querySelector(`#gamePlatform-${rowId}`);
+                if (allPlatforms.includes(gameData.platform)) {
+                    platformSelect.value = gameData.platform;
+                } else {
+                    platformSelect.value = 'manual';
+                    const manualInput = newRow.querySelector(`#gamePlatformManual-${rowId}`);
+                    manualInput.classList.remove('hidden');
+                    manualInput.value = gameData.platform;
+                }
+            }
+            if (gameData.store) {
+                const storeSelect = newRow.querySelector(`#gameStore-${rowId}`);
+                if (allStores.includes(gameData.store)) {
+                    storeSelect.value = gameData.store;
+                } else {
+                    storeSelect.value = 'manual';
+                    const manualInput = newRow.querySelector(`#gameStoreManual-${rowId}`);
+                    manualInput.classList.remove('hidden');
+                    manualInput.value = gameData.store;
+                }
+            }
+            if (gameData.status) {
+                const statusSelect = newRow.querySelector(`#gameStatus-${rowId}`);
+                if (allStatuses.includes(gameData.status)) {
+                    statusSelect.value = gameData.status;
+                }
+            }
+            if (gameData.lokasiMentahan) {
+                const lokasiSelect = newRow.querySelector(`#lokasiMentahan-${rowId}`);
+                if (allLokasiMentahan.includes(gameData.lokasiMentahan)) {
+                    lokasiSelect.value = gameData.lokasiMentahan;
+                } else {
+                    lokasiSelect.value = 'manual';
+                    const manualInput = newRow.querySelector(`#lokasiMentahanManual-${rowId}`);
+                    manualInput.classList.remove('hidden');
+                    manualInput.value = gameData.lokasiMentahan;
+                }
+            }
+
+            // Add event listeners for the new row
+            newRow.querySelector(`#gamePlatform-${rowId}`).addEventListener('change', (e) => toggleManualInput(e, `gamePlatformManual-${rowId}`));
+            newRow.querySelector(`#gameStore-${rowId}`).addEventListener('change', (e) => toggleManualInput(e, `gameStoreManual-${rowId}`));
+            newRow.querySelector(`#lokasiMentahan-${rowId}`).addEventListener('change', (e) => toggleManualInput(e, `lokasiMentahanManual-${rowId}`));
+            newRow.querySelector('.delete-row-button').addEventListener('click', () => {
+                newRow.remove();
+            });
+
+            // Handle initial visibility of delete button
+            updateDeleteButtonVisibility();
+        }
+
+        function updateDeleteButtonVisibility() {
+            const deleteButtons = document.querySelectorAll('.delete-row-button');
+            if (deleteButtons.length > 1) {
+                deleteButtons.forEach(btn => btn.classList.remove('hidden'));
+            } else if (deleteButtons.length === 1) {
+                deleteButtons.forEach(btn => btn.classList.add('hidden'));
+            }
+        }
+
+        function toggleManualInput(event, inputId) {
+            const manualInput = document.getElementById(inputId);
+            if (event.target.value === 'manual') {
+                manualInput.classList.remove('hidden');
+            } else {
+                manualInput.classList.add('hidden');
+                manualInput.value = '';
             }
         }
     </script>
 </head>
-<body class="bg-gray-100 text-gray-900 font-sans leading-normal tracking-normal">
-    <div id="loadingOverlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-dashed border-indigo-500"></div>
-            <p id="loadingText" class="mt-4 text-gray-700 font-semibold">Memuat...</p>
-        </div>
-    </div>
-    <div id="confirmModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 m-4 max-w-sm w-full">
-            <div class="text-center">
-                <i class="fas fa-exclamation-triangle text-yellow-500 text-3xl mb-4"></i>
-                <h3 class="text-lg leading-6 font-medium text-gray-900">Konfirmasi</h3>
-                <div class="mt-2">
-                    <p id="confirmMessage" class="text-sm text-gray-500">Apakah Anda yakin?</p>
-                </div>
-                <div class="mt-4 flex justify-end space-x-3">
-                    <button id="confirmNo" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none transition">
-                        Tidak
-                    </button>
-                    <button id="confirmYes" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none transition">
-                        Ya, Hapus
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div id="messageModal" class="fixed bottom-4 right-4 z-50 hidden">
-        <div class="flex items-center p-4 rounded-lg shadow-md max-w-xs" role="alert">
-            <div id="messageModalIcon" class="mr-3 text-xl"></div>
-            <p id="messageText" class="text-sm font-medium flex-grow"></p>
-            <button id="messageClose" class="ml-4 p-1 rounded-full hover:bg-black hover:bg-opacity-10 transition">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    </div>
 
-    <!-- Modal for adding/editing games -->
-    <div id="gameFormModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-40 hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 m-4 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative">
-            <div class="flex items-center justify-between mb-4 pb-2 border-b border-gray-200">
-                <h2 id="formTitle" class="text-2xl font-bold text-gray-800">Tambah Game Baru</h2>
-                <button id="closeModalButton" class="text-gray-500 hover:text-gray-700 focus:outline-none">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form id="gameForm">
-                <div id="gameFormContainer" class="space-y-4">
-                    <!-- Dynamic form rows will be inserted here -->
-                </div>
-                <div class="flex justify-between items-center mt-6">
-                    <button type="button" id="addGameRowButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">
-                        <i class="fas fa-plus mr-2"></i> Tambah Baris Game
-                    </button>
-                    <button id="submitButton" type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">
-                        Simpan Semua Game
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="flex h-screen bg-gray-100">
+<body class="bg-gray-100 font-sans antialiased">
+    <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
-        <div id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out bg-white w-64 p-6 shadow-lg md:shadow-none z-40">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-indigo-800">Koleksi Game</h2>
-                <button id="mobileMenuButton" class="md:hidden text-gray-500 hover:text-gray-700 focus:outline-none">
-                    <i class="fas fa-bars"></i>
+        <div id="sidebar"
+             class="fixed inset-y-0 left-0 w-64 bg-indigo-800 text-indigo-100 p-6 space-y-6 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out z-50">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-white">Koleksi Game</h1>
+                <button id="mobileMenuButtonClose" class="md:hidden text-white focus:outline-none">
+                    <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-            <nav>
-                <div id="authStatus" class="mb-4 text-sm text-gray-600 truncate">Memuat status otentikasi...</div>
-                <div id="userIdDisplay" class="mb-4 text-xs text-gray-500 truncate"></div>
-                <button id="loginButton" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300 hidden">
-                    Masuk dengan Google
+            <nav class="space-y-2">
+                <button data-tab="game-list"
+                        class="tab-button w-full flex items-center space-x-2 p-3 rounded-lg hover:bg-indigo-700 bg-indigo-700 text-white transition-colors duration-200">
+                    <i class="fas fa-gamepad"></i>
+                    <span>Daftar Game</span>
                 </button>
-                <button id="logoutButton" class="w-full bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition duration-300 hidden">
-                    Keluar
+                <button data-tab="statistics"
+                        class="tab-button w-full flex items-center space-x-2 p-3 rounded-lg hover:bg-indigo-700 text-indigo-200 transition-colors duration-200">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Statistik</span>
                 </button>
-                <div class="mt-6 space-y-2">
-                    <button data-tab="game-list" class="tab-button w-full text-left flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-200 transition duration-200 ease-in-out bg-indigo-600 text-white">
-                        <i class="fas fa-list-ul mr-3"></i> Daftar Game
-                    </button>
-                    <button data-tab="statistics" class="tab-button w-full text-left flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-200 transition duration-200 ease-in-out">
-                        <i class="fas fa-chart-pie mr-3"></i> Statistik
-                    </button>
-                    <button data-tab="data-management" class="tab-button w-full text-left flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-200 transition duration-200 ease-in-out">
-                        <i class="fas fa-database mr-3"></i> Manajemen Data
-                    </button>
-                </div>
+                <button data-tab="data-management"
+                        class="tab-button w-full flex items-center space-x-2 p-3 rounded-lg hover:bg-indigo-700 text-indigo-200 transition-colors duration-200">
+                    <i class="fas fa-database"></i>
+                    <span>Manajemen Data</span>
+                </button>
             </nav>
+
+            <div class="absolute bottom-6 left-6 right-6">
+                <div id="authStatus" class="text-sm text-indigo-300 mb-2">Belum masuk</div>
+                <div id="userIdDisplay" class="text-xs text-indigo-400 break-all mb-4"></div>
+                <button id="loginButton"
+                        class="w-full flex items-center justify-center space-x-2 p-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors duration-200">
+                    <i class="fab fa-google"></i>
+                    <span>Masuk dengan Google</span>
+                </button>
+                <button id="logoutButton"
+                        class="w-full flex items-center justify-center space-x-2 p-3 rounded-lg bg-red-600 hover:bg-red-500 text-white transition-colors duration-200 hidden">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Keluar</span>
+                </button>
+            </div>
         </div>
 
-        <!-- Main Content -->
-        <div id="mainContent" class="flex-1 flex flex-col overflow-hidden hidden">
-            <header class="flex items-center justify-between bg-white shadow-md p-4 md:hidden">
-                <button id="mobileMenuButton" class="text-gray-500 focus:outline-none">
+        <!-- Main Content Area -->
+        <div id="mainContent" class="flex-1 flex flex-col hidden">
+            <!-- Header for mobile view -->
+            <header class="md:hidden flex items-center justify-between p-4 bg-indigo-800 text-white">
+                <button id="mobileMenuButton" class="text-white">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
-                <h1 class="text-xl font-bold text-gray-900">Koleksi Game</h1>
+                <h1 class="text-xl font-bold">Koleksi Game</h1>
+                <div></div> <!-- Placeholder for alignment -->
             </header>
-            <main class="flex-1 overflow-x-hidden overflow-y-auto p-6">
-                <div id="game-list" class="tab-content hidden">
-                    <div class="flex items-center justify-between mb-6">
-                        <h1 class="text-3xl font-bold text-gray-900">Daftar Koleksi Game</h1>
-                        <button id="openAddGameModalButton" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out">
-                            <i class="fas fa-plus mr-2"></i> Tambah Game Baru
-                        </button>
-                    </div>
 
-                    <!-- Filter dan Pencarian -->
-                    <div class="bg-white p-6 rounded-lg shadow-md mb-6 border border-gray-200">
-                        <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 md:space-x-4">
-                            <input type="text" id="searchGame" placeholder="Cari game..." class="flex-grow px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                            <select id="filterStatus" class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            <main class="flex-1 overflow-y-auto bg-gray-100 p-6">
+                <!-- Tab Content Containers -->
+                <div id="game-list" class="tab-content">
+                    <div class="bg-white rounded-lg shadow p-6 mb-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-2 sm:mb-0">Daftar Game</h2>
+                            <button id="openAddGameModalButton"
+                                    class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">
+                                Tambah Game
+                            </button>
+                        </div>
+
+                        <!-- Filter and Search Section -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <input type="text" id="searchGame" placeholder="Cari game..."
+                                   class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
+                            <select id="filterStatus"
+                                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
                                 <option value="all">Semua Status</option>
                             </select>
-                            <select id="filterPlatform" class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <select id="filterPlatform"
+                                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
                                 <option value="all">Semua Platform</option>
                             </select>
-                            <select id="filterDigitalPlatform" class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <select id="filterDigitalPlatform"
+                                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
                                 <option value="all">Semua Platform Digital</option>
                             </select>
-                            <select id="filterLokasiMentahan" class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                            <select id="filterLokasiMentahan"
+                                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
                                 <option value="all">Semua Lokasi</option>
                             </select>
-                            <select id="sortGames" class="w-full md:w-auto px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
-                                <option value="default">Urutan Default</option>
-                                <option value="title-asc">Judul (A-Z)</option>
-                                <option value="title-desc">Judul (Z-A)</option>
-                                <option value="platform-asc">Platform</option>
-                                <option value="status-asc">Status</option>
+                            <select id="sortGames"
+                                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
+                                <option value="title-asc">Urutkan: Judul (A-Z)</option>
+                                <option value="title-desc">Urutkan: Judul (Z-A)</option>
+                                <option value="platform-asc">Urutkan: Platform</option>
+                                <option value="status-asc">Urutkan: Status</option>
                             </select>
                         </div>
-                    </div>
 
-                    <!-- Daftar Game -->
-                    <div id="gameList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-                        <!-- Game items will be rendered here -->
-                    </div>
-                    <div id="noGamesMessage" class="hidden text-center text-gray-500 mt-8">
-                        <i class="fas fa-exclamation-circle text-5xl mb-4"></i>
-                        <p class="text-lg">Tidak ada game yang ditemukan.</p>
-                    </div>
+                        <!-- Game List -->
+                        <div id="gameList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
+                            <!-- Game items will be dynamically inserted here -->
+                        </div>
 
-                    <!-- Pagination -->
-                    <div id="paginationControls" class="flex justify-center items-center space-x-2 mt-6">
-                        <!-- Pagination buttons will be rendered here -->
+                        <!-- No Games Message -->
+                        <div id="noGamesMessage" class="hidden text-center text-gray-500 py-12">
+                            <i class="fas fa-frown-open text-5xl mb-4"></i>
+                            <p class="text-xl">Belum ada game yang ditambahkan.</p>
+                            <p class="mt-2 text-md">Klik "Tambah Game" untuk memulai koleksimu.</p>
+                        </div>
+
+                        <!-- Pagination Controls -->
+                        <div id="paginationControls" class="flex justify-center items-center space-x-2 mt-6">
+                            <!-- Pagination buttons will be dynamically inserted here -->
+                        </div>
                     </div>
                 </div>
 
                 <div id="statistics" class="tab-content hidden">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-6">Statistik Koleksi Game</h1>
-
-                    <!-- Konten Diagram Statistik -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-                        <!-- Diagram Status Game -->
-                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex flex-col items-center">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Berdasarkan Status</h3>
-                            <div class="w-full max-w-sm flex-shrink-0">
-                                <canvas id="gameStatusChart"></canvas>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Statistik Koleksi</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Chart: Game Status -->
+                            <div class="bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col items-center">
+                                <div class="w-full h-64 md:h-80 relative">
+                                    <canvas id="gameStatusChart"></canvas>
+                                </div>
+                                <div id="gameStatusLegend" class="mt-4 grid grid-cols-2 gap-2 text-sm text-gray-700">
+                                </div>
                             </div>
-                            <div id="gameStatusLegend" class="mt-4 flex flex-col space-y-1">
-                                <!-- Legend will be rendered here -->
+                            <!-- Chart: Platforms -->
+                            <div class="bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col items-center">
+                                <div class="w-full h-64 md:h-80 relative">
+                                    <canvas id="platformChart"></canvas>
+                                </div>
+                                <div id="platformLegend" class="mt-4 grid grid-cols-2 gap-2 text-sm text-gray-700">
+                                </div>
                             </div>
-                        </div>
-
-                        <!-- Diagram Platform Game -->
-                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex flex-col items-center">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Berdasarkan Platform</h3>
-                            <div class="w-full max-w-sm flex-shrink-0">
-                                <canvas id="platformChart"></canvas>
+                            <!-- Chart: Lokasi Mentahan -->
+                            <div class="bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col items-center">
+                                <div class="w-full h-64 md:h-80 relative">
+                                    <canvas id="lokasiMentahanChart"></canvas>
+                                </div>
+                                <div id="lokasiMentahanLegend"
+                                     class="mt-4 grid grid-cols-2 gap-2 text-sm text-gray-700">
+                                </div>
                             </div>
-                            <div id="platformLegend" class="mt-4 flex flex-col space-y-1">
-                                <!-- Legend will be rendered here -->
-                            </div>
-                        </div>
-
-                        <!-- Diagram Platform Digital -->
-                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex flex-col items-center">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Berdasarkan Platform Digital</h3>
-                            <div class="w-full max-w-sm flex-shrink-0">
-                                <canvas id="digitalPlatformChart"></canvas>
-                            </div>
-                            <div id="digitalPlatformLegend" class="mt-4 flex flex-col space-y-1">
-                                <!-- Legend will be rendered here -->
-                            </div>
-                        </div>
-
-                        <!-- Diagram Lokasi File Mentahan -->
-                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex flex-col items-center">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Berdasarkan Lokasi File</h3>
-                            <div class="w-full max-w-sm flex-shrink-0">
-                                <canvas id="lokasiMentahanChart"></canvas>
-                            </div>
-                            <div id="lokasiMentahanLegend" class="mt-4 flex flex-col space-y-1">
-                                <!-- Legend will be rendered here -->
+                            <!-- Chart: Digital Platforms -->
+                            <div class="bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col items-center">
+                                <div class="w-full h-64 md:h-80 relative">
+                                    <canvas id="digitalPlatformChart"></canvas>
+                                </div>
+                                <div id="digitalPlatformLegend"
+                                     class="mt-4 grid grid-cols-2 gap-2 text-sm text-gray-700">
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div id="data-management" class="tab-content hidden">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-6">Manajemen Data & Opsi Kustom</h1>
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- Manajemen Data -->
-                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Kelola Data</h3>
-                            <div class="flex flex-col space-y-4">
-                                <p class="text-gray-600">Ekspor data koleksi game Anda ke file JSON untuk cadangan.</p>
-                                <button id="exportDataButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">
-                                    <i class="fas fa-download mr-2"></i> Ekspor Data
-                                </button>
-                                <p class="text-gray-600 mt-4">Impor data dari file JSON untuk mengembalikan koleksi.</p>
-                                <input type="file" id="importFileInput" accept=".json" class="hidden">
-                                <button id="importDataButton" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out">
-                                    <i class="fas fa-upload mr-2"></i> Impor Data
-                                </button>
-                            </div>
-                            <div class="mt-6 pt-6 border-t border-gray-200">
-                                <div class="flex items-center justify-between">
-                                    <label for="autoDownloadToggle" class="block text-sm font-medium text-gray-700">Unduh Otomatis</label>
-                                    <input type="checkbox" id="autoDownloadToggle" class="h-5 w-10 rounded-full bg-gray-300 transition cursor-pointer checked:bg-indigo-600 appearance-none">
+                    <div class="bg-white rounded-lg shadow p-6 mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Manajemen Data</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Import/Export Section -->
+                            <div class="p-4 bg-gray-50 rounded-lg shadow-inner">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Impor & Ekspor</h3>
+                                <p class="text-sm text-gray-600 mb-4">Kelola data koleksi Anda dengan mengimpor atau mengekspornya dalam format JSON.</p>
+                                <div class="flex space-x-2">
+                                    <button id="exportDataButton"
+                                            class="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
+                                        Ekspor Data JSON
+                                    </button>
+                                    <button id="importDataButton"
+                                            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
+                                        Impor Data JSON
+                                    </button>
                                 </div>
-                                <p class="text-xs text-gray-500 mt-1">Secara otomatis mengekspor data setiap interval yang ditentukan.</p>
-                                <div class="mt-4 flex items-center space-x-2">
-                                    <label for="autoDownloadInterval" class="text-sm text-gray-600">Interval (menit):</label>
-                                    <input type="number" id="autoDownloadInterval" value="5" min="1" class="w-20 px-2 py-1 border border-gray-300 rounded-md">
-                                </div>
+                                <input type="file" id="importFileInput" class="hidden" accept=".json">
                             </div>
-                        </div>
 
-                        <!-- Kelola Opsi Kustom -->
-                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-                            <h3 class="text-xl font-semibold text-gray-800 mb-4">Opsi Kustom Dropdown</h3>
-                            <div class="space-y-6">
-                                <!-- Platform -->
-                                <div>
-                                    <h4 class="text-md font-semibold text-gray-700 mb-2">Platform</h4>
+                            <!-- Auto-Download Section -->
+                            <div class="p-4 bg-gray-50 rounded-lg shadow-inner">
+                                <h3 class="text-xl font-semibold text-gray-800 mb-4">Unduh Otomatis</h3>
+                                <p class="text-sm text-gray-600 mb-4">Aktifkan untuk mengunduh salinan data Anda secara berkala.</p>
+                                <div class="flex items-center justify-between">
+                                    <label for="autoDownloadToggle" class="flex items-center cursor-pointer">
+                                        <div class="relative">
+                                            <input type="checkbox" id="autoDownloadToggle" class="sr-only">
+                                            <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
+                                            <div class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition transform"></div>
+                                        </div>
+                                        <div class="ml-3 text-gray-700 font-medium">
+                                            Aktifkan Unduh Otomatis
+                                        </div>
+                                    </label>
+                                    <div class="flex items-center space-x-2 ml-4">
+                                        <label for="autoDownloadInterval" class="text-sm text-gray-600">Interval (menit):</label>
+                                        <input type="number" id="autoDownloadInterval" value="5" min="1"
+                                               class="w-20 px-2 py-1 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+                                    </div>
+                                </div>
+                                <style>
+                                    .dot {
+                                        transition: transform 0.3s ease;
+                                    }
+                                    input:checked + .block {
+                                        background-color: #4f46e5;
+                                    }
+                                    input:checked + .block .dot {
+                                        transform: translateX(100%);
+                                    }
+                                </style>
+                            </div>
+
+                            <!-- Custom Options Section -->
+                            <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <div class="p-4 bg-gray-50 rounded-lg shadow-inner">
+                                    <h4 class="text-xl font-semibold text-gray-800 mb-2">Platform</h4>
                                     <div class="flex flex-col sm:flex-row gap-2 mb-2">
                                         <input type="text" id="platformOptionInput" placeholder="Nama Platform Baru"
                                                class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
@@ -1431,9 +1450,8 @@
                                     </div>
                                 </div>
 
-                                <!-- Platform Digital -->
-                                <div>
-                                    <h4 class="text-md font-semibold text-gray-700 mb-2">Platform Digital</h4>
+                                <div class="p-4 bg-gray-50 rounded-lg shadow-inner">
+                                    <h4 class="text-xl font-semibold text-gray-800 mb-2">Platform Digital</h4>
                                     <div class="flex flex-col sm:flex-row gap-2 mb-2">
                                         <input type="text" id="storeOptionInput" placeholder="Nama Platform Digital Baru"
                                                class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
@@ -1450,9 +1468,8 @@
                                     </div>
                                 </div>
 
-                                <!-- Lokasi File Mentahan -->
-                                <div>
-                                    <h4 class="text-md font-semibold text-gray-700 mb-2">Lokasi File Mentahan</h4>
+                                <div class="p-4 bg-gray-50 rounded-lg shadow-inner">
+                                    <h4 class="text-xl font-semibold text-gray-800 mb-2">Lokasi Mentahan</h4>
                                     <div class="flex flex-col sm:flex-row gap-2 mb-2">
                                         <input type="text" id="lokasiOptionInput" placeholder="Nama Lokasi Baru"
                                                class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
@@ -1469,9 +1486,8 @@
                                     </div>
                                 </div>
 
-                                <!-- Status -->
-                                <div>
-                                    <h4 class="text-md font-semibold text-gray-700 mb-2">Status</h4>
+                                <div class="p-4 bg-gray-50 rounded-lg shadow-inner">
+                                    <h4 class="text-xl font-semibold text-gray-800 mb-2">Status</h4>
                                     <div class="flex flex-col sm:flex-row gap-2 mb-2">
                                         <input type="text" id="statusOptionInput" placeholder="Nama Status Baru"
                                                class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
@@ -1492,7 +1508,118 @@
                     </div>
                 </div>
             </main>
+            <!-- Tambahkan footer dengan copyright di sini -->
+            <footer class="bg-gray-800 text-white text-center py-4 text-sm">
+                <p>&copy; 2024 RichD. All rights reserved.</p>
+            </footer>
         </div>
     </div>
+
+    <!-- Modal for adding/editing games -->
+    <div id="gameFormModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center pb-3">
+                <h3 id="formTitle" class="text-2xl font-bold text-gray-900">Tambah Game Baru</h3>
+                <button id="closeModalButton" class="text-gray-500 hover:text-gray-800">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="gameForm" class="mt-4">
+                <div id="gameFormContainer" class="space-y-4">
+                    <!-- Dynamic form rows will be inserted here by JS -->
+                </div>
+                <div class="flex justify-between items-center mt-6">
+                    <button type="button" id="addGameRowButton" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
+                        Tambah Baris
+                    </button>
+                    <button type="submit" id="submitButton"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
+                        Tambah Game
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay"
+         class="fixed inset-0 bg-gray-600 bg-opacity-50 z-[100] flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl flex items-center space-x-4">
+            <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div>
+            <span class="text-lg font-semibold text-gray-700">Memuat...</span>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmModal"
+         class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 flex items-center justify-center">
+        <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white text-center">
+            <div class="mt-3 text-center">
+                <h3 class="text-xl font-bold leading-6 text-gray-900">Konfirmasi</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p id="confirmMessage" class="text-md text-gray-500"></p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="confirmYes"
+                            class="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md w-24 shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-300 ease-in-out">
+                        Ya
+                    </button>
+                    <button id="confirmNo"
+                            class="px-4 py-2 bg-gray-200 text-gray-800 text-base font-medium rounded-md w-24 ml-4 shadow-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-300 ease-in-out">
+                        Tidak
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Modal -->
+    <div id="messageModal"
+         class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50 flex items-center justify-center">
+        <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white text-center">
+            <div class="mt-3 text-center">
+                <div id="messageModalIcon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full">
+                    <!-- Icon will be inserted here -->
+                </div>
+                <div class="mt-2 px-7 py-3">
+                    <p id="messageText" class="text-md text-gray-500"></p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="messageClose"
+                            class="px-4 py-2 bg-indigo-600 text-white text-base font-medium rounded-md w-24 shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-300 ease-in-out">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSS for spinner loader -->
+    <style>
+        .loader {
+            border-top-color: #3498db;
+            -webkit-animation: spinner 1.5s linear infinite;
+            animation: spinner 1.5s linear infinite;
+        }
+
+        @-webkit-keyframes spinner {
+            0% {
+                -webkit-transform: rotate(0deg);
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+            }
+        }
+
+        @keyframes spinner {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
 </body>
 </html>
