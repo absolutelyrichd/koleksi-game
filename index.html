@@ -62,6 +62,22 @@
         const defaultStatuses = ['Dimainkan', 'Belum Dimainkan', 'Selesai', 'Wishlist'];
         const defaultLokasiMentahanOptions = ['HDD Eksternal 4TB', 'HDD Eksternal 2TB'];
 
+        // Define a more elegant color palette for the charts
+        const elegantColors = [
+            '#4A90E2', // Blue
+            '#F5A623', // Orange
+            '#50E3C2', // Teal
+            '#BD10E0', // Purple
+            '#FF2D55', // Red
+            '#00A79D', // Dark Teal
+            '#FF7E6B', // Salmon
+            '#A2416D', // Plum
+            '#6C5B7B', // Grayish Purple
+            '#88B04B', // Olive Green
+            '#E27D60', // Terracotta
+            '#C38D9E', // Dusty Rose
+        ];
+
         // DOM element references
         const gameForm = document.getElementById('gameForm');
         const formTitle = document.getElementById('formTitle');
@@ -599,7 +615,7 @@
             const data = Object.values(counts);
 
             const backgroundColors = labels.map((_, index) =>
-                `hsl(${index * 60}, 70%, 50%)`
+                elegantColors[index % elegantColors.length]
             );
 
             return {
@@ -626,6 +642,7 @@
                     data: data,
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false, // Allows setting a custom size
                         plugins: {
                             legend: {
                                 display: false,
@@ -1219,9 +1236,9 @@
                     <!-- Konten Diagram Statistik -->
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
                         <!-- Diagram Status Game -->
-                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex flex-col items-center">
                             <h3 class="text-xl font-semibold text-gray-800 mb-4">Berdasarkan Status</h3>
-                            <div class="chart-container">
+                            <div class="w-full max-w-sm flex-shrink-0">
                                 <canvas id="gameStatusChart"></canvas>
                             </div>
                             <div id="gameStatusLegend" class="mt-4 flex flex-col space-y-1">
@@ -1230,9 +1247,9 @@
                         </div>
 
                         <!-- Diagram Platform Game -->
-                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex flex-col items-center">
                             <h3 class="text-xl font-semibold text-gray-800 mb-4">Berdasarkan Platform</h3>
-                            <div class="chart-container">
+                            <div class="w-full max-w-sm flex-shrink-0">
                                 <canvas id="platformChart"></canvas>
                             </div>
                             <div id="platformLegend" class="mt-4 flex flex-col space-y-1">
@@ -1241,9 +1258,9 @@
                         </div>
 
                         <!-- Diagram Platform Digital -->
-                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex flex-col items-center">
                             <h3 class="text-xl font-semibold text-gray-800 mb-4">Berdasarkan Platform Digital</h3>
-                            <div class="chart-container">
+                            <div class="w-full max-w-sm flex-shrink-0">
                                 <canvas id="digitalPlatformChart"></canvas>
                             </div>
                             <div id="digitalPlatformLegend" class="mt-4 flex flex-col space-y-1">
@@ -1252,9 +1269,9 @@
                         </div>
 
                         <!-- Diagram Lokasi File Mentahan -->
-                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                        <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200 flex flex-col items-center">
                             <h3 class="text-xl font-semibold text-gray-800 mb-4">Berdasarkan Lokasi File</h3>
-                            <div class="chart-container">
+                            <div class="w-full max-w-sm flex-shrink-0">
                                 <canvas id="lokasiMentahanChart"></canvas>
                             </div>
                             <div id="lokasiMentahanLegend" class="mt-4 flex flex-col space-y-1">
