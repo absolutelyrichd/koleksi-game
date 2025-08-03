@@ -229,19 +229,21 @@
     <div id="game-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
         <div class="bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl p-8 transform transition-all scale-95 opacity-0" id="modal-content">
             <h3 id="modal-title" class="text-2xl font-bold mb-6">Tambah Game Baru</h3>
-            <form id="game-form" class="max-h-[70vh] overflow-y-auto pr-2">
-                <input type="hidden" id="game-id">
-                <div id="game-rows-container" class="space-y-4">
-                    <!-- Game entry rows will be injected here -->
+            <form id="game-form">
+                <div class="max-h-[70vh] overflow-y-auto pr-2">
+                    <input type="hidden" id="game-id">
+                    <div id="game-rows-container" class="space-y-4">
+                        <!-- Game entry rows will be injected here -->
+                    </div>
+                </div>
+                <div class="flex justify-between items-center mt-6 pt-4 border-t border-slate-700">
+                    <button type="button" id="add-row-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">Tambah Baris</button>
+                    <div class="space-x-4">
+                        <button type="button" id="cancel-button" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition">Batal</button>
+                        <button type="submit" id="save-form-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Simpan</button>
+                    </div>
                 </div>
             </form>
-            <div class="flex justify-between items-center mt-6 pt-4 border-t border-slate-700">
-                <button type="button" id="add-row-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">Tambah Baris</button>
-                <div class="space-x-4">
-                    <button type="button" id="cancel-button" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition">Batal</button>
-                    <button type="button" id="save-form-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Simpan</button>
-                </div>
-            </div>
         </div>
     </div>
     
@@ -299,7 +301,6 @@
         const modalTitle = document.getElementById('modal-title');
         const gameRowsContainer = document.getElementById('game-rows-container');
         const addRowButton = document.getElementById('add-row-button');
-        const saveFormButton = document.getElementById('save-form-button');
         const paginationContainer = document.getElementById('pagination-container');
         
         // Chart instances
@@ -439,8 +440,13 @@
         
         function addNewGameRow() {
             gameRowsContainer.insertAdjacentHTML('beforeend', createGameRowHTML());
-            gameRowsContainer.querySelector('.remove-row-btn:last-of-type')?.addEventListener('click', (e) => e.target.closest('.game-row').remove());
         }
+
+        gameRowsContainer.addEventListener('click', (e) => {
+            if (e.target.matches('.remove-row-btn')) {
+                e.target.closest('.game-row').remove();
+            }
+        });
 
         function openModal(game = null) {
             gameRowsContainer.innerHTML = '';
@@ -478,7 +484,8 @@
             if (e.target === gameModal) closeModal();
         });
 
-        saveFormButton.addEventListener('click', async () => {
+        gameForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             if (!currentUser) return;
             const id = document.getElementById('game-id').value;
             
@@ -500,7 +507,10 @@
                     showToast('Game berhasil diperbarui!');
                 } else { // Add logic (multiple games)
                     const rows = gameRowsContainer.querySelectorAll('.game-row');
-                    if (rows.length === 0) return;
+                    if (rows.length === 0) {
+                        showToast("Tidak ada game untuk ditambahkan.", true);
+                        return;
+                    }
                     
                     const batch = writeBatch(db);
                     let gamesAdded = 0;
