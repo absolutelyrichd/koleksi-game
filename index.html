@@ -79,6 +79,9 @@
     <!-- Main App Screen -->
     <div id="app-screen" class="hidden">
         <div class="relative min-h-screen md:flex">
+            <!-- Sidebar Overlay -->
+            <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+
             <!-- Mobile Nav Toggle -->
             <div class="md:hidden flex justify-between items-center bg-slate-800 p-4 text-white">
                 <h1 class="text-xl font-bold">Koleksi Game</h1>
@@ -323,6 +326,7 @@
         const paginationContainer = document.getElementById('pagination-container');
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
         
         // Chart instances
         let platformChart, locationChart, statusChart;
@@ -339,9 +343,14 @@
         }
 
         // Mobile Menu Toggle
-        mobileMenuButton.addEventListener('click', () => {
+        function toggleSidebar() {
             sidebar.classList.toggle('-translate-x-full');
-        });
+            sidebarOverlay.classList.toggle('hidden');
+        }
+
+        mobileMenuButton.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+
 
         // Fungsi otentikasi
         loginButton.addEventListener('click', () => {
@@ -633,7 +642,7 @@
             });
             // Hide sidebar on mobile after tab change
             if (window.innerWidth < 768) {
-                sidebar.classList.add('-translate-x-full');
+                toggleSidebar();
             }
         });
 
@@ -941,4 +950,4 @@
 
     </script>
 </body>
-</html>
+</ht
