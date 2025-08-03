@@ -40,11 +40,10 @@
 
         // Global variables for game data and UI elements
         let games = [];
-        // [FIXED] Renamed custom* arrays to managed* to reflect they are the single source of truth.
-        let managedPlatforms = [];
-        let managedStores = [];
-        let managedLocations = [];
-        let managedStatuses = [];
+        let customPlatforms = [];
+        let customStores = [];
+        let customLocations = [];
+        let customStatuses = [];
         let editingGameId = null;
         let currentPage = 1;
         const gamesPerPage = 9;
@@ -56,18 +55,27 @@
         let currentAutoDownloadInterval = 5;
         let userId = null;
         let isAuthReady = false;
-        let isSubmitting = false; // Flag to prevent double form submission
 
-        // Default options for dropdowns, used only to initialize new users.
+        // Default options for dropdowns (not including 'manual' option)
         const defaultPlatforms = ['PC', 'PS', 'PS2', 'PS3'];
-        const defaultStores = ['Steam', 'Epic Games', 'GOG', 'Crack'];
+        const defaultStores = ['Steam', 'Epic Games', 'GOG']; // These are now Digital Platforms
         const defaultStatuses = ['Dimainkan', 'Belum Dimainkan', 'Selesai', 'Wishlist'];
         const defaultLokasiMentahanOptions = ['HDD Eksternal 4TB', 'HDD Eksternal 2TB'];
 
         // Define a more elegant color palette for the charts
         const elegantColors = [
-            '#4A90E2', '#F5A623', '#50E3C2', '#BD10E0', '#FF2D55', '#00A79D',
-            '#FF7E6B', '#A2416D', '#6C5B7B', '#88B04B', '#E27D60', '#C38D9E'
+            '#4A90E2', // Blue
+            '#F5A623', // Orange
+            '#50E3C2', // Teal
+            '#BD10E0', // Purple
+            '#FF2D55', // Red
+            '#00A79D', // Dark Teal
+            '#FF7E6B', // Salmon
+            '#A2416D', // Plum
+            '#6C5B7B', // Grayish Purple
+            '#88B04B', // Olive Green
+            '#E27D60', // Terracotta
+            '#C38D9E', // Dusty Rose
         ];
 
         // DOM element references
@@ -156,10 +164,10 @@
                 logoutButton.classList.add('hidden');
                 mainContent.classList.add('hidden');
                 games = [];
-                managedPlatforms = [];
-                managedStores = [];
-                managedLocations = [];
-                managedStatuses = [];
+                customPlatforms = [];
+                customStores = [];
+                customLocations = [];
+                customStatuses = [];
                 renderAll();
                 displayMessage("Anda telah keluar atau belum masuk. Data tidak akan disimpan.", "info");
             }
@@ -191,6 +199,7 @@
 
         // --- Firebase Firestore Data Operations ---
 
+        // Path helpers
         function getUserGamesCollectionRef() {
             if (!userId) {
                 console.error("User ID not available for Firestore operations.");
@@ -230,19 +239,15 @@
                     onSnapshot(customOptionsDocRef, (docSnap) => {
                         if (docSnap.exists()) {
                             const data = docSnap.data();
-                            // [FIXED] Use Firestore data, or initialize with defaults if a specific category is missing
-                            managedPlatforms = data.platforms || [...defaultPlatforms];
-                            managedStores = data.stores || [...defaultStores];
-                            managedLocations = data.locations || [...defaultLokasiMentahanOptions];
-                            managedStatuses = data.statuses || [...defaultStatuses];
+                            customPlatforms = data.platforms || [];
+                            customStores = data.stores || [];
+                            customLocations = data.locations || [];
+                            customStatuses = data.statuses || [];
                         } else {
-                            // [FIXED] New user: initialize with defaults and save to Firestore so they become manageable.
-                            console.log("Initializing default options for new user.");
-                            managedPlatforms = [...defaultPlatforms];
-                            managedStores = [...defaultStores];
-                            managedLocations = [...defaultLokasiMentahanOptions];
-                            managedStatuses = [...defaultStatuses];
-                            saveCustomDropdownOptionsToFirestore();
+                            customPlatforms = [];
+                            customStores = [];
+                            customLocations = [];
+                            customStatuses = [];
                         }
                         updateAllDropdowns();
                         hideLoading();
@@ -269,15 +274,11 @@
                 const gamesColRef = getUserGamesCollectionRef();
                 if (!gamesColRef) return false;
 
-                const gameId = gameData.id;
-                const dataToSave = { ...gameData };
-                delete dataToSave.id;
-
-                if (gameId) {
-                    const gameDocRef = doc(gamesColRef, gameId);
-                    await setDoc(gameDocRef, dataToSave, { merge: true });
+                if (gameData.id) {
+                    const gameDocRef = doc(gamesColRef, gameData.id);
+                    await setDoc(gameDocRef, gameData, { merge: true });
                 } else {
-                    await addDoc(gamesColRef, dataToSave);
+                    await addDoc(gamesColRef, gameData);
                 }
                 hideLoading();
                 return true;
@@ -312,34 +313,34 @@
             }
         }
 
-        // [FIXED] Saves the unified managed* arrays to Firestore.
         async function saveCustomDropdownOptionsToFirestore() {
             if (!userId) {
-                displayMessage("Anda harus masuk untuk menyimpan opsi.", "error");
+                displayMessage("Anda harus masuk untuk menyimpan opsi kustom.", "error");
                 return false;
             }
-            showLoading("Menyimpan opsi...");
+            showLoading("Menyimpan opsi kustom...");
             try {
                 const customOptionsDocRef = getUserCustomOptionsDocRef();
                 if (!customOptionsDocRef) return false;
 
                 await setDoc(customOptionsDocRef, {
-                    platforms: managedPlatforms,
-                    stores: managedStores,
-                    locations: managedLocations,
-                    statuses: managedStatuses
+                    platforms: customPlatforms,
+                    stores: customStores,
+                    locations: customLocations,
+                    statuses: customStatuses
                 });
-                displayMessage("Opsi berhasil disimpan!", "success");
+                displayMessage("Opsi kustom berhasil disimpan!", "success");
                 hideLoading();
                 return true;
             } catch (error) {
                 console.error("Error saving custom options to Firestore:", error);
-                displayMessage(`Gagal menyimpan opsi: ${error.message}`, "error");
+                displayMessage(`Gagal menyimpan opsi kustom: ${error.message}`, "error");
                 hideLoading();
                 return false;
             }
         }
 
+        // --- Generic function to populate a select element ---
         function populateSelect(selectElement, optionsArray, includeManual = true, addPlaceholder = false) {
             selectElement.innerHTML = '';
             if (addPlaceholder) {
@@ -362,10 +363,11 @@
             }
         }
 
+        // --- Render custom options list in Data Management tab ---
         function renderCustomOptionsList(optionsArray, listElement) {
             listElement.innerHTML = '';
             if (optionsArray.length === 0) {
-                listElement.innerHTML = '<li class="text-gray-500">Belum ada opsi.</li>';
+                listElement.innerHTML = '<li class="text-gray-500">Belum ada opsi kustom.</li>';
                 return;
             }
             optionsArray.forEach(option => {
@@ -379,63 +381,68 @@
             });
         }
 
-        // [FIXED] Simplified to use the single managed* arrays.
+        // --- Update all relevant dropdowns with default and custom options ---
         function updateAllDropdowns() {
-            const allPlatforms = [...managedPlatforms].sort();
-            const allStores = [...managedStores].sort();
-            const allStatuses = [...managedStatuses].sort();
-            const allLokasiMentahan = [...managedLocations].sort();
+            const allPlatforms = [...new Set([...defaultPlatforms, ...customPlatforms])].sort();
+            const allStores = [...new Set([...defaultStores, ...customStores])].sort();
+            const allStatuses = [...new Set([...defaultStatuses, ...customStatuses])].sort();
+            const allLokasiMentahan = [...new Set([...defaultLokasiMentahanOptions, ...customLocations])].sort();
 
+            // Dropdowns in the modal form
             document.querySelectorAll('[id^="gamePlatform-"]').forEach(select => populateSelect(select, allPlatforms, true));
             document.querySelectorAll('[id^="gameStore-"]').forEach(select => populateSelect(select, allStores, true));
             document.querySelectorAll('[id^="gameStatus-"]').forEach(select => populateSelect(select, allStatuses, false));
             document.querySelectorAll('[id^="lokasiMentahan-"]').forEach(select => populateSelect(select, allLokasiMentahan, true, true));
 
+            // Filter dropdowns
             populateSelect(filterPlatformSelect, ['all', ...allPlatforms], false);
             populateSelect(filterDigitalPlatformSelect, ['all', ...allStores], false);
             populateSelect(filterStatusSelect, ['all', ...allStatuses], false);
             populateSelect(filterLokasiMentahanSelect, ['all', ...allLokasiMentahan], false);
 
-            renderCustomOptionsList(managedPlatforms, currentPlatformOptionsList);
-            renderCustomOptionsList(managedStores, currentStoreOptionsList);
-            renderCustomOptionsList(managedLocations, currentLokasiOptionsList);
-            renderCustomOptionsList(managedStatuses, currentStatusOptionsList);
+            renderCustomOptionsList(customPlatforms, currentPlatformOptionsList);
+            renderCustomOptionsList(customStores, currentStoreOptionsList);
+            renderCustomOptionsList(customLocations, currentLokasiOptionsList);
+            renderCustomOptionsList(customStatuses, currentStatusOptionsList);
 
+            // Maintain current filter selection
             filterPlatformSelect.value = filterPlatformSelect.dataset.currentValue || 'all';
             filterDigitalPlatformSelect.value = filterDigitalPlatformSelect.dataset.currentValue || 'all';
             filterLokasiMentahanSelect.value = filterLokasiMentahanSelect.dataset.currentValue || 'all';
             filterStatusSelect.value = filterStatusSelect.dataset.currentValue || 'all';
         }
 
-        async function handleAddCustomOption(inputElement, optionsArray) {
+        // --- Generic add custom option logic ---
+        async function handleAddCustomOption(inputElement, customArray, listElement) {
             if (!userId) {
-                displayMessage("Anda harus masuk untuk menambahkan opsi.", "error");
+                displayMessage("Anda harus masuk untuk menambahkan opsi kustom.", "error");
                 return;
             }
             const newItem = inputElement.value.trim();
-            if (newItem && !optionsArray.includes(newItem)) {
-                optionsArray.push(newItem);
+            if (newItem && !customArray.includes(newItem)) {
+                customArray.push(newItem);
                 await saveCustomDropdownOptionsToFirestore();
                 displayMessage(`${newItem} berhasil ditambahkan!`, "success");
                 inputElement.value = '';
                 updateAllDropdowns();
-            } else if (optionsArray.includes(newItem)) {
+            } else if (customArray.includes(newItem)) {
                 displayMessage(`"${newItem}" sudah ada.`, "error");
             } else {
                 displayMessage("Harap masukkan nama opsi.", "error");
             }
         }
 
-        async function handleDeleteCustomOption(event, optionsArray) {
+        // --- Generic delete custom option logic ---
+        async function handleDeleteCustomOption(event, customArray) {
             if (!userId) {
-                displayMessage("Anda harus masuk untuk menghapus opsi.", "error");
+                displayMessage("Anda harus masuk untuk menghapus opsi kustom.", "error");
                 return;
             }
             const itemToDelete = event.target.dataset.value;
             displayConfirmation(`Apakah Anda yakin ingin menghapus "${itemToDelete}"?`, async () => {
-                const index = optionsArray.indexOf(itemToDelete);
+                const index = customArray.indexOf(itemToDelete);
                 if (index > -1) {
-                    optionsArray.splice(index, 1);
+                    customArray.splice(index, 1);
                     await saveCustomDropdownOptionsToFirestore();
                     displayMessage(`"${itemToDelete}" berhasil dihapus.`, "success");
                     updateAllDropdowns();
@@ -443,6 +450,7 @@
             });
         }
 
+        // Fungsi untuk merender (menampilkan) daftar game, menerapkan filter dan pengurutan
         function renderGames() {
             gameListContainer.innerHTML = '';
 
@@ -454,9 +462,12 @@
             const sortOption = sortGamesSelect.value;
 
             let filteredGames = games.filter(game => {
-                const matchesSearch = (game.title && game.title.toLowerCase().includes(searchTerm)) || 
-                                      (game.platform && game.platform.toLowerCase().includes(searchTerm)) || 
-                                      (game.store && game.store.toLowerCase().includes(searchTerm));
+                // BUG FIX: Add defensive checks for null/undefined properties to prevent crashes.
+                const title = (game.title || '').toLowerCase();
+                const platform = (game.platform || '').toLowerCase();
+                const store = (game.store || '').toLowerCase();
+
+                const matchesSearch = title.includes(searchTerm) || platform.includes(searchTerm) || store.includes(searchTerm);
                 const matchesStatus = filterStatus === 'all' || game.status === filterStatus;
                 const matchesPlatform = filterPlatform === 'all' || game.platform === filterPlatform;
                 const matchesDigitalPlatform = filterDigitalPlatform === 'all' || game.store === filterDigitalPlatform;
@@ -464,12 +475,13 @@
                 return matchesSearch && matchesStatus && matchesPlatform && matchesDigitalPlatform && matchesLokasiMentahan;
             });
 
+            // BUG FIX: Add defensive checks for null/undefined properties in sorting to prevent crashes.
             filteredGames.sort((a, b) => {
                 switch (sortOption) {
-                    case 'title-asc': return a.title.localeCompare(b.title);
-                    case 'title-desc': return b.title.localeCompare(a.title);
-                    case 'platform-asc': return a.platform.localeCompare(b.platform);
-                    case 'status-asc': return a.status.localeCompare(b.status);
+                    case 'title-asc': return (a.title || '').localeCompare(b.title || '');
+                    case 'title-desc': return (b.title || '').localeCompare(a.title || '');
+                    case 'platform-asc': return (a.platform || '').localeCompare(b.platform || '');
+                    case 'status-asc': return (a.status || '').localeCompare(b.status || '');
                     default: return 0;
                 }
             });
@@ -492,7 +504,7 @@
                     gameItem.className = 'bg-white p-4 rounded-lg shadow-sm flex flex-col items-start justify-between border border-gray-200 hover:shadow-md transition-shadow';
                     gameItem.innerHTML = `
                         <div class="flex-grow w-full mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900">${game.title}</h3>
+                            <h3 class="text-lg font-semibold text-gray-900">${game.title || 'Tanpa Judul'}</h3>
                             <p class="text-sm text-gray-600 mt-1">Platform: ${game.platform || '-'}</p>
                             <p class="text-sm text-gray-600">Platform Digital: ${game.store || '-'}</p>
                             <p class="text-sm text-gray-600">Lokasi: ${game.lokasiMentahan || '-'}</p>
@@ -516,6 +528,7 @@
             renderPaginationControls(totalPages);
         }
 
+        // Fungsi untuk merender kontrol paginasi
         function renderPaginationControls(totalPages) {
             paginationControls.innerHTML = '';
             if (totalPages <= 1) {
@@ -567,16 +580,21 @@
             }
         }
 
+        // Fungsi untuk merender ulang semua elemen yang bergantung pada data
         function renderAll() {
             renderGames();
             updateAllDropdowns();
             renderCharts();
         }
 
+        // --- Chart.js Functions ---
+        // Fungsi untuk menyiapkan data dari array game untuk diagram lingkaran
         function prepareChartData(dataArray, propertyName) {
             const counts = dataArray.reduce((acc, game) => {
-                const value = game[propertyName] || 'Tidak Diketahui';
-                acc[value] = (acc[value] || 0) + 1;
+                const value = game[propertyName];
+                if (value) {
+                    acc[value] = (acc[value] || 0) + 1;
+                }
                 return acc;
             }, {});
 
@@ -586,8 +604,10 @@
             return { labels, data };
         }
 
+        // Fungsi untuk membuat diagram lingkaran
         function createPieChart(canvasElement, data, labels, chartTitle, legendContainer) {
             if (canvasElement) {
+                // Hancurkan chart yang ada sebelum membuat yang baru
                 const existingChart = Chart.getChart(canvasElement);
                 if (existingChart) {
                     existingChart.destroy();
@@ -613,18 +633,24 @@
                             title: {
                                 display: true,
                                 text: chartTitle,
-                                font: { size: 16 },
+                                font: {
+                                    size: 16
+                                },
                                 color: '#374151'
                             }
                         }
                     }
                 });
+
+                // Render custom legend
                 renderChartLegend(legendContainer, labels, chart.data.datasets[0].backgroundColor);
+
                 return chart;
             }
             return null;
         }
 
+        // Fungsi untuk merender legenda kustom
         function renderChartLegend(legendContainer, labels, colors) {
             if (!legendContainer) return;
             legendContainer.innerHTML = '';
@@ -639,6 +665,7 @@
             });
         }
 
+        // Render semua chart
         function renderCharts() {
             const gameStatusData = prepareChartData(games, 'status');
             gameStatusPieChart = createPieChart(gameStatusChartCanvas, gameStatusData.data, gameStatusData.labels, 'Distribusi Status Game', gameStatusLegend);
@@ -653,14 +680,14 @@
             digitalPlatformPieChart = createPieChart(digitalPlatformChartCanvas, digitalPlatformData.data, digitalPlatformData.labels, 'Distribusi Platform Digital', digitalPlatformLegend);
         }
 
-        // [FIXED] Export function now uses the managed* arrays.
+        // --- Data Import/Export ---
         function handleExportData() {
             const data = {
-                games: games.map(({ id, ...rest }) => rest),
-                platforms: managedPlatforms,
-                stores: managedStores,
-                locations: managedLocations,
-                statuses: managedStatuses
+                games: games.map(({ id, ...rest }) => rest), // Remove Firestore ID
+                customPlatforms,
+                customStores,
+                customLocations,
+                customStatuses
             };
             const dataStr = JSON.stringify(data, null, 2);
             const blob = new Blob([dataStr], { type: "application/json" });
@@ -675,38 +702,40 @@
             displayMessage("Data berhasil diekspor!", "success");
         }
 
-        // [FIXED] Import listener now populates the managed* arrays.
         importFileInput.addEventListener('change', (event) => {
             const file = event.target.files[0];
-            if (!file) return;
+            if (!file) {
+                return;
+            }
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
                     const importedData = JSON.parse(e.target.result);
-                    displayConfirmation(`Anda akan mengimpor data. Ini akan MENIMPA data yang ada. Lanjutkan?`, async () => {
+                    displayConfirmation(`Anda akan mengimpor ${importedData.games.length} game dan ${[...importedData.customPlatforms, ...importedData.customStores, ...importedData.customLocations, ...importedData.customStatuses].length} opsi kustom. Ini akan MENIMPA data yang ada. Lanjutkan?`, async () => {
                         showLoading("Mengimpor data...");
                         try {
+                            // Clear existing data
                             const gamesColRef = getUserGamesCollectionRef();
-                            if(gamesColRef) {
-                                const snapshot = await getDocs(gamesColRef);
-                                const batch = writeBatch(db);
-                                snapshot.docs.forEach(doc => batch.delete(doc.ref));
-                                await batch.commit();
-                            }
+                            const snapshot = await getDocs(gamesColRef);
+                            const batch = writeBatch(db);
+                            snapshot.docs.forEach(doc => {
+                                batch.delete(doc.ref);
+                            });
+                            await batch.commit();
 
-                            if (importedData.games && Array.isArray(importedData.games)) {
+                            // Import new data
+                            if (importedData.games && importedData.games.length > 0) {
                                 for (const game of importedData.games) {
-                                    const { id, ...gameToSave } = game;
-                                    await saveGameToFirestore(gameToSave);
+                                    await saveGameToFirestore(game);
                                 }
                             }
-                            
-                            managedPlatforms = importedData.platforms || [...defaultPlatforms];
-                            managedStores = importedData.stores || [...defaultStores];
-                            managedLocations = importedData.locations || [...defaultLokasiMentahanOptions];
-                            managedStatuses = importedData.statuses || [...defaultStatuses];
-                            await saveCustomDropdownOptionsToFirestore();
-                            
+                            if (importedData.customPlatforms || importedData.customStores || importedData.customLocations || importedData.customStatuses) {
+                                customPlatforms = importedData.customPlatforms || [];
+                                customStores = importedData.customStores || [];
+                                customLocations = importedData.customLocations || [];
+                                customStatuses = importedData.customStatuses || [];
+                                await saveCustomDropdownOptionsToFirestore();
+                            }
                             displayMessage("Data berhasil diimpor!", "success");
                         } catch (error) {
                             console.error("Error during data import:", error);
@@ -723,6 +752,7 @@
             reader.readAsText(file);
         });
 
+        // --- Auto Download Logic ---
         function toggleAutoDownload() {
             if (autoDownloadToggle.checked) {
                 const interval = parseInt(autoDownloadIntervalInput.value, 10) * 60 * 1000;
@@ -735,7 +765,9 @@
             }
         }
 
+        // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', async () => {
+            // Check for existing auth token and sign in
             if (initialAuthToken) {
                 try {
                     showLoading("Masuk secara otomatis...");
@@ -743,17 +775,21 @@
                 } catch (error) {
                     console.error("Error signing in with custom token:", error);
                     displayMessage("Gagal masuk otomatis. Coba masuk manual.", "error");
+                    // Fallback to anonymous sign-in if custom token fails
                     await signInAnonymously(auth);
                 }
             } else {
+                // If no custom token, sign in anonymously
                 await signInAnonymously(auth);
             }
         });
 
+        // Toggle mobile sidebar
         mobileMenuButton.addEventListener('click', () => {
             sidebar.classList.toggle('-translate-x-full');
         });
 
+        // Add a click listener to the main content area to close the sidebar on mobile
         mainContent.addEventListener('click', () => {
             if (!sidebar.classList.contains('-translate-x-full')) {
                 sidebar.classList.add('-translate-x-full');
@@ -767,7 +803,6 @@
             gameForm.reset();
             gameFormContainer.innerHTML = '';
             addGameRow();
-            addGameRowButton.classList.remove('hidden');
             editingGameId = null;
         });
 
@@ -787,91 +822,95 @@
 
         gameForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (isSubmitting) return;
+            let successCount = 0;
+            const gameRows = document.querySelectorAll('.game-row');
+            for (const row of gameRows) {
+                const gameTitle = row.querySelector('[id^="gameTitle-"]').value.trim();
+                const gamePlatform = row.querySelector('[id^="gamePlatform-"]').value;
+                let gamePlatformManual = row.querySelector('[id^="gamePlatformManual-"]')?.value.trim() || '';
+                const gameStore = row.querySelector('[id^="gameStore-"]').value;
+                let gameStoreManual = row.querySelector('[id^="gameStoreManual-"]')?.value.trim() || '';
+                const gameStatus = row.querySelector('[id^="gameStatus-"]').value;
+                const lokasiMentahan = row.querySelector('[id^="lokasiMentahan-"]').value;
+                let lokasiMentahanManual = row.querySelector('[id^="lokasiMentahanManual-"]')?.value.trim() || '';
 
-            isSubmitting = true;
-            const originalButtonText = submitButton.textContent;
-            submitButton.disabled = true;
-            submitButton.textContent = 'Menyimpan...';
-
-            try {
-                let successCount = 0;
-                const gameRows = document.querySelectorAll('.game-row');
-                for (const row of gameRows) {
-                    const gameTitle = row.querySelector('[id^="gameTitle-"]').value.trim();
-                    const gamePlatform = row.querySelector('[id^="gamePlatform-"]').value;
-                    let gamePlatformManual = row.querySelector('[id^="gamePlatformManual-"]')?.value.trim() || '';
-                    const gameStore = row.querySelector('[id^="gameStore-"]').value;
-                    let gameStoreManual = row.querySelector('[id^="gameStoreManual-"]')?.value.trim() || '';
-                    const gameStatus = row.querySelector('[id^="gameStatus-"]').value;
-                    const lokasiMentahan = row.querySelector('[id^="lokasiMentahan-"]').value;
-                    let lokasiMentahanManual = row.querySelector('[id^="lokasiMentahanManual-"]')?.value.trim() || '';
-
-                    if (gameTitle) {
-                        const gameData = {
-                            title: gameTitle,
-                            platform: gamePlatform === 'manual' ? gamePlatformManual : gamePlatform,
-                            store: gameStore === 'manual' ? gameStoreManual : gameStore,
-                            status: gameStatus,
-                            lokasiMentahan: lokasiMentahan === 'manual' ? lokasiMentahanManual : lokasiMentahan,
-                            id: editingGameId ? editingGameId : (row.dataset.gameId || null)
-                        };
-                        const saved = await saveGameToFirestore(gameData);
-                        if (saved) successCount++;
-                    }
+                if (gameTitle) {
+                    const gameData = {
+                        title: gameTitle,
+                        platform: gamePlatform === 'manual' ? gamePlatformManual : gamePlatform,
+                        store: gameStore === 'manual' ? gameStoreManual : gameStore,
+                        status: gameStatus,
+                        lokasiMentahan: lokasiMentahan === 'manual' ? lokasiMentahanManual : lokasiMentahan,
+                        id: row.dataset.gameId || editingGameId
+                    };
+                    const saved = await saveGameToFirestore(gameData);
+                    if (saved) successCount++;
                 }
+            }
 
-                if (successCount > 0) {
-                    displayMessage(`Berhasil menyimpan ${successCount} game.`, "success");
-                    gameFormModal.classList.add('hidden');
-                } else {
-                    const hasContent = Array.from(gameRows).some(row => row.querySelector('[id^="gameTitle-"]').value.trim());
-                    if (hasContent) {
-                        displayMessage("Gagal menyimpan game. Periksa koneksi atau coba lagi.", "error");
-                    } else {
-                        displayMessage("Tidak ada game yang disimpan. Judul tidak boleh kosong.", "error");
-                    }
-                }
-            } catch (error) {
-                console.error("Error submitting form:", error);
-                displayMessage(`Terjadi kesalahan: ${error.message}`, "error");
-            } finally {
-                isSubmitting = false;
-                submitButton.disabled = false;
-                submitButton.textContent = originalButtonText;
+            if (successCount > 0) {
+                displayMessage(`Berhasil menyimpan ${successCount} game.`, "success");
+                gameFormModal.classList.add('hidden');
+            } else {
+                displayMessage("Tidak ada game yang disimpan.", "error");
             }
         });
 
         gameListContainer.addEventListener('click', (e) => {
-            const editButton = e.target.closest('.edit-button');
-            const deleteButton = e.target.closest('.delete-button');
-
-            if (editButton) {
-                const gameId = editButton.dataset.id;
+            if (e.target.classList.contains('edit-button')) {
+                const gameId = e.target.dataset.id;
                 const gameToEdit = games.find(g => g.id === gameId);
                 if (gameToEdit) {
                     editingGameId = gameId;
                     formTitle.textContent = 'Edit Game';
                     submitButton.textContent = 'Simpan Perubahan';
-                    gameFormContainer.innerHTML = '';
-                    addGameRow(gameToEdit);
-                    addGameRowButton.classList.add('hidden');
+                    gameFormContainer.innerHTML = ''; // Clear existing rows
+                    addGameRow(gameToEdit); // Add one row with the game data
                     gameFormModal.classList.remove('hidden');
                 }
-            } else if (deleteButton) {
-                const gameId = deleteButton.dataset.id;
+            } else if (e.target.classList.contains('delete-button')) {
+                const gameId = e.target.dataset.id;
                 displayConfirmation("Apakah Anda yakin ingin menghapus game ini?", () => deleteGameFromFirestore(gameId));
             }
         });
 
-        searchGameInput.addEventListener('input', () => { currentPage = 1; renderGames(); });
-        filterStatusSelect.addEventListener('change', (e) => { currentPage = 1; filterStatusSelect.dataset.currentValue = e.target.value; renderGames(); });
-        filterPlatformSelect.addEventListener('change', (e) => { currentPage = 1; filterPlatformSelect.dataset.currentValue = e.target.value; renderGames(); });
-        filterDigitalPlatformSelect.addEventListener('change', (e) => { currentPage = 1; filterDigitalPlatformSelect.dataset.currentValue = e.target.value; renderGames(); });
-        filterLokasiMentahanSelect.addEventListener('change', (e) => { currentPage = 1; filterLokasiMentahanSelect.dataset.currentValue = e.target.value; renderGames(); });
-        sortGamesSelect.addEventListener('change', () => { currentPage = 1; renderGames(); });
+        searchGameInput.addEventListener('input', () => {
+            currentPage = 1;
+            renderGames();
+        });
+
+        filterStatusSelect.addEventListener('change', (e) => {
+            currentPage = 1;
+            filterStatusSelect.dataset.currentValue = e.target.value;
+            renderGames();
+        });
+
+        filterPlatformSelect.addEventListener('change', (e) => {
+            currentPage = 1;
+            filterPlatformSelect.dataset.currentValue = e.target.value;
+            renderGames();
+        });
+
+        filterDigitalPlatformSelect.addEventListener('change', (e) => {
+            currentPage = 1;
+            filterDigitalPlatformSelect.dataset.currentValue = e.target.value;
+            renderGames();
+        });
+
+        filterLokasiMentahanSelect.addEventListener('change', (e) => {
+            currentPage = 1;
+            filterLokasiMentahanSelect.dataset.currentValue = e.target.value;
+            renderGames();
+        });
+
+        sortGamesSelect.addEventListener('change', () => {
+            currentPage = 1;
+            renderGames();
+        });
+
         exportDataButton.addEventListener('click', handleExportData);
         importDataButton.addEventListener('click', () => importFileInput.click());
+
         autoDownloadToggle.addEventListener('change', toggleAutoDownload);
         autoDownloadIntervalInput.addEventListener('change', () => {
             if (autoDownloadToggle.checked) {
@@ -880,46 +919,93 @@
             }
         });
 
+        // Tab functionality
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
+                // Deactivate all tabs
                 tabButtons.forEach(btn => {
                     btn.classList.remove('bg-indigo-700', 'text-white');
                     btn.classList.add('hover:bg-indigo-600', 'text-indigo-200');
                 });
+                // Hide all content
                 Object.values(tabContents).forEach(content => content.classList.add('hidden'));
 
+                // Activate clicked tab
                 button.classList.add('bg-indigo-700', 'text-white');
                 button.classList.remove('hover:bg-indigo-600', 'text-indigo-200');
 
+                // Show corresponding content
                 const tabId = button.dataset.tab;
                 if (tabContents[tabId]) {
                     tabContents[tabId].classList.remove('hidden');
                 }
 
+                // Render charts when statistics tab is active to ensure canvas is visible
                 if (tabId === 'statistics' && isAuthReady) {
                     renderCharts();
                 }
             });
         });
 
-        // [FIXED] Event listeners now pass the correct managed* arrays.
-        addPlatformOptionButton.addEventListener('click', () => handleAddCustomOption(platformOptionInput, managedPlatforms));
-        platformOptionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomOption(platformOptionInput, managedPlatforms); }});
-        addStoreOptionButton.addEventListener('click', () => handleAddCustomOption(storeOptionInput, managedStores));
-        storeOptionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomOption(storeOptionInput, managedStores); }});
-        addLokasiOptionButton.addEventListener('click', () => handleAddCustomOption(lokasiOptionInput, managedLocations));
-        lokasiOptionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomOption(lokasiOptionInput, managedLocations); }});
-        addStatusOptionButton.addEventListener('click', () => handleAddCustomOption(statusOptionInput, managedStatuses));
-        statusOptionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomOption(statusOptionInput, managedStatuses); }});
+        // Listener for adding new custom options
+        addPlatformOptionButton.addEventListener('click', () => handleAddCustomOption(platformOptionInput, customPlatforms));
+        platformOptionInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddCustomOption(platformOptionInput, customPlatforms);
+            }
+        });
 
-        currentPlatformOptionsList.addEventListener('click', (e) => { if (e.target.classList.contains('delete-custom-option-button')) handleDeleteCustomOption(e, managedPlatforms); });
-        currentStoreOptionsList.addEventListener('click', (e) => { if (e.target.classList.contains('delete-custom-option-button')) handleDeleteCustomOption(e, managedStores); });
-        currentLokasiOptionsList.addEventListener('click', (e) => { if (e.target.classList.contains('delete-custom-option-button')) handleDeleteCustomOption(e, managedLocations); });
-        currentStatusOptionsList.addEventListener('click', (e) => { if (e.target.classList.contains('delete-custom-option-button')) handleDeleteCustomOption(e, managedStatuses); });
+        addStoreOptionButton.addEventListener('click', () => handleAddCustomOption(storeOptionInput, customStores));
+        storeOptionInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddCustomOption(storeOptionInput, customStores);
+            }
+        });
+
+        addLokasiOptionButton.addEventListener('click', () => handleAddCustomOption(lokasiOptionInput, customLocations));
+        lokasiOptionInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddCustomOption(lokasiOptionInput, customLocations);
+            }
+        });
+
+        addStatusOptionButton.addEventListener('click', () => handleAddCustomOption(statusOptionInput, customStatuses));
+        statusOptionInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleAddCustomOption(statusOptionInput, customStatuses);
+            }
+        });
+
+        // Listeners for deleting custom options (delegated)
+        currentPlatformOptionsList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-custom-option-button')) {
+                handleDeleteCustomOption(e, customPlatforms);
+            }
+        });
+        currentStoreOptionsList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-custom-option-button')) {
+                handleDeleteCustomOption(e, customStores);
+            }
+        });
+        currentLokasiOptionsList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-custom-option-button')) {
+                handleDeleteCustomOption(e, customLocations);
+            }
+        });
+        currentStatusOptionsList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-custom-option-button')) {
+                handleDeleteCustomOption(e, customStatuses);
+            }
+        });
 
         loginButton.addEventListener('click', handleGoogleLogin);
         logoutButton.addEventListener('click', handleLogout);
 
+        // --- Helper functions for modals and UI ---
         function showLoading(message = "Memuat...") {
             loadingOverlay.querySelector('span').textContent = message;
             loadingOverlay.classList.remove('hidden');
@@ -928,21 +1014,29 @@
         function hideLoading() {
             loadingOverlay.classList.add('hidden');
         }
-
+        
+        // A function to display a custom confirmation modal
         function displayConfirmation(message, onConfirm) {
             confirmMessage.textContent = message;
             confirmModal.classList.remove('hidden');
 
-            const newYesBtn = confirmYesBtn.cloneNode(true);
-            confirmYesBtn.parentNode.replaceChild(newYesBtn, confirmYesBtn);
-            const newNoBtn = confirmNoBtn.cloneNode(true);
-            confirmNoBtn.parentNode.replaceChild(newNoBtn, confirmNoBtn);
+            // Clone and replace buttons to remove old event listeners
+            const oldYesBtn = confirmYesBtn;
+            const newYesBtn = oldYesBtn.cloneNode(true);
+            oldYesBtn.parentNode.replaceChild(newYesBtn, oldYesBtn);
+            confirmYesBtn = newYesBtn;
 
-            newYesBtn.addEventListener('click', () => {
+            const oldNoBtn = confirmNoBtn;
+            const newNoBtn = oldNoBtn.cloneNode(true);
+            oldNoBtn.parentNode.replaceChild(newNoBtn, oldNoBtn);
+            confirmNoBtn = newNoBtn;
+
+            confirmYesBtn.addEventListener('click', () => {
                 confirmModal.classList.add('hidden');
                 onConfirm();
             });
-            newNoBtn.addEventListener('click', () => {
+
+            confirmNoBtn.addEventListener('click', () => {
                 confirmModal.classList.add('hidden');
             });
         }
@@ -950,10 +1044,15 @@
         function displayMessage(message, type = 'info') {
             messageText.textContent = message;
             messageModal.classList.remove('hidden');
+            // Set icon based on type
             let iconHtml = '';
-            if (type === 'success') iconHtml = '<i class="fas fa-check-circle text-green-500 text-3xl"></i>';
-            else if (type === 'error') iconHtml = '<i class="fas fa-times-circle text-red-500 text-3xl"></i>';
-            else iconHtml = '<i class="fas fa-info-circle text-blue-500 text-3xl"></i>';
+            if (type === 'success') {
+                iconHtml = '<i class="fas fa-check-circle text-green-500 text-3xl"></i>';
+            } else if (type === 'error') {
+                iconHtml = '<i class="fas fa-times-circle text-red-500 text-3xl"></i>';
+            } else {
+                iconHtml = '<i class="fas fa-info-circle text-blue-500 text-3xl"></i>';
+            }
             messageModalIcon.innerHTML = iconHtml;
         }
 
@@ -961,6 +1060,7 @@
             messageModal.classList.add('hidden');
         });
 
+        // --- Dynamic Form Row Management ---
         let rowCounter = 0;
         function addGameRow(gameData = {}) {
             rowCounter++;
@@ -969,48 +1069,81 @@
             newRow.className = 'game-row grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 p-4 bg-gray-50 rounded-lg shadow-inner';
             newRow.dataset.gameId = gameData.id || '';
 
+            // Create dropdowns with all custom options included
+            const allPlatforms = [...new Set([...defaultPlatforms, ...customPlatforms])].sort();
+            const allStores = [...new Set([...defaultStores, ...customStores])].sort();
+            const allStatuses = [...new Set([...defaultStatuses, ...customStatuses])].sort();
+            const allLokasiMentahan = [...new Set([...defaultLokasiMentahanOptions, ...customLocations])].sort();
+
             newRow.innerHTML = `
+                <!-- Title -->
                 <div class="col-span-1 md:col-span-5">
                     <label for="gameTitle-${rowId}" class="block text-sm font-medium text-gray-700">Nama Game</label>
-                    <input type="text" id="gameTitle-${rowId}" value="${gameData.title || ''}" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Contoh: The Witcher 3">
+                    <input type="text" id="gameTitle-${rowId}" value="${gameData.title || ''}" required
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Contoh: The Witcher 3">
                 </div>
+
+                <!-- Platform Dropdown -->
                 <div>
                     <label for="gamePlatform-${rowId}" class="block text-sm font-medium text-gray-700">Platform</label>
-                    <select id="gamePlatform-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
-                    <input type="text" id="gamePlatformManual-${rowId}" placeholder="Input Platform Manual" class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <select id="gamePlatform-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                    <input type="text" id="gamePlatformManual-${rowId}" placeholder="Input Platform Manual"
+                           class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
+
+                <!-- Store Dropdown -->
                 <div>
                     <label for="gameStore-${rowId}" class="block text-sm font-medium text-gray-700">Platform Digital</label>
-                    <select id="gameStore-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
-                    <input type="text" id="gameStoreManual-${rowId}" placeholder="Input Platform Digital Manual" class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <select id="gameStore-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                    <input type="text" id="gameStoreManual-${rowId}" placeholder="Input Platform Digital Manual"
+                           class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
+
+                <!-- Status Dropdown -->
                 <div>
                     <label for="gameStatus-${rowId}" class="block text-sm font-medium text-gray-700">Status</label>
-                    <select id="gameStatus-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+                    <select id="gameStatus-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <!-- Options will be populated by JS -->
+                    </select>
                 </div>
+
+                <!-- Lokasi Mentahan Dropdown -->
                 <div>
                     <label for="lokasiMentahan-${rowId}" class="block text-sm font-medium text-gray-700">Lokasi Mentahan</label>
-                    <select id="lokasiMentahan-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
-                    <input type="text" id="lokasiMentahanManual-${rowId}" placeholder="Input Lokasi Manual" class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <select id="lokasiMentahan-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <!-- Options will be populated by JS -->
+                    </select>
+                    <input type="text" id="lokasiMentahanManual-${rowId}" placeholder="Input Lokasi Manual"
+                           class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
+
+                <!-- Delete Row Button (hidden if only one row) -->
                 <div class="flex items-end justify-center">
-                    <button type="button" class="delete-row-button bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out transform hover:scale-105" title="Hapus Game"><i class="fas fa-trash"></i></button>
+                    <button type="button" class="delete-row-button bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out transform hover:scale-105" title="Hapus Game">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             `;
+
             gameFormContainer.appendChild(newRow);
+            
+            // Populate all dropdowns on the page
+            updateAllDropdowns();
 
+            // Then, set the specific values for the new row if editing
             const platformSelect = newRow.querySelector(`#gamePlatform-${rowId}`);
-            populateSelect(platformSelect, managedPlatforms, true);
             const storeSelect = newRow.querySelector(`#gameStore-${rowId}`);
-            populateSelect(storeSelect, managedStores, true);
             const statusSelect = newRow.querySelector(`#gameStatus-${rowId}`);
-            populateSelect(statusSelect, managedStatuses, false);
             const lokasiSelect = newRow.querySelector(`#lokasiMentahan-${rowId}`);
-            populateSelect(lokasiSelect, managedLocations, true, true);
-
+            
             if (gameData.platform) {
-                if (managedPlatforms.includes(gameData.platform)) platformSelect.value = gameData.platform;
-                else {
+                if (allPlatforms.includes(gameData.platform)) {
+                    platformSelect.value = gameData.platform;
+                } else {
                     platformSelect.value = 'manual';
                     const manualInput = newRow.querySelector(`#gamePlatformManual-${rowId}`);
                     manualInput.classList.remove('hidden');
@@ -1018,8 +1151,9 @@
                 }
             }
             if (gameData.store) {
-                if (managedStores.includes(gameData.store)) storeSelect.value = gameData.store;
-                else {
+                if (allStores.includes(gameData.store)) {
+                    storeSelect.value = gameData.store;
+                } else {
                     storeSelect.value = 'manual';
                     const manualInput = newRow.querySelector(`#gameStoreManual-${rowId}`);
                     manualInput.classList.remove('hidden');
@@ -1027,11 +1161,14 @@
                 }
             }
             if (gameData.status) {
-                if (managedStatuses.includes(gameData.status)) statusSelect.value = gameData.status;
+                if (allStatuses.includes(gameData.status)) {
+                    statusSelect.value = gameData.status;
+                }
             }
             if (gameData.lokasiMentahan) {
-                if (managedLocations.includes(gameData.lokasiMentahan)) lokasiSelect.value = gameData.lokasiMentahan;
-                else {
+                if (allLokasiMentahan.includes(gameData.lokasiMentahan)) {
+                    lokasiSelect.value = gameData.lokasiMentahan;
+                } else {
                     lokasiSelect.value = 'manual';
                     const manualInput = newRow.querySelector(`#lokasiMentahanManual-${rowId}`);
                     manualInput.classList.remove('hidden');
@@ -1039,29 +1176,34 @@
                 }
             }
 
-            platformSelect.addEventListener('change', (e) => toggleManualInput(e.target, `gamePlatformManual-${rowId}`));
-            storeSelect.addEventListener('change', (e) => toggleManualInput(e.target, `gameStoreManual-${rowId}`));
-            lokasiSelect.addEventListener('change', (e) => toggleManualInput(e.target, `lokasiMentahanManual-${rowId}`));
+            // Add event listeners for the new row
+            newRow.querySelector(`#gamePlatform-${rowId}`).addEventListener('change', (e) => toggleManualInput(e, `gamePlatformManual-${rowId}`));
+            newRow.querySelector(`#gameStore-${rowId}`).addEventListener('change', (e) => toggleManualInput(e, `gameStoreManual-${rowId}`));
+            newRow.querySelector(`#lokasiMentahan-${rowId}`).addEventListener('change', (e) => toggleManualInput(e, `lokasiMentahanManual-${rowId}`));
             newRow.querySelector('.delete-row-button').addEventListener('click', () => {
                 newRow.remove();
                 updateDeleteButtonVisibility();
             });
 
+            // Handle initial visibility of delete button
             updateDeleteButtonVisibility();
         }
 
         function updateDeleteButtonVisibility() {
             const deleteButtons = document.querySelectorAll('.delete-row-button');
-            if (deleteButtons.length > 1) {
-                deleteButtons.forEach(btn => btn.parentElement.classList.remove('hidden'));
-            } else if (deleteButtons.length === 1) {
-                deleteButtons.forEach(btn => btn.parentElement.classList.add('hidden'));
+            const formTitleText = formTitle.textContent;
+            
+            // Hide delete button if we are editing or if there's only one row for adding new games
+            if (formTitleText.includes('Edit Game') || deleteButtons.length <= 1) {
+                 deleteButtons.forEach(btn => btn.classList.add('hidden'));
+            } else {
+                 deleteButtons.forEach(btn => btn.classList.remove('hidden'));
             }
         }
 
-        function toggleManualInput(selectElement, inputId) {
+        function toggleManualInput(event, inputId) {
             const manualInput = document.getElementById(inputId);
-            if (selectElement.value === 'manual') {
+            if (event.target.value === 'manual') {
                 manualInput.classList.remove('hidden');
             } else {
                 manualInput.classList.add('hidden');
@@ -1275,10 +1417,10 @@
                                     .dot {
                                         transition: transform 0.3s ease;
                                     }
-                                    input:checked ~ .relative .block {
+                                    input:checked ~ .block {
                                         background-color: #4f46e5;
                                     }
-                                    input:checked ~ .relative .dot {
+                                    input:checked ~ .block .dot {
                                         transform: translateX(100%);
                                     }
                                 </style>
@@ -1297,7 +1439,7 @@
                                         </button>
                                     </div>
                                     <div class="mt-4">
-                                        <h4 class="text-md font-semibold text-gray-700 mb-2">Opsi Aktif:</h4>
+                                        <h4 class="text-md font-semibold text-gray-700 mb-2">Opsi kustom aktif:</h4>
                                         <ul id="currentPlatformOptionsList" class="list-disc list-inside text-sm text-gray-600 space-y-1">
                                             <!-- Custom platforms will be rendered here -->
                                         </ul>
@@ -1315,7 +1457,7 @@
                                         </button>
                                     </div>
                                     <div class="mt-4">
-                                        <h4 class="text-md font-semibold text-gray-700 mb-2">Opsi Aktif:</h4>
+                                        <h4 class="text-md font-semibold text-gray-700 mb-2">Opsi kustom aktif:</h4>
                                         <ul id="currentStoreOptionsList" class="list-disc list-inside text-sm text-gray-600 space-y-1">
                                             <!-- Custom stores will be rendered here -->
                                         </ul>
@@ -1333,7 +1475,7 @@
                                         </button>
                                     </div>
                                     <div class="mt-4">
-                                        <h4 class="text-md font-semibold text-gray-700 mb-2">Opsi Aktif:</h4>
+                                        <h4 class="text-md font-semibold text-gray-700 mb-2">Opsi kustom aktif:</h4>
                                         <ul id="currentLokasiOptionsList" class="list-disc list-inside text-sm text-gray-600 space-y-1">
                                             <!-- Custom locations will be rendered here -->
                                         </ul>
@@ -1351,7 +1493,7 @@
                                         </button>
                                     </div>
                                     <div class="mt-4">
-                                        <h4 class="text-md font-semibold text-gray-700 mb-2">Opsi Aktif:</h4>
+                                        <h4 class="text-md font-semibold text-gray-700 mb-2">Opsi kustom aktif:</h4>
                                         <ul id="currentStatusOptionsList" class="list-disc list-inside text-sm text-gray-600 space-y-1">
                                             <!-- Custom statuses will be rendered here -->
                                         </ul>
@@ -1379,7 +1521,7 @@
                 </button>
             </div>
             <form id="gameForm" class="mt-4">
-                <div id="gameFormContainer" class="space-y-4 max-h-[60vh] overflow-y-auto p-2">
+                <div id="gameFormContainer" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                     <!-- Dynamic form rows will be inserted here by JS -->
                 </div>
                 <div class="flex justify-between items-center mt-6">
@@ -1387,7 +1529,7 @@
                         Tambah Baris
                     </button>
                     <button type="submit" id="submitButton"
-                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md transition duration-300 ease-in-out transform hover:scale-105 disabled:bg-indigo-400 disabled:cursor-not-allowed">
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
                         Tambah Game
                     </button>
                 </div>
