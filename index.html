@@ -77,6 +77,12 @@
             height: 20px;
         }
 
+        #login-error {
+            color: var(--danger-color);
+            margin-top: 15px;
+            display: none;
+        }
+
         /* --- Dashboard View --- */
         #dashboard-view {
             width: 100%;
@@ -144,6 +150,7 @@
             width: 220px;
             padding: 20px;
             border-right: 1px solid var(--border-color);
+            background-color: rgba(0,0,0,0.1);
         }
 
         nav ul {
@@ -252,6 +259,7 @@
         /* --- Tab: Aksi Masal --- */
         #bulk-actions-form {
             display: flex;
+            flex-wrap: wrap;
             gap: 15px;
             margin-bottom: 20px;
             align-items: center;
@@ -280,6 +288,7 @@
         /* --- Tab: Manajemen Data --- */
         .data-management-actions button {
             margin-right: 15px;
+            margin-bottom: 10px;
             padding: 10px 20px;
             background-color: var(--primary-variant-color);
             color: var(--on-surface-color);
@@ -309,14 +318,15 @@
             height: 100%;
             overflow: auto;
             background-color: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
         }
 
         .modal-content {
             background-color: var(--surface-color);
-            margin: 15% auto;
             padding: 30px;
             border-radius: 12px;
-            width: 80%;
+            width: 90%;
             max-width: 500px;
             position: relative;
             animation: slideIn 0.4s ease;
@@ -382,6 +392,7 @@
 </head>
 <body>
 
+    <!-- Login View -->
     <div id="login-view">
         <h1>🎮 Koleksi Game Pribadi</h1>
         <p>Masuk untuk mengelola semua game favoritmu di satu tempat.</p>
@@ -389,8 +400,10 @@
             <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path><path fill="none" d="M0 0h48v48H0z"></path></svg>
             <span>Masuk dengan Google</span>
         </button>
+        <p id="login-error"></p>
     </div>
 
+    <!-- Dashboard View -->
     <div id="dashboard-view">
         <header>
             <h1>Dasbor Game</h1>
@@ -410,6 +423,7 @@
                 </ul>
             </nav>
             <section class="content-area">
+                <!-- Tab 1: Daftar Game -->
                 <div id="tab-list" class="content-tab active">
                     <h2>Koleksi Game Saya</h2>
                     <button id="add-game-btn">+ Tambah Game Baru</button>
@@ -424,11 +438,13 @@
                                 </tr>
                             </thead>
                             <tbody id="game-list-body">
-                                </tbody>
+                                <!-- Data game akan dimuat di sini -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
 
+                <!-- Tab 2: Statistik -->
                 <div id="tab-stats" class="content-tab">
                     <h2>Statistik Koleksi</h2>
                     <div id="stats-container">
@@ -438,6 +454,7 @@
                     </div>
                 </div>
 
+                <!-- Tab 3: Aksi Masal -->
                 <div id="tab-bulk" class="content-tab">
                     <h2>Aksi Masal</h2>
                     <div id="bulk-actions-form">
@@ -473,11 +490,13 @@
                                 </tr>
                             </thead>
                             <tbody id="bulk-game-list-body">
-                                </tbody>
+                                <!-- Data game untuk aksi masal -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
                 
+                <!-- Tab 4: Manajemen Data -->
                 <div id="tab-data" class="content-tab">
                     <h2>Manajemen Data</h2>
                     <div class="data-management-actions">
@@ -492,6 +511,7 @@
         </main>
     </div>
 
+    <!-- Modal untuk Tambah/Edit Game -->
     <div id="game-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
@@ -530,32 +550,52 @@
             </form>
         </div>
     </div>
-
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    
+    <!-- Chart.js for Statistics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <script>
-        // Konfigurasi Firebase Anda
+    <!-- Firebase SDK (v9 Modular) -->
+    <script type="module">
+        // Import fungsi yang diperlukan dari SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged, 
+            GoogleAuthProvider, 
+            signInWithPopup, 
+            signOut 
+        } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            addDoc, 
+            onSnapshot, 
+            query, 
+            orderBy,
+            writeBatch
+        } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+        // Konfigurasi Firebase Anda (dengan storageBucket yang diperbaiki)
         const firebaseConfig = {
             apiKey: "AIzaSyAzJTL179V9bT-DfefZq9gcG8Tz88VzLmQ",
             authDomain: "koleksi-game.firebaseapp.com",
             projectId: "koleksi-game",
-            storageBucket: "koleksi-game.appspot.com", // pastikan benar
+            storageBucket: "koleksi-game.appspot.com", // <-- Perbaikan di sini
             messagingSenderId: "222959670551",
             appId: "1:222959670551:web:048b1e2c4ef16b7bd31352",
             measurementId: "G-BYYCM7R4M8"
         };
 
         // Inisialisasi Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        const googleProvider = new firebase.auth.GoogleAuthProvider();
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
 
         let currentUser = null;
-        let gamesCollection = null;
+        let gamesCollectionRef = null;
+        let unsubscribeGames = null; // Untuk menghentikan listener saat logout
         let allGamesCache = [];
         let charts = {};
 
@@ -564,6 +604,7 @@
         const dashboardView = document.getElementById('dashboard-view');
         const loginBtn = document.getElementById('login-btn');
         const logoutBtn = document.getElementById('logout-btn');
+        const loginError = document.getElementById('login-error');
         const userInfo = {
             name: document.getElementById('user-name'),
             photo: document.getElementById('user-photo')
@@ -574,33 +615,42 @@
         const gameForm = document.getElementById('game-form');
 
         // === AUTHENTICATION ===
-        auth.onAuthStateChanged(user => {
+        onAuthStateChanged(auth, user => {
             if (user) {
                 currentUser = user;
-                gamesCollection = db.collection('users').doc(currentUser.uid).collection('games');
+                // Path ke koleksi game spesifik untuk user ini
+                gamesCollectionRef = collection(db, 'users', currentUser.uid, 'games');
+                
                 loginView.style.display = 'none';
                 dashboardView.style.display = 'flex';
                 userInfo.name.textContent = currentUser.displayName;
                 userInfo.photo.src = currentUser.photoURL;
+                
                 loadGames();
             } else {
                 currentUser = null;
-                gamesCollection = null;
+                if (unsubscribeGames) {
+                    unsubscribeGames(); // Hentikan listener onSnapshot
+                }
                 loginView.style.display = 'block';
                 dashboardView.style.display = 'none';
                 allGamesCache = [];
-                // Hapus chart lama jika ada
                 Object.values(charts).forEach(chart => chart.destroy());
                 charts = {};
             }
         });
 
         loginBtn.addEventListener('click', () => {
-            auth.signInWithPopup(googleProvider).catch(error => console.error("Login Error:", error));
+            loginError.style.display = 'none';
+            signInWithPopup(auth, googleProvider).catch(error => {
+                console.error("Login Error:", error);
+                loginError.textContent = `Login Gagal: ${error.message}`;
+                loginError.style.display = 'block';
+            });
         });
 
         logoutBtn.addEventListener('click', () => {
-            auth.signOut();
+            signOut(auth);
         });
 
         // === TAB SWITCHING ===
@@ -614,7 +664,6 @@
                 document.querySelectorAll('.content-tab').forEach(tab => tab.classList.remove('active'));
                 document.getElementById(tabId).classList.add('active');
 
-                // Muat ulang data relevan saat tab aktif
                 if (tabId === 'tab-stats') renderStatistics();
                 if (tabId === 'tab-bulk') renderBulkActionsList();
             });
@@ -624,7 +673,7 @@
         addGameBtn.addEventListener('click', () => {
             gameForm.reset();
             document.getElementById('modal-title').textContent = 'Tambah Game Baru';
-            gameModal.style.display = 'block';
+            gameModal.style.display = 'flex';
         });
 
         closeModalBtn.addEventListener('click', () => {
@@ -638,7 +687,7 @@
         });
         
         // === CRUD OPERATIONS ===
-        gameForm.addEventListener('submit', (e) => {
+        gameForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const gameData = {
                 title: document.getElementById('game-title').value,
@@ -647,27 +696,33 @@
                 status: document.getElementById('game-status').value,
             };
             
-            // Simpan ke Firestore
-            gamesCollection.add(gameData)
-                .then(() => {
-                    console.log('Game berhasil ditambahkan!');
-                    gameForm.reset();
-                    gameModal.style.display = 'none';
-                    loadGames(); // Refresh data
-                })
-                .catch(error => console.error('Error adding document: ', error));
+            try {
+                await addDoc(gamesCollectionRef, gameData);
+                console.log('Game berhasil ditambahkan!');
+                gameForm.reset();
+                gameModal.style.display = 'none';
+            } catch (error) {
+                console.error('Error adding document: ', error);
+                alert('Gagal menambahkan game. Lihat konsol untuk detail.');
+            }
         });
 
         function loadGames() {
-            if (!gamesCollection) return;
-            gamesCollection.orderBy('title').onSnapshot(snapshot => {
+            if (!gamesCollectionRef) return;
+            
+            const q = query(gamesCollectionRef, orderBy('title'));
+            
+            // Hentikan listener sebelumnya jika ada
+            if (unsubscribeGames) unsubscribeGames();
+
+            unsubscribeGames = onSnapshot(q, snapshot => {
                 allGamesCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 renderGameList(allGamesCache);
-                // Jika tab relevan aktif, perbarui
+                
                 if (document.getElementById('tab-bulk').classList.contains('active')) {
                     renderBulkActionsList();
                 }
-                 if (document.getElementById('tab-stats').classList.contains('active')) {
+                if (document.getElementById('tab-stats').classList.contains('active')) {
                     renderStatistics();
                 }
             }, error => console.error("Error loading games:", error));
@@ -694,8 +749,14 @@
         
         // === STATISTICS ===
         function renderStatistics() {
+            const statsContainer = document.getElementById('stats-container');
+            statsContainer.innerHTML = `
+                <div class="chart-container"><canvas id="platform-chart"></canvas></div>
+                <div class="chart-container"><canvas id="location-chart"></canvas></div>
+                <div class="chart-container"><canvas id="status-chart"></canvas></div>
+            `;
             if (allGamesCache.length === 0) {
-                 document.getElementById('stats-container').innerHTML = '<p>Tidak ada data untuk ditampilkan pada statistik.</p>';
+                 statsContainer.innerHTML = '<p>Tidak ada data untuk ditampilkan pada statistik.</p>';
                 return;
             }
             
@@ -706,13 +767,9 @@
                 }, {});
             };
 
-            const platformData = processData('platform');
-            const locationData = processData('location');
-            const statusData = processData('status');
-
-            createChart('platform-chart', 'Game per Platform', platformData);
-            createChart('location-chart', 'Game per Lokasi', locationData);
-            createChart('status-chart', 'Status Game', statusData);
+            createChart('platform-chart', 'Game per Platform', processData('platform'));
+            createChart('location-chart', 'Game per Lokasi', processData('location'));
+            createChart('status-chart', 'Status Game', processData('status'));
         }
 
         function createChart(canvasId, label, data) {
@@ -727,27 +784,16 @@
                     datasets: [{
                         label: label,
                         data: Object.values(data),
-                        backgroundColor: [
-                            '#03dac6', '#bb86fc', '#cf6679', '#f2e5a6', '#81c784', 
-                            '#64b5f6', '#ffb74d', '#9575cd'
-                        ],
-                        borderColor: var(--surface-color),
+                        backgroundColor: ['#03dac6', '#bb86fc', '#cf6679', '#f2e5a6', '#81c784', '#64b5f6'],
+                        borderColor: '#1e1e1e',
                         borderWidth: 2
                     }]
                 },
                 options: {
                     responsive: true,
                     plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: { color: 'white' }
-                        },
-                        title: {
-                            display: true,
-                            text: label,
-                            color: 'white',
-                            font: { size: 16 }
-                        }
+                        legend: { position: 'top', labels: { color: '#e0e0e0' } },
+                        title: { display: true, text: label, color: '#e0e0e0', font: { size: 16 } }
                     }
                 }
             });
@@ -763,8 +809,7 @@
         
         function renderBulkActionsList() {
             const listBody = document.getElementById('bulk-game-list-body');
-            const selectAllCheckbox = document.getElementById('select-all-checkbox');
-            selectAllCheckbox.checked = false;
+            document.getElementById('select-all-checkbox').checked = false;
             
             const filteredGames = allGamesCache.filter(game => {
                 return (filters.platform.value === 'all' || game.platform === filters.platform.value) &&
@@ -796,11 +841,9 @@
             });
         });
 
-        document.getElementById('bulk-delete-btn').addEventListener('click', () => {
-            const selectedIds = [];
-            document.querySelectorAll('#bulk-game-list-body .game-checkbox:checked').forEach(checkbox => {
-                selectedIds.push(checkbox.dataset.id);
-            });
+        document.getElementById('bulk-delete-btn').addEventListener('click', async () => {
+            const selectedIds = Array.from(document.querySelectorAll('#bulk-game-list-body .game-checkbox:checked'))
+                                     .map(cb => cb.dataset.id);
 
             if (selectedIds.length === 0) {
                 alert('Pilih setidaknya satu game untuk dihapus.');
@@ -808,17 +851,18 @@
             }
 
             if (confirm(`Anda yakin ingin menghapus ${selectedIds.length} game terpilih? Aksi ini tidak dapat dibatalkan.`)) {
-                const batch = db.batch();
-                selectedIds.forEach(id => {
-                    const docRef = gamesCollection.doc(id);
-                    batch.delete(docRef);
-                });
-                batch.commit()
-                    .then(() => {
-                        console.log(`${selectedIds.length} games deleted.`);
-                        loadGames();
-                    })
-                    .catch(error => console.error("Error deleting games: ", error));
+                try {
+                    const batch = writeBatch(db);
+                    selectedIds.forEach(id => {
+                        const docRef = doc(db, 'users', currentUser.uid, 'games', id);
+                        batch.delete(docRef);
+                    });
+                    await batch.commit();
+                    console.log(`${selectedIds.length} games deleted.`);
+                } catch (error) {
+                    console.error("Error deleting games: ", error);
+                    alert('Gagal menghapus game. Lihat konsol untuk detail.');
+                }
             }
         });
 
@@ -829,7 +873,6 @@
                 alert('Tidak ada data untuk diunduh.');
                 return;
             }
-            // Hapus ID sebelum download untuk format yang bersih
             const dataToDownload = allGamesCache.map(({id, ...rest}) => rest);
             const jsonString = JSON.stringify(dataToDownload, null, 2);
             const blob = new Blob([jsonString], { type: 'application/json' });
@@ -849,45 +892,37 @@
             if (!file) return;
 
             if (!confirm('PERINGATAN: Ini akan MENGGANTI seluruh koleksi game Anda dengan data dari file. Lanjutkan?')) {
-                uploadInput.value = ''; // Reset input
+                uploadInput.value = '';
                 return;
             }
 
             const reader = new FileReader();
-            reader.onload = (e) => {
+            reader.onload = async (e) => {
                 try {
                     const newGames = JSON.parse(e.target.result);
-                    if (!Array.isArray(newGames)) {
-                        throw new Error('JSON harus berupa array (array of objects).');
-                    }
+                    if (!Array.isArray(newGames)) throw new Error('JSON harus berupa array (array of objects).');
 
-                    // Hapus data lama terlebih dahulu
-                    const batchDelete = db.batch();
-                    allGamesCache.forEach(game => {
-                        batchDelete.delete(gamesCollection.doc(game.id));
-                    });
+                    // Hapus data lama
+                    const deleteBatch = writeBatch(db);
+                    allGamesCache.forEach(game => deleteBatch.delete(doc(gamesCollectionRef, game.id)));
+                    await deleteBatch.commit();
                     
-                    batchDelete.commit().then(() => {
-                        console.log('Data lama dihapus. Memuat data baru...');
-                        // Tambahkan data baru
-                        const batchAdd = db.batch();
-                        newGames.forEach(game => {
-                            const newDocRef = gamesCollection.doc();
-                            batchAdd.set(newDocRef, game);
-                        });
-                        return batchAdd.commit();
-                    }).then(() => {
-                        alert('Data berhasil dimuat dari file JSON!');
-                        loadGames();
-                    }).catch(error => {
-                        console.error('Error saat memuat JSON:', error);
-                        alert('Gagal memuat data. Periksa konsol untuk detailnya.');
-                    });
+                    console.log('Data lama dihapus. Memuat data baru...');
 
+                    // Tambah data baru
+                    const addBatch = writeBatch(db);
+                    newGames.forEach(game => {
+                        const newDocRef = doc(gamesCollectionRef); // Buat ref baru dengan ID acak
+                        addBatch.set(newDocRef, game);
+                    });
+                    await addBatch.commit();
+                    
+                    alert('Data berhasil dimuat dari file JSON!');
                 } catch (error) {
-                    alert('File JSON tidak valid. Error: ' + error.message);
+                    console.error('Error saat memuat JSON:', error);
+                    alert('Gagal memuat data. Periksa konsol untuk detailnya.');
                 } finally {
-                    uploadInput.value = ''; // Reset input
+                    uploadInput.value = '';
                 }
             };
             reader.readAsText(file);
