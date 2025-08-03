@@ -350,6 +350,8 @@
             
             unsubscribe = onSnapshot(gamesCollection, (snapshot) => {
                 games = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Urutkan game berdasarkan judul secara default
+                games.sort((a, b) => a.title.localeCompare(b.title));
                 applyFilters(); // Terapkan filter saat data baru masuk
                 updateCharts();
                 updateBulkActionUI();
