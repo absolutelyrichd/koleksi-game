@@ -55,6 +55,7 @@
         let currentAutoDownloadInterval = 5;
         let userId = null;
         let isAuthReady = false;
+        let selectedGameIds = new Set();
 
         // Default options for dropdowns (not including 'manual' option)
         const defaultPlatforms = ['PC', 'PS', 'PS2', 'PS3'];
@@ -64,18 +65,8 @@
 
         // Define a more elegant color palette for the charts
         const elegantColors = [
-            '#4A90E2', // Blue
-            '#F5A623', // Orange
-            '#50E3C2', // Teal
-            '#BD10E0', // Purple
-            '#FF2D55', // Red
-            '#00A79D', // Dark Teal
-            '#FF7E6B', // Salmon
-            '#A2416D', // Plum
-            '#6C5B7B', // Grayish Purple
-            '#88B04B', // Olive Green
-            '#E27D60', // Terracotta
-            '#C38D9E', // Dusty Rose
+            '#4A90E2', '#F5A623', '#50E3C2', '#BD10E0', '#FF2D55', '#00A79D', 
+            '#FF7E6B', '#A2416D', '#6C5B7B', '#88B04B', '#E27D60', '#C38D9E'
         ];
 
         // DOM element references
@@ -113,7 +104,8 @@
         const tabContents = {
             'game-list': document.getElementById('game-list'),
             'statistics': document.getElementById('statistics'),
-            'data-management': document.getElementById('data-management')
+            'data-management': document.getElementById('data-management'),
+            'bulk-actions': document.getElementById('bulk-actions') // New Tab
         };
         const platformOptionInput = document.getElementById('platformOptionInput');
         const addPlatformOptionButton = document.getElementById('addPlatformOptionButton');
@@ -144,6 +136,21 @@
         const messageModalIcon = document.getElementById('messageModalIcon');
         const mobileMenuButton = document.getElementById('mobileMenuButton');
         const sidebar = document.getElementById('sidebar');
+
+        // Bulk Actions elements
+        const bulkGameListContainer = document.getElementById('bulkGameList');
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const bulkDeleteButton = document.getElementById('bulkDeleteButton');
+        const bulkEditButton = document.getElementById('bulkEditButton');
+        const bulkEditModal = document.getElementById('bulkEditModal');
+        const closeBulkEditModalButton = document.getElementById('closeBulkEditModal');
+        const bulkEditForm = document.getElementById('bulkEditForm');
+        const bulkEditStatus = document.getElementById('bulkEditStatus');
+        const bulkEditPlatform = document.getElementById('bulkEditPlatform');
+        const bulkEditStore = document.getElementById('bulkEditStore');
+        const bulkEditLokasi = document.getElementById('bulkEditLokasi');
+        const selectedCountDisplay = document.getElementById('selectedCount');
+
 
         // --- Firebase Authentication ---
         onAuthStateChanged(auth, async (user) => {
@@ -276,7 +283,10 @@
 
                 if (gameData.id) {
                     const gameDocRef = doc(gamesColRef, gameData.id);
+                    const idToSave = gameData.id;
+                    delete gameData.id;
                     await setDoc(gameDocRef, gameData, { merge: true });
+                    gameData.id = idToSave;
                 } else {
                     await addDoc(gamesColRef, gameData);
                 }
@@ -341,12 +351,12 @@
         }
 
         // --- Generic function to populate a select element ---
-        function populateSelect(selectElement, optionsArray, includeManual = true, addPlaceholder = false) {
+        function populateSelect(selectElement, optionsArray, includeManual = true, addPlaceholder = false, placeholderText = "Pilih Opsi") {
             selectElement.innerHTML = '';
             if (addPlaceholder) {
                 const placeholderOption = document.createElement('option');
                 placeholderOption.value = "";
-                placeholderOption.textContent = "Pilih Lokasi";
+                placeholderOption.textContent = placeholderText;
                 selectElement.appendChild(placeholderOption);
             }
             optionsArray.forEach(option => {
@@ -392,13 +402,19 @@
             document.querySelectorAll('[id^="gamePlatform-"]').forEach(select => populateSelect(select, allPlatforms, true));
             document.querySelectorAll('[id^="gameStore-"]').forEach(select => populateSelect(select, allStores, true));
             document.querySelectorAll('[id^="gameStatus-"]').forEach(select => populateSelect(select, allStatuses, false));
-            document.querySelectorAll('[id^="lokasiMentahan-"]').forEach(select => populateSelect(select, allLokasiMentahan, true, true));
+            document.querySelectorAll('[id^="lokasiMentahan-"]').forEach(select => populateSelect(select, allLokasiMentahan, true, true, "Pilih Lokasi"));
 
             // Filter dropdowns
             populateSelect(filterPlatformSelect, ['all', ...allPlatforms], false);
             populateSelect(filterDigitalPlatformSelect, ['all', ...allStores], false);
             populateSelect(filterStatusSelect, ['all', ...allStatuses], false);
             populateSelect(filterLokasiMentahanSelect, ['all', ...allLokasiMentahan], false);
+
+            // Bulk Edit Dropdowns
+            populateSelect(bulkEditStatus, allStatuses, false, true, "Jangan Ubah Status");
+            populateSelect(bulkEditPlatform, allPlatforms, false, true, "Jangan Ubah Platform");
+            populateSelect(bulkEditStore, allStores, false, true, "Jangan Ubah Platform Digital");
+            populateSelect(bulkEditLokasi, allLokasiMentahan, false, true, "Jangan Ubah Lokasi");
 
             renderCustomOptionsList(customPlatforms, currentPlatformOptionsList);
             renderCustomOptionsList(customStores, currentStoreOptionsList);
@@ -580,10 +596,10 @@
             renderGames();
             updateAllDropdowns();
             renderCharts();
+            renderBulkActionsList();
         }
 
         // --- Chart.js Functions ---
-        // Fungsi untuk menyiapkan data dari array game untuk diagram lingkaran
         function prepareChartData(dataArray, propertyName) {
             const counts = dataArray.reduce((acc, game) => {
                 const value = game[propertyName] || 'Lainnya';
@@ -599,10 +615,8 @@
             return { labels, data };
         }
 
-        // Fungsi untuk membuat diagram lingkaran
         function createPieChart(canvasElement, data, labels, chartTitle, legendContainer) {
             if (canvasElement) {
-                // Hancurkan chart yang ada sebelum membuat yang baru
                 const existingChart = Chart.getChart(canvasElement);
                 if (existingChart) {
                     existingChart.destroy();
@@ -637,15 +651,12 @@
                     }
                 });
 
-                // Render custom legend
                 renderChartLegend(legendContainer, labels, chart.data.datasets[0].backgroundColor);
-
                 return chart;
             }
             return null;
         }
 
-        // Fungsi untuk merender legenda kustom
         function renderChartLegend(legendContainer, labels, colors) {
             if (!legendContainer) return;
             legendContainer.innerHTML = '';
@@ -660,7 +671,6 @@
             });
         }
 
-        // Render semua chart
         function renderCharts() {
             const gameStatusData = prepareChartData(games, 'status');
             gameStatusPieChart = createPieChart(gameStatusChartCanvas, gameStatusData.data, gameStatusData.labels, 'Distribusi Status Game', gameStatusLegend);
@@ -709,7 +719,6 @@
                     displayConfirmation(`Anda akan mengimpor ${importedData.games.length} game dan opsi kustom. Ini akan MENIMPA data yang ada. Lanjutkan?`, async () => {
                         showLoading("Mengimpor data...");
                         try {
-                            // Clear existing games
                             const gamesColRef = getUserGamesCollectionRef();
                             const snapshot = await getDocs(gamesColRef);
                             const batch = writeBatch(db);
@@ -718,12 +727,10 @@
                             });
                             await batch.commit();
 
-                            // Import new data
                             if (importedData.games && importedData.games.length > 0) {
                                 for (const game of importedData.games) {
-                                    // Ensure game has an ID for saving, or let Firestore generate one
                                     const gameToSave = { ...game };
-                                    delete gameToSave.id; // Remove old ID
+                                    delete gameToSave.id;
                                     await saveGameToFirestore(gameToSave);
                                 }
                             }
@@ -765,7 +772,6 @@
 
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', async () => {
-            // Check for existing auth token and sign in
             showLoading("Mengautentikasi...");
             if (initialAuthToken) {
                 try {
@@ -780,12 +786,10 @@
             }
         });
 
-        // Toggle mobile sidebar
         mobileMenuButton.addEventListener('click', () => {
             sidebar.classList.toggle('-translate-x-full');
         });
 
-        // Add a click listener to the main content area to close the sidebar on mobile
         mainContent.addEventListener('click', () => {
             if (!sidebar.classList.contains('-translate-x-full')) {
                 sidebar.classList.add('-translate-x-full');
@@ -822,15 +826,15 @@
             const gameRows = document.querySelectorAll('.game-row');
             for (const row of gameRows) {
                 const gameTitle = row.querySelector('[id^="gameTitle-"]').value.trim();
-                const gamePlatform = row.querySelector('[id^="gamePlatform-"]').value;
-                let gamePlatformManual = row.querySelector('[id^="gamePlatformManual-"]')?.value.trim() || '';
-                const gameStore = row.querySelector('[id^="gameStore-"]').value;
-                let gameStoreManual = row.querySelector('[id^="gameStoreManual-"]')?.value.trim() || '';
-                const gameStatus = row.querySelector('[id^="gameStatus-"]').value;
-                const lokasiMentahan = row.querySelector('[id^="lokasiMentahan-"]').value;
-                let lokasiMentahanManual = row.querySelector('[id^="lokasiMentahanManual-"]')?.value.trim() || '';
-
                 if (gameTitle) {
+                    const gamePlatform = row.querySelector('[id^="gamePlatform-"]').value;
+                    let gamePlatformManual = row.querySelector('[id^="gamePlatformManual-"]')?.value.trim() || '';
+                    const gameStore = row.querySelector('[id^="gameStore-"]').value;
+                    let gameStoreManual = row.querySelector('[id^="gameStoreManual-"]')?.value.trim() || '';
+                    const gameStatus = row.querySelector('[id^="gameStatus-"]').value;
+                    const lokasiMentahan = row.querySelector('[id^="lokasiMentahan-"]').value;
+                    let lokasiMentahanManual = row.querySelector('[id^="lokasiMentahanManual-"]')?.value.trim() || '';
+
                     const gameData = {
                         title: gameTitle,
                         platform: gamePlatform === 'manual' ? gamePlatformManual : gamePlatform,
@@ -839,7 +843,6 @@
                         lokasiMentahan: lokasiMentahan === 'manual' ? lokasiMentahanManual : lokasiMentahan,
                     };
                     
-                    // Add id only if we are editing an existing game
                     if (row.dataset.gameId) {
                         gameData.id = row.dataset.gameId;
                     }
@@ -865,11 +868,11 @@
                 const gameId = editButton.dataset.id;
                 const gameToEdit = games.find(g => g.id === gameId);
                 if (gameToEdit) {
-                    editingGameId = gameId; // Set global editing ID
+                    editingGameId = gameId;
                     formTitle.textContent = 'Edit Game';
                     submitButton.textContent = 'Simpan Perubahan';
-                    gameFormContainer.innerHTML = ''; // Clear existing rows
-                    addGameRow(gameToEdit); // Add one row with the game data
+                    gameFormContainer.innerHTML = '';
+                    addGameRow(gameToEdit);
                     gameFormModal.classList.remove('hidden');
                 }
             } else if (deleteButton) {
@@ -926,85 +929,74 @@
         // Tab functionality
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
-                // Deactivate all tabs
                 tabButtons.forEach(btn => {
                     btn.classList.remove('bg-indigo-700', 'text-white');
                     btn.classList.add('hover:bg-indigo-600', 'text-indigo-200');
                 });
-                // Hide all content
                 Object.values(tabContents).forEach(content => content.classList.add('hidden'));
 
-                // Activate clicked tab
                 button.classList.add('bg-indigo-700', 'text-white');
                 button.classList.remove('hover:bg-indigo-600', 'text-indigo-200');
 
-                // Show corresponding content
                 const tabId = button.dataset.tab;
                 if (tabContents[tabId]) {
                     tabContents[tabId].classList.remove('hidden');
                 }
 
-                // Render charts when statistics tab is active to ensure canvas is visible
                 if (tabId === 'statistics' && isAuthReady) {
                     renderCharts();
+                }
+                if (tabId === 'bulk-actions' && isAuthReady) {
+                    renderBulkActionsList();
                 }
             });
         });
 
-        // Listener for adding new custom options
+        // --- Bulk Actions Listeners ---
+        selectAllCheckbox.addEventListener('change', () => {
+            const checkboxes = bulkGameListContainer.querySelectorAll('.game-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAllCheckbox.checked;
+                updateSelection(checkbox.dataset.id, checkbox.checked);
+            });
+        });
+
+        bulkGameListContainer.addEventListener('change', (e) => {
+            if (e.target.classList.contains('game-checkbox')) {
+                updateSelection(e.target.dataset.id, e.target.checked);
+            }
+        });
+
+        bulkDeleteButton.addEventListener('click', handleBulkDelete);
+        bulkEditButton.addEventListener('click', () => {
+            if (selectedGameIds.size === 0) {
+                displayMessage("Pilih setidaknya satu game untuk diedit.", "error");
+                return;
+            }
+            bulkEditModal.classList.remove('hidden');
+        });
+
+        closeBulkEditModalButton.addEventListener('click', () => {
+            bulkEditModal.classList.add('hidden');
+        });
+
+        bulkEditForm.addEventListener('submit', handleBulkEdit);
+
+
+        // Listeners for custom options
         addPlatformOptionButton.addEventListener('click', () => handleAddCustomOption(platformOptionInput, customPlatforms));
-        platformOptionInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddCustomOption(platformOptionInput, customPlatforms);
-            }
-        });
-
+        platformOptionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomOption(platformOptionInput, customPlatforms); } });
         addStoreOptionButton.addEventListener('click', () => handleAddCustomOption(storeOptionInput, customStores));
-        storeOptionInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddCustomOption(storeOptionInput, customStores);
-            }
-        });
-
+        storeOptionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomOption(storeOptionInput, customStores); } });
         addLokasiOptionButton.addEventListener('click', () => handleAddCustomOption(lokasiOptionInput, customLocations));
-        lokasiOptionInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddCustomOption(lokasiOptionInput, customLocations);
-            }
-        });
-
+        lokasiOptionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomOption(lokasiOptionInput, customLocations); } });
         addStatusOptionButton.addEventListener('click', () => handleAddCustomOption(statusOptionInput, customStatuses));
-        statusOptionInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddCustomOption(statusOptionInput, customStatuses);
-            }
-        });
+        statusOptionInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCustomOption(statusOptionInput, customStatuses); } });
 
-        // Listeners for deleting custom options (delegated)
-        currentPlatformOptionsList.addEventListener('click', (e) => {
-            if (e.target.closest('.delete-custom-option-button')) {
-                handleDeleteCustomOption(e, customPlatforms);
-            }
-        });
-        currentStoreOptionsList.addEventListener('click', (e) => {
-            if (e.target.closest('.delete-custom-option-button')) {
-                handleDeleteCustomOption(e, customStores);
-            }
-        });
-        currentLokasiOptionsList.addEventListener('click', (e) => {
-            if (e.target.closest('.delete-custom-option-button')) {
-                handleDeleteCustomOption(e, customLocations);
-            }
-        });
-        currentStatusOptionsList.addEventListener('click', (e) => {
-            if (e.target.closest('.delete-custom-option-button')) {
-                handleDeleteCustomOption(e, customStatuses);
-            }
-        });
+        currentPlatformOptionsList.addEventListener('click', (e) => { if (e.target.closest('.delete-custom-option-button')) { handleDeleteCustomOption(e, customPlatforms); } });
+        currentStoreOptionsList.addEventListener('click', (e) => { if (e.target.closest('.delete-custom-option-button')) { handleDeleteCustomOption(e, customStores); } });
+        currentLokasiOptionsList.addEventListener('click', (e) => { if (e.target.closest('.delete-custom-option-button')) { handleDeleteCustomOption(e, customLocations); } });
+        currentStatusOptionsList.addEventListener('click', (e) => { if (e.target.closest('.delete-custom-option-button')) { handleDeleteCustomOption(e, customStatuses); } });
 
         loginButton.addEventListener('click', handleGoogleLogin);
         logoutButton.addEventListener('click', handleLogout);
@@ -1019,7 +1011,6 @@
             loadingOverlay.classList.add('hidden');
         }
         
-        // A function to display a custom confirmation modal
         function displayConfirmation(message, onConfirm) {
             confirmMessage.textContent = message;
             confirmModal.classList.remove('hidden');
@@ -1037,7 +1028,6 @@
                 confirmNoBtn.removeEventListener('click', handleNo);
             };
             
-            // Remove old listeners before adding new ones
             confirmYesBtn.removeEventListener('click', confirmYesBtn.lastListener);
             confirmNoBtn.removeEventListener('click', confirmNoBtn.lastListener);
 
@@ -1051,7 +1041,6 @@
         function displayMessage(message, type = 'info') {
             messageText.textContent = message;
             messageModal.classList.remove('hidden');
-            // Set icon based on type
             let iconHtml = '';
             let iconColorClass = '';
             if (type === 'success') {
@@ -1083,55 +1072,35 @@
                 newRow.dataset.gameId = gameData.id;
             }
 
-            // Create dropdowns with all custom options included
             const allPlatforms = [...new Set([...defaultPlatforms, ...customPlatforms])].sort();
             const allStores = [...new Set([...defaultStores, ...customStores])].sort();
             const allStatuses = [...new Set([...defaultStatuses, ...customStatuses])].sort();
             const allLokasiMentahan = [...new Set([...defaultLokasiMentahanOptions, ...customLocations])].sort();
 
             newRow.innerHTML = `
-                <!-- Title -->
                 <div class="col-span-1 md:col-span-5">
                     <label for="gameTitle-${rowId}" class="block text-sm font-medium text-gray-700">Nama Game</label>
-                    <input type="text" id="gameTitle-${rowId}" value="${gameData.title || ''}" required
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Contoh: The Witcher 3">
+                    <input type="text" id="gameTitle-${rowId}" value="${gameData.title || ''}" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Contoh: The Witcher 3">
                 </div>
-
-                <!-- Platform Dropdown -->
                 <div>
                     <label for="gamePlatform-${rowId}" class="block text-sm font-medium text-gray-700">Platform</label>
-                    <select id="gamePlatform-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    </select>
-                    <input type="text" id="gamePlatformManual-${rowId}" placeholder="Input Platform Manual"
-                           class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <select id="gamePlatform-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+                    <input type="text" id="gamePlatformManual-${rowId}" placeholder="Input Platform Manual" class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
-
-                <!-- Store Dropdown -->
                 <div>
                     <label for="gameStore-${rowId}" class="block text-sm font-medium text-gray-700">Platform Digital</label>
-                    <select id="gameStore-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    </select>
-                    <input type="text" id="gameStoreManual-${rowId}" placeholder="Input Platform Digital Manual"
-                           class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <select id="gameStore-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+                    <input type="text" id="gameStoreManual-${rowId}" placeholder="Input Platform Digital Manual" class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
-
-                <!-- Status Dropdown -->
                 <div>
                     <label for="gameStatus-${rowId}" class="block text-sm font-medium text-gray-700">Status</label>
-                    <select id="gameStatus-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    </select>
+                    <select id="gameStatus-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
                 </div>
-
-                <!-- Lokasi Mentahan Dropdown -->
                 <div>
                     <label for="lokasiMentahan-${rowId}" class="block text-sm font-medium text-gray-700">Lokasi Mentahan</label>
-                    <select id="lokasiMentahan-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                    </select>
-                    <input type="text" id="lokasiMentahanManual-${rowId}" placeholder="Input Lokasi Manual"
-                           class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                    <select id="lokasiMentahan-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+                    <input type="text" id="lokasiMentahanManual-${rowId}" placeholder="Input Lokasi Manual" class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
-
-                <!-- Delete Row Button (hidden if only one row) -->
                 <div class="flex items-end justify-center">
                     <button type="button" class="delete-row-button bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out transform hover:scale-105" title="Hapus Game">
                         <i class="fas fa-trash"></i>
@@ -1141,7 +1110,6 @@
 
             gameFormContainer.appendChild(newRow);
             
-            // Populate dropdowns for the new row
             const platformSelect = newRow.querySelector(`#gamePlatform-${rowId}`);
             populateSelect(platformSelect, allPlatforms, true);
             const storeSelect = newRow.querySelector(`#gameStore-${rowId}`);
@@ -1149,14 +1117,11 @@
             const statusSelect = newRow.querySelector(`#gameStatus-${rowId}`);
             populateSelect(statusSelect, allStatuses, false);
             const lokasiSelect = newRow.querySelector(`#lokasiMentahan-${rowId}`);
-            populateSelect(lokasiSelect, allLokasiMentahan, true, true);
+            populateSelect(lokasiSelect, allLokasiMentahan, true, true, "Pilih Lokasi");
 
-
-            // Set values if gameData exists
             if (gameData.platform) {
-                if (allPlatforms.includes(gameData.platform)) {
-                    platformSelect.value = gameData.platform;
-                } else {
+                if (allPlatforms.includes(gameData.platform)) { platformSelect.value = gameData.platform; } 
+                else {
                     platformSelect.value = 'manual';
                     const manualInput = newRow.querySelector(`#gamePlatformManual-${rowId}`);
                     manualInput.classList.remove('hidden');
@@ -1164,9 +1129,8 @@
                 }
             }
             if (gameData.store) {
-                if (allStores.includes(gameData.store)) {
-                    storeSelect.value = gameData.store;
-                } else {
+                if (allStores.includes(gameData.store)) { storeSelect.value = gameData.store; } 
+                else {
                     storeSelect.value = 'manual';
                     const manualInput = newRow.querySelector(`#gameStoreManual-${rowId}`);
                     manualInput.classList.remove('hidden');
@@ -1174,14 +1138,11 @@
                 }
             }
             if (gameData.status) {
-                if (allStatuses.includes(gameData.status)) {
-                    statusSelect.value = gameData.status;
-                }
+                if (allStatuses.includes(gameData.status)) { statusSelect.value = gameData.status; }
             }
             if (gameData.lokasiMentahan) {
-                if (allLokasiMentahan.includes(gameData.lokasiMentahan)) {
-                    lokasiSelect.value = gameData.lokasiMentahan;
-                } else if (gameData.lokasiMentahan) {
+                if (allLokasiMentahan.includes(gameData.lokasiMentahan)) { lokasiSelect.value = gameData.lokasiMentahan; } 
+                else if (gameData.lokasiMentahan) {
                     lokasiSelect.value = 'manual';
                     const manualInput = newRow.querySelector(`#lokasiMentahanManual-${rowId}`);
                     manualInput.classList.remove('hidden');
@@ -1189,7 +1150,6 @@
                 }
             }
 
-            // Add event listeners for the new row
             newRow.querySelector(`#gamePlatform-${rowId}`).addEventListener('change', (e) => toggleManualInput(e, `gamePlatformManual-${rowId}`));
             newRow.querySelector(`#gameStore-${rowId}`).addEventListener('change', (e) => toggleManualInput(e, `gameStoreManual-${rowId}`));
             newRow.querySelector(`#lokasiMentahan-${rowId}`).addEventListener('change', (e) => toggleManualInput(e, `lokasiMentahanManual-${rowId}`));
@@ -1198,7 +1158,6 @@
                 updateDeleteButtonVisibility();
             });
 
-            // Handle initial visibility of delete button
             updateDeleteButtonVisibility();
         }
 
@@ -1221,6 +1180,110 @@
                 manualInput.value = '';
             }
         }
+
+        // --- Bulk Actions Functions ---
+        function renderBulkActionsList() {
+            bulkGameListContainer.innerHTML = '';
+            if (games.length === 0) {
+                bulkGameListContainer.innerHTML = '<p class="text-gray-500 text-center col-span-full">Tidak ada game untuk ditampilkan.</p>';
+                return;
+            }
+            games.forEach(game => {
+                const item = document.createElement('div');
+                item.className = 'flex items-center p-3 bg-white rounded-lg shadow-sm border';
+                item.innerHTML = `
+                    <input type="checkbox" data-id="${game.id}" class="game-checkbox h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-4" ${selectedGameIds.has(game.id) ? 'checked' : ''}>
+                    <div class="flex-grow">
+                        <p class="font-semibold text-gray-800">${game.title}</p>
+                        <p class="text-sm text-gray-500">${game.platform || ''} - ${game.status || ''}</p>
+                    </div>
+                `;
+                bulkGameListContainer.appendChild(item);
+            });
+            updateSelectedCount();
+        }
+
+        function updateSelection(gameId, isSelected) {
+            if (isSelected) {
+                selectedGameIds.add(gameId);
+            } else {
+                selectedGameIds.delete(gameId);
+            }
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            selectedCountDisplay.textContent = `${selectedGameIds.size} game terpilih`;
+            const allCheckboxes = bulkGameListContainer.querySelectorAll('.game-checkbox');
+            const allSelected = allCheckboxes.length > 0 && selectedGameIds.size === allCheckboxes.length;
+            selectAllCheckbox.checked = allSelected;
+        }
+
+        async function handleBulkDelete() {
+            if (selectedGameIds.size === 0) {
+                displayMessage("Pilih setidaknya satu game untuk dihapus.", "error");
+                return;
+            }
+            displayConfirmation(`Apakah Anda yakin ingin menghapus ${selectedGameIds.size} game yang dipilih?`, async () => {
+                showLoading("Menghapus game...");
+                try {
+                    const gamesColRef = getUserGamesCollectionRef();
+                    const batch = writeBatch(db);
+                    selectedGameIds.forEach(id => {
+                        batch.delete(doc(gamesColRef, id));
+                    });
+                    await batch.commit();
+                    displayMessage(`${selectedGameIds.size} game berhasil dihapus.`, "success");
+                    selectedGameIds.clear();
+                    renderBulkActionsList();
+                } catch (error) {
+                    console.error("Error during bulk delete:", error);
+                    displayMessage(`Gagal menghapus game: ${error.message}`, "error");
+                } finally {
+                    hideLoading();
+                }
+            });
+        }
+
+        async function handleBulkEdit(e) {
+            e.preventDefault();
+            if (selectedGameIds.size === 0) {
+                displayMessage("Tidak ada game yang dipilih.", "error");
+                return;
+            }
+
+            const updateData = {};
+            if (bulkEditStatus.value) updateData.status = bulkEditStatus.value;
+            if (bulkEditPlatform.value) updateData.platform = bulkEditPlatform.value;
+            if (bulkEditStore.value) updateData.store = bulkEditStore.value;
+            if (bulkEditLokasi.value) updateData.lokasiMentahan = bulkEditLokasi.value;
+
+            if (Object.keys(updateData).length === 0) {
+                displayMessage("Pilih setidaknya satu properti untuk diubah.", "error");
+                return;
+            }
+
+            showLoading("Mengedit game...");
+            try {
+                const gamesColRef = getUserGamesCollectionRef();
+                const batch = writeBatch(db);
+                selectedGameIds.forEach(id => {
+                    batch.update(doc(gamesColRef, id), updateData);
+                });
+                await batch.commit();
+                displayMessage(`${selectedGameIds.size} game berhasil diedit.`, "success");
+                selectedGameIds.clear();
+                bulkEditModal.classList.add('hidden');
+                bulkEditForm.reset();
+                renderBulkActionsList();
+            } catch (error) {
+                console.error("Error during bulk edit:", error);
+                displayMessage(`Gagal mengedit game: ${error.message}`, "error");
+            } finally {
+                hideLoading();
+            }
+        }
+
     </script>
 </head>
 
@@ -1242,6 +1305,11 @@
                         class="tab-button w-full flex items-center space-x-2 p-3 rounded-lg hover:bg-indigo-700 text-indigo-200 transition-colors duration-200">
                     <i class="fas fa-chart-pie"></i>
                     <span>Statistik</span>
+                </button>
+                <button data-tab="bulk-actions"
+                        class="tab-button w-full flex items-center space-x-2 p-3 rounded-lg hover:bg-indigo-700 text-indigo-200 transition-colors duration-200">
+                    <i class="fas fa-tasks"></i>
+                    <span>Aksi Massal</span>
                 </button>
                 <button data-tab="data-management"
                         class="tab-button w-full flex items-center space-x-2 p-3 rounded-lg hover:bg-indigo-700 text-indigo-200 transition-colors duration-200">
@@ -1320,19 +1388,15 @@
 
                         <!-- Game List -->
                         <div id="gameList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-                            <!-- Game items will be dynamically inserted here -->
                         </div>
 
-                        <!-- No Games Message -->
                         <div id="noGamesMessage" class="hidden text-center text-gray-500 py-12">
                             <i class="fas fa-frown-open text-5xl mb-4"></i>
                             <p class="text-xl">Belum ada game yang ditambahkan.</p>
                             <p class="mt-2 text-md">Klik "Tambah Game" untuk memulai koleksimu.</p>
                         </div>
 
-                        <!-- Pagination Controls -->
                         <div id="paginationControls" class="flex justify-center items-center space-x-2 mt-6">
-                            <!-- Pagination buttons will be dynamically inserted here -->
                         </div>
                     </div>
                 </div>
@@ -1341,7 +1405,6 @@
                     <div class="bg-white rounded-lg shadow p-6">
                         <h2 class="text-2xl font-bold text-gray-900 mb-6">Statistik Koleksi</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Chart: Game Status -->
                             <div class="bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col items-center">
                                 <div class="w-full h-48 md:h-64 relative">
                                     <canvas id="gameStatusChart"></canvas>
@@ -1349,7 +1412,6 @@
                                 <div id="gameStatusLegend" class="mt-4 grid grid-cols-2 gap-2 text-sm text-gray-700">
                                 </div>
                             </div>
-                            <!-- Chart: Platforms -->
                             <div class="bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col items-center">
                                 <div class="w-full h-48 md:h-64 relative">
                                     <canvas id="platformChart"></canvas>
@@ -1357,7 +1419,6 @@
                                 <div id="platformLegend" class="mt-4 grid grid-cols-2 gap-2 text-sm text-gray-700">
                                 </div>
                             </div>
-                            <!-- Chart: Lokasi Mentahan -->
                             <div class="bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col items-center">
                                 <div class="w-full h-48 md:h-64 relative">
                                     <canvas id="lokasiMentahanChart"></canvas>
@@ -1366,7 +1427,6 @@
                                      class="mt-4 grid grid-cols-2 gap-2 text-sm text-gray-700">
                                 </div>
                             </div>
-                            <!-- Chart: Digital Platforms -->
                             <div class="bg-gray-50 p-4 rounded-lg shadow-inner flex flex-col items-center">
                                 <div class="w-full h-48 md:h-64 relative">
                                     <canvas id="digitalPlatformChart"></canvas>
@@ -1379,11 +1439,34 @@
                     </div>
                 </div>
 
+                <div id="bulk-actions" class="tab-content hidden">
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-4">Aksi Massal</h2>
+                        <div class="flex flex-col sm:flex-row justify-between items-center mb-4 p-4 bg-gray-50 rounded-lg border">
+                            <div class="flex items-center">
+                                <input type="checkbox" id="selectAllCheckbox" class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3">
+                                <label for="selectAllCheckbox" class="font-medium text-gray-700">Pilih Semua</label>
+                                <span id="selectedCount" class="ml-4 text-sm text-gray-600">0 game terpilih</span>
+                            </div>
+                            <div class="flex items-center space-x-2 mt-4 sm:mt-0">
+                                <button id="bulkEditButton" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+                                    <i class="fas fa-edit mr-2"></i>Edit Terpilih
+                                </button>
+                                <button id="bulkDeleteButton" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition duration-300">
+                                    <i class="fas fa-trash mr-2"></i>Hapus Terpilih
+                                </button>
+                            </div>
+                        </div>
+                        <div id="bulkGameList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4 max-h-[60vh] overflow-y-auto p-2">
+                            <!-- Bulk game list will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+
                 <div id="data-management" class="tab-content hidden">
                     <div class="bg-white rounded-lg shadow p-6 mb-6">
                         <h2 class="text-2xl font-bold text-gray-900 mb-6">Manajemen Data</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Import/Export Section -->
                             <div class="p-4 bg-gray-50 rounded-lg shadow-inner">
                                 <h3 class="text-xl font-semibold text-gray-800 mb-4">Impor & Ekspor</h3>
                                 <p class="text-sm text-gray-600 mb-4">Kelola data koleksi Anda dengan mengimpor atau mengekspornya dalam format JSON.</p>
@@ -1400,7 +1483,6 @@
                                 <input type="file" id="importFileInput" class="hidden" accept=".json">
                             </div>
 
-                            <!-- Auto-Download Section -->
                             <div class="p-4 bg-gray-50 rounded-lg shadow-inner">
                                 <h3 class="text-xl font-semibold text-gray-800 mb-4">Unduh Otomatis</h3>
                                 <p class="text-sm text-gray-600 mb-4">Aktifkan untuk mengunduh salinan data Anda secara berkala.</p>
@@ -1434,7 +1516,6 @@
                                 </style>
                             </div>
 
-                            <!-- Custom Options Section -->
                             <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                 <div class="p-4 bg-gray-50 rounded-lg shadow-inner">
                                     <h4 class="text-xl font-semibold text-gray-800 mb-2">Platform</h4>
@@ -1449,7 +1530,6 @@
                                     <div class="mt-4">
                                         <h4 class="text-md font-semibold text-gray-700 mb-2">Opsi kustom aktif:</h4>
                                         <ul id="currentPlatformOptionsList" class="list-disc list-inside text-sm text-gray-600 space-y-1">
-                                            <!-- Custom platforms will be rendered here -->
                                         </ul>
                                     </div>
                                 </div>
@@ -1467,7 +1547,6 @@
                                     <div class="mt-4">
                                         <h4 class="text-md font-semibold text-gray-700 mb-2">Opsi kustom aktif:</h4>
                                         <ul id="currentStoreOptionsList" class="list-disc list-inside text-sm text-gray-600 space-y-1">
-                                            <!-- Custom stores will be rendered here -->
                                         </ul>
                                     </div>
                                 </div>
@@ -1485,7 +1564,6 @@
                                     <div class="mt-4">
                                         <h4 class="text-md font-semibold text-gray-700 mb-2">Opsi kustom aktif:</h4>
                                         <ul id="currentLokasiOptionsList" class="list-disc list-inside text-sm text-gray-600 space-y-1">
-                                            <!-- Custom locations will be rendered here -->
                                         </ul>
                                     </div>
                                 </div>
@@ -1503,7 +1581,6 @@
                                     <div class="mt-4">
                                         <h4 class="text-md font-semibold text-gray-700 mb-2">Opsi kustom aktif:</h4>
                                         <ul id="currentStatusOptionsList" class="list-disc list-inside text-sm text-gray-600 space-y-1">
-                                            <!-- Custom statuses will be rendered here -->
                                         </ul>
                                     </div>
                                 </div>
@@ -1512,7 +1589,6 @@
                     </div>
                 </div>
             </main>
-            <!-- Tambahkan footer dengan copyright di sini -->
             <footer class="bg-gray-800 text-white text-center py-4 text-sm">
                 <p>&copy; 2024 RichD. All rights reserved.</p>
             </footer>
@@ -1530,7 +1606,6 @@
             </div>
             <form id="gameForm" class="mt-4">
                 <div id="gameFormContainer" class="space-y-4 max-h-[60vh] overflow-y-auto p-2">
-                    <!-- Dynamic form rows will be inserted here by JS -->
                 </div>
                 <div class="flex justify-between items-center mt-6 pt-4 border-t">
                     <button type="button" id="addGameRowButton" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
@@ -1544,6 +1619,42 @@
             </form>
         </div>
     </div>
+
+    <!-- Modal for Bulk Editing -->
+    <div id="bulkEditModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-1/3 shadow-lg rounded-md bg-white">
+            <div class="flex justify-between items-center pb-3">
+                <h3 class="text-2xl font-bold text-gray-900">Edit Game Terpilih</h3>
+                <button id="closeBulkEditModal" class="text-gray-500 hover:text-gray-800">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <form id="bulkEditForm" class="mt-4 space-y-4">
+                <div>
+                    <label for="bulkEditStatus" class="block text-sm font-medium text-gray-700">Ubah Status menjadi:</label>
+                    <select id="bulkEditStatus" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+                </div>
+                <div>
+                    <label for="bulkEditPlatform" class="block text-sm font-medium text-gray-700">Ubah Platform menjadi:</label>
+                    <select id="bulkEditPlatform" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+                </div>
+                <div>
+                    <label for="bulkEditStore" class="block text-sm font-medium text-gray-700">Ubah Platform Digital menjadi:</label>
+                    <select id="bulkEditStore" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+                </div>
+                <div>
+                    <label for="bulkEditLokasi" class="block text-sm font-medium text-gray-700">Ubah Lokasi Mentahan menjadi:</label>
+                    <select id="bulkEditLokasi" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
+                </div>
+                <div class="flex justify-end items-center mt-6 pt-4 border-t">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md transition duration-300">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <!-- Loading Overlay -->
     <div id="loadingOverlay"
@@ -1583,7 +1694,6 @@
         <div class="relative mx-auto p-5 border w-96 shadow-lg rounded-md bg-white text-center">
             <div class="mt-3 text-center">
                 <div id="messageModalIcon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full">
-                    <!-- Icon will be inserted here -->
                 </div>
                 <div class="mt-2 px-7 py-3">
                     <p id="messageText" class="text-md text-gray-500"></p>
@@ -1607,21 +1717,13 @@
         }
 
         @-webkit-keyframes spinner {
-            0% {
-                -webkit-transform: rotate(0deg);
-            }
-            100% {
-                -webkit-transform: rotate(360deg);
-            }
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
         }
 
         @keyframes spinner {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 
