@@ -4,20 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dasbor Koleksi Game</title>
-    
-    <!-- Tailwind CSS -->
+
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js for Statistics -->
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Google Fonts: Inter -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* Custom styles untuk tampilan yang lebih premium */
         body {
             font-family: 'Inter', sans-serif;
             background-color: #0f172a; /* slate-900 */
@@ -56,15 +52,16 @@
             color: white;
             font-weight: bold;
         }
-        /* Sidebar transition */
-        #sidebar {
-            transition: transform 0.3s ease-in-out;
+        /* Styling untuk sidebar mobile */
+        @media (max-width: 768px) {
+            .sidebar-mobile-closed {
+                transform: translateX(-100%);
+            }
         }
     </style>
 </head>
 <body class="antialiased">
 
-    <!-- Login Screen -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-slate-800 rounded-2xl shadow-2xl p-8 text-center">
             <h1 class="text-3xl font-bold text-white mb-2">Dasbor Koleksi Game</h1>
@@ -76,28 +73,22 @@
         </div>
     </div>
 
-    <!-- Main App Screen -->
     <div id="app-screen" class="hidden">
         <div class="relative min-h-screen md:flex">
-            <!-- Sidebar Overlay -->
-            <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
-
-            <!-- Mobile Nav Toggle -->
-            <div class="md:hidden flex justify-between items-center bg-slate-800 p-4 text-white">
-                <h1 class="text-xl font-bold">Koleksi Game</h1>
-                <button id="mobile-menu-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Sidebar -->
-            <aside id="sidebar" class="bg-slate-800 w-64 p-6 flex flex-col fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 z-30">
+            <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/50 z-20 md:hidden hidden"></div>
+            
+            <aside id="sidebar" class="fixed inset-y-0 left-0 bg-slate-800 w-64 p-6 flex flex-col z-30 transform transition-transform duration-300 md:relative md:translate-x-0 sidebar-mobile-closed">
                 <div class="flex-grow">
-                    <h1 class="text-2xl font-bold text-white mb-8 hidden md:block">Koleksi Game</h1>
+                    <div class="flex items-center justify-between mb-8">
+                        <h1 class="text-2xl font-bold text-white">Koleksi Game</h1>
+                        <button id="close-sidebar-button" class="md:hidden text-slate-400 hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
                     <nav id="tabs" class="flex flex-col space-y-2">
-                        <button data-tab="tab-list" class="tab-button tab-active flex items-center py-2 px-4 rounded-lg transition duration-200">
+                         <button data-tab="tab-list" class="tab-button tab-active flex items-center py-2 px-4 rounded-lg transition duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v1H2V6zM2 9v7a2 2 0 002 2h12a2 2 0 002-2V9H2zm4-4a1 1 0 100-2 1 1 0 000 2zM8 5a1 1 0 100-2 1 1 0 000 2z"/></svg>
                             Daftar Game
                         </button>
@@ -127,19 +118,25 @@
                 </div>
             </aside>
 
-            <!-- Main Content -->
-            <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
-                <!-- Tab: Daftar Game -->
+            <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+                <header class="md:hidden flex items-center justify-between mb-6">
+                    <button id="open-sidebar-button" class="text-slate-200 hover:text-white">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                    <h1 class="text-xl font-bold text-white">Koleksi Game</h1>
+                    <div></div> </header>
+
                 <div id="tab-list" class="tab-content">
-                    <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
                         <h2 class="text-2xl sm:text-3xl font-bold">Daftar Game</h2>
-                        <button id="add-game-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 w-full sm:w-auto">
+                        <button id="add-game-button" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                             Tambah Game
                         </button>
                     </div>
-                    <!-- Filter Section -->
-                    <div class="bg-slate-800 p-4 sm:p-6 rounded-xl shadow-lg mb-6">
+                    <div class="bg-slate-800 p-4 md:p-6 rounded-xl shadow-lg mb-6">
                         <h3 class="font-bold text-xl mb-4">Filter Game</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <input id="filter-title" type="text" placeholder="Filter berdasarkan judul..." class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
@@ -157,7 +154,6 @@
                             </select>
                         </div>
                      </div>
-                    <!-- Game Table -->
                     <div class="bg-slate-800 rounded-xl shadow-lg overflow-x-auto">
                         <table class="w-full text-left min-w-[640px]">
                             <thead class="bg-slate-700">
@@ -171,16 +167,13 @@
                                 </tr>
                             </thead>
                             <tbody id="game-list-body">
-                                <!-- Game items will be injected here by JS -->
                                 <tr><td colspan="6" class="text-center p-8 text-slate-400">Memuat data game...</td></tr>
                             </tbody>
                         </table>
                     </div>
-                     <!-- Pagination -->
-                    <div id="pagination-container" class="flex justify-center items-center mt-6 space-x-2"></div>
+                     <div id="pagination-container" class="flex justify-center items-center mt-6 space-x-1 sm:space-x-2"></div>
                 </div>
 
-                <!-- Tab: Statistik -->
                 <div id="tab-stats" class="tab-content hidden">
                      <h2 class="text-2xl sm:text-3xl font-bold mb-6">Statistik Game</h2>
                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -205,20 +198,18 @@
                      </div>
                 </div>
 
-                <!-- Tab: Aksi Masal -->
                 <div id="tab-bulk" class="tab-content hidden">
                      <h2 class="text-2xl sm:text-3xl font-bold mb-6">Aksi Masal</h2>
                      <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                         <h3 class="font-bold text-xl mb-4">Tindakan untuk Game Terpilih</h3>
                         <p id="selection-info" class="text-slate-400 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.</p>
-                        <button id="bulk-delete-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:bg-red-800 disabled:cursor-not-allowed">
+                        <button id="bulk-delete-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:bg-red-800 disabled:cursor-not-allowed" disabled>
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
                             Hapus Game Terpilih
                         </button>
                      </div>
                 </div>
 
-                <!-- Tab: Manajemen Data -->
                 <div id="tab-manage" class="tab-content hidden">
                     <h2 class="text-2xl sm:text-3xl font-bold mb-6">Manajemen Data</h2>
                     <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
@@ -247,34 +238,30 @@
         </div>
     </div>
 
-    <!-- Add/Edit Game Modal -->
     <div id="game-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl p-8 transform transition-all scale-95 opacity-0" id="modal-content">
+        <div class="bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="modal-content">
             <h3 id="modal-title" class="text-2xl font-bold mb-6">Tambah Game Baru</h3>
             <form id="game-form">
                 <div class="max-h-[70vh] overflow-y-auto pr-2">
                     <input type="hidden" id="game-id">
                     <div id="game-rows-container" class="space-y-4">
-                        <!-- Game entry rows will be injected here -->
-                    </div>
+                        </div>
                 </div>
                 <div class="flex flex-col sm:flex-row justify-between items-center mt-6 pt-4 border-t border-slate-700 gap-4">
-                    <button type="button" id="add-row-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition w-full sm:w-auto">Tambah Baris</button>
-                    <div class="flex space-x-4 w-full sm:w-auto">
-                        <button type="button" id="cancel-button" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition w-1/2 sm:w-auto">Batal</button>
-                        <button type="submit" id="save-form-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition w-1/2 sm:w-auto">Simpan</button>
+                    <button type="button" id="add-row-button" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">Tambah Baris</button>
+                    <div class="w-full sm:w-auto flex justify-end space-x-4">
+                        <button type="button" id="cancel-button" class="flex-1 sm:flex-none bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition">Batal</button>
+                        <button type="submit" id="save-form-button" class="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Simpan</button>
                     </div>
                 </div>
             </form>
         </div>
     </div>
     
-    <!-- Custom Alert/Toast -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+    <div id="toast" class="fixed bottom-5 right-5 w-11/12 max-w-sm bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
         <p id="toast-message">Operasi berhasil!</p>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
         // Import fungsi yang diperlukan dari SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -291,7 +278,7 @@
             appId: "1:222959670551:web:048b1e2c4ef16b7bd31352",
             measurementId: "G-BYYCM7R4M8"
         };
-
+        
         // Inisialisasi Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -305,7 +292,7 @@
 
         // Pagination state
         let currentPage = 1;
-        const gamesPerPage = 10;
+        const gamesPerPage = 10; // Meningkatkan item per halaman
 
         // Elemen UI
         const loginScreen = document.getElementById('login-screen');
@@ -324,33 +311,41 @@
         const gameRowsContainer = document.getElementById('game-rows-container');
         const addRowButton = document.getElementById('add-row-button');
         const paginationContainer = document.getElementById('pagination-container');
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebar-overlay');
         
+        // Elemen Mobile
+        const sidebar = document.getElementById('sidebar');
+        const openSidebarButton = document.getElementById('open-sidebar-button');
+        const closeSidebarButton = document.getElementById('close-sidebar-button');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+
         // Chart instances
         let platformChart, locationChart, statusChart;
+
+        // --- MOBILE SIDEBAR LOGIC ---
+        function openSidebar() {
+            sidebar.classList.remove('sidebar-mobile-closed');
+            mobileMenuBackdrop.classList.remove('hidden');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.add('sidebar-mobile-closed');
+            mobileMenuBackdrop.classList.add('hidden');
+        }
+
+        openSidebarButton.addEventListener('click', openSidebar);
+        closeSidebarButton.addEventListener('click', closeSidebar);
+        mobileMenuBackdrop.addEventListener('click', closeSidebar);
 
         // Toast/Alert function
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toast-message');
             toastMessage.textContent = message;
-            toast.className = `fixed bottom-5 right-5 text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 z-50 ${isError ? 'bg-red-500' : 'bg-green-500'} translate-y-0 opacity-100`;
+            toast.className = `fixed bottom-5 right-1/2 translate-x-1/2 w-11/12 max-w-sm text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 z-50 ${isError ? 'bg-red-500' : 'bg-green-500'} translate-y-0 opacity-100`;
             setTimeout(() => {
                 toast.className = toast.className.replace('translate-y-0 opacity-100', 'translate-y-20 opacity-0');
             }, 3000);
         }
-
-        // Mobile Menu Toggle
-        function toggleSidebar() {
-            sidebar.classList.toggle('-translate-x-full');
-            sidebarOverlay.classList.toggle('hidden');
-        }
-
-        mobileMenuButton.addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', toggleSidebar);
-
 
         // Fungsi otentikasi
         loginButton.addEventListener('click', () => {
@@ -389,11 +384,11 @@
         function fetchGames() {
             if (!currentUser) return;
             const gamesCollectionRef = collection(db, 'games', currentUser.uid, 'userGames');
-            const q = query(gamesCollectionRef, orderBy("title")); // Mengambil data yang sudah diurutkan dari Firestore
+            const q = query(gamesCollectionRef, orderBy("title"));
 
             unsubscribe = onSnapshot(q, (snapshot) => {
                 games = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                applyFilters(); // Terapkan filter dan render halaman pertama
+                applyFilters();
                 updateCharts();
                 updateBulkActionUI();
             }, (error) => {
@@ -402,27 +397,6 @@
             });
         }
         
-        // Helper untuk warna tag
-        function getPlatformTagClass(platform) {
-            const classes = {
-                'Steam': 'bg-sky-500/20 text-sky-300',
-                'Epic': 'bg-purple-500/20 text-purple-300',
-                'GOG': 'bg-violet-500/20 text-violet-300',
-                'PCSX': 'bg-orange-500/20 text-orange-300',
-                'Crack': 'bg-red-500/20 text-red-300',
-            };
-            return classes[platform] || 'bg-slate-500/20 text-slate-300';
-        }
-
-        function getStatusTagClass(status) {
-             const classes = {
-                'Belum dimainkan': 'bg-slate-600/50 text-slate-300',
-                'Dimainkan': 'bg-amber-500/20 text-amber-300',
-                'Selesai': 'bg-emerald-500/20 text-emerald-300',
-            };
-            return classes[status] || 'bg-slate-500/20 text-slate-300';
-        }
-
         function renderGames(gamesToRender) {
             gameListBody.innerHTML = '';
             if (!gamesToRender || gamesToRender.length === 0) {
@@ -436,10 +410,10 @@
                 row.innerHTML = `
                     <td class="p-4"><input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-slate-600 border-slate-500"></td>
                     <td class="p-4 font-medium">${game.title}</td>
-                    <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getPlatformTagClass(game.platform)}">${game.platform}</span></td>
+                    <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/20 text-blue-300">${game.platform}</span></td>
                     <td class="p-4 text-slate-300">${game.location}</td>
-                    <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getStatusTagClass(game.status)}">${game.status}</span></td>
-                    <td class="p-4">
+                    <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${game.status === 'Dimainkan' ? 'bg-yellow-500/20 text-yellow-300' : game.status === 'Selesai' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}">${game.status}</span></td>
+                    <td class="p-4 whitespace-nowrap">
                         <button class="edit-btn p-1 text-slate-400 hover:text-white" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
                         <button class="delete-btn p-1 text-slate-400 hover:text-red-400" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
                     </td>
@@ -546,7 +520,7 @@
             const id = document.getElementById('game-id').value;
             
             try {
-                if (id) { // Update logic (single game)
+                if (id) {
                     const row = gameRowsContainer.querySelector('.game-row');
                     const gameData = {
                         title: row.querySelector('.game-title').value,
@@ -561,7 +535,7 @@
                     const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
                     await updateDoc(gameRef, gameData);
                     showToast('Game berhasil diperbarui!');
-                } else { // Add logic (multiple games)
+                } else {
                     const rows = gameRowsContainer.querySelectorAll('.game-row');
                     if (rows.length === 0) {
                         showToast("Tidak ada game untuk ditambahkan.", true);
@@ -621,6 +595,7 @@
         
         // Tab switching
         const tabs = document.getElementById('tabs');
+        const tabContents = document.querySelectorAll('.tab-content');
         tabs.addEventListener('click', (e) => {
             const button = e.target.closest('.tab-button');
             if (!button) return;
@@ -640,47 +615,32 @@
                     content.classList.add('hidden');
                 }
             });
-            // Hide sidebar on mobile after tab change
+            // Close sidebar after tab change on mobile
             if (window.innerWidth < 768) {
-                toggleSidebar();
+                closeSidebar();
             }
         });
 
         // Chart Logic
         function initCharts() {
-            const pieDoughnutOptions = {
+             const pieDoughnutOptions = {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { 
                         position: 'bottom',
-                        labels: {
-                            color: '#cbd5e1', // slate-300
-                            padding: 15,
-                            font: {
-                                size: 12
-                            }
-                        }
+                        labels: { color: '#cbd5e1', padding: 15, font: { size: 12 } }
                     }
                 },
                 onHover: (event, chartElement) => {
                     event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default';
                 },
-                elements: {
-                    arc: {
-                        hoverOffset: 12,
-                        borderWidth: 0, 
-                    }
-                }
+                elements: { arc: { hoverOffset: 12, borderWidth: 0 } }
             };
             const barOptions = { 
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
+                plugins: { legend: { display: false } },
                 onHover: (event, chartElement) => {
                     event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default';
                 },
@@ -698,63 +658,33 @@
         function updateCharts() {
             if (!platformChart) initCharts();
 
-            // Platform Chart
-            const platformData = games.reduce((acc, game) => {
-                acc[game.platform] = (acc[game.platform] || 0) + 1;
-                return acc;
-            }, {});
+            const platformData = games.reduce((acc, game) => { acc[game.platform] = (acc[game.platform] || 0) + 1; return acc; }, {});
             platformChart.data = {
                 labels: Object.keys(platformData),
-                datasets: [{ 
-                    data: Object.values(platformData), 
-                    backgroundColor: ['#0ea5e9', '#a855f7', '#8b5cf6', '#f97316', '#ef4444', '#facc15'], // sky, purple, violet, orange, red, yellow
-                }]
+                datasets: [{ data: Object.values(platformData), backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#ef4444', '#facc15'] }]
             };
             platformChart.update();
 
-            // Location Chart
-            const locationData = games.reduce((acc, game) => {
-                acc[game.location] = (acc[game.location] || 0) + 1;
-                return acc;
-            }, {});
+            const locationData = games.reduce((acc, game) => { acc[game.location] = (acc[game.location] || 0) + 1; return acc; }, {});
             locationChart.data = {
                 labels: Object.keys(locationData),
-                datasets: [{ 
-                    data: Object.values(locationData), 
-                    backgroundColor: ['#14b8a6', '#0891b2', '#4338ca', '#f59e0b'], // teal, cyan, indigo, amber
-                }]
+                datasets: [{ data: Object.values(locationData), backgroundColor: ['#10b981', '#06b6d4', '#6366f1', '#f59e0b'] }]
             };
             locationChart.update();
             
-            // Status Chart
-            const statusData = games.reduce((acc, game) => {
-                acc[game.status] = (acc[game.status] || 0) + 1;
-                return acc;
-            }, {});
+            const statusData = games.reduce((acc, game) => { acc[game.status] = (acc[game.status] || 0) + 1; return acc; }, {});
             const statusLabels = Object.keys(statusData);
             const statusValues = Object.values(statusData);
-            const statusColors = {
-                'Belum dimainkan': '#475569', // slate-600
-                'Dimainkan': '#f59e0b', // amber-500
-                'Selesai': '#10b981' // emerald-500
-            };
-            const hoverStatusColors = {
-                'Belum dimainkan': '#64748b', // slate-500
-                'Dimainkan': '#fcd34d', // amber-300
-                'Selesai': '#34d399' // emerald-400
-            };
-
+            const statusColors = { 'Belum dimainkan': '#64748b', 'Dimainkan': '#eab308', 'Selesai': '#22c55e' };
+            const hoverStatusColors = { 'Belum dimainkan': '#94a3b8', 'Dimainkan': '#facc15', 'Selesai': '#4ade80' };
             statusChart.data = {
                 labels: statusLabels,
                 datasets: [{ 
                     label: 'Jumlah Game', 
                     data: statusValues, 
-                    backgroundColor: statusLabels.map(label => statusColors[label] || '#475569'),
-                    hoverBackgroundColor: statusLabels.map(label => hoverStatusColors[label] || '#64748b'),
-                    borderRadius: 4,
-                    borderWidth: 2,
-                    borderColor: 'transparent',
-                    hoverBorderColor: '#6366f1'
+                    backgroundColor: statusLabels.map(label => statusColors[label] || '#64748b'),
+                    hoverBackgroundColor: statusLabels.map(label => hoverStatusColors[label] || '#94a3b8'),
+                    borderRadius: 4, borderWidth: 2, borderColor: 'transparent', hoverBorderColor: '#6366f1'
                 }]
             };
             statusChart.update();
@@ -768,7 +698,7 @@
 
         [filterTitle, filterPlatform, filterLocation, filterStatus].forEach(el => {
             el.addEventListener('input', () => {
-                currentPage = 1; // Reset to first page on filter change
+                currentPage = 1;
                 applyFilters();
             });
         });
@@ -804,45 +734,53 @@
             const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
             if (totalPages <= 1) return;
 
-            // Previous button
             const prevButton = document.createElement('button');
             prevButton.innerHTML = '&laquo;';
             prevButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
             prevButton.disabled = currentPage === 1;
-            prevButton.addEventListener('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    displayPage();
-                }
-            });
+            prevButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; displayPage(); } });
             paginationContainer.appendChild(prevButton);
 
-            // Page numbers
-            for (let i = 1; i <= totalPages; i++) {
+            // Logic untuk menampilkan nomor halaman (sederhana untuk mobile)
+            const maxPageButtons = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+            let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+            if (endPage - startPage + 1 < maxPageButtons) {
+                startPage = Math.max(1, endPage - maxPageButtons + 1);
+            }
+
+            if (startPage > 1) {
+                const firstButton = document.createElement('button');
+                firstButton.textContent = '1';
+                firstButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
+                firstButton.addEventListener('click', () => { currentPage = 1; displayPage(); });
+                paginationContainer.appendChild(firstButton);
+                if (startPage > 2) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-slate-400">...</span>`);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
                 const pageButton = document.createElement('button');
                 pageButton.textContent = i;
                 pageButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
-                if (i === currentPage) {
-                    pageButton.classList.add('active');
-                }
-                pageButton.addEventListener('click', () => {
-                    currentPage = i;
-                    displayPage();
-                });
+                if (i === currentPage) pageButton.classList.add('active');
+                pageButton.addEventListener('click', () => { currentPage = i; displayPage(); });
                 paginationContainer.appendChild(pageButton);
             }
 
-            // Next button
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-slate-400">...</span>`);
+                const lastButton = document.createElement('button');
+                lastButton.textContent = totalPages;
+                lastButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
+                lastButton.addEventListener('click', () => { currentPage = totalPages; displayPage(); });
+                paginationContainer.appendChild(lastButton);
+            }
+
             const nextButton = document.createElement('button');
             nextButton.innerHTML = '&raquo;';
             nextButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
             nextButton.disabled = currentPage === totalPages;
-            nextButton.addEventListener('click', () => {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    displayPage();
-                }
-            });
+            nextButton.addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; displayPage(); } });
             paginationContainer.appendChild(nextButton);
         }
         
@@ -852,9 +790,7 @@
         const selectionInfo = document.getElementById('selection-info');
 
         selectAllCheckbox.addEventListener('change', (e) => {
-            document.querySelectorAll('.game-checkbox').forEach(cb => {
-                cb.checked = e.target.checked;
-            });
+            document.querySelectorAll('.game-checkbox').forEach(cb => { cb.checked = e.target.checked; });
             updateBulkActionUI();
         });
 
@@ -876,7 +812,6 @@
         bulkDeleteButton.addEventListener('click', async () => {
             const idsToDelete = getSelectedGameIds();
             if (idsToDelete.length === 0) return;
-
             if (confirm(`Apakah Anda yakin ingin menghapus ${idsToDelete.length} game terpilih?`)) {
                 try {
                     const batch = writeBatch(db);
@@ -950,4 +885,4 @@
 
     </script>
 </body>
-</ht
+</html>
