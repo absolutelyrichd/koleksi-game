@@ -14,7 +14,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, addDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables for Firebase (MANDATORY)
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -55,10 +55,11 @@
         let currentAutoDownloadInterval = 5;
         let userId = null;
         let isAuthReady = false;
+        let isSubmitting = false; // Flag to prevent double form submission
 
         // Default options for dropdowns (not including 'manual' option)
         const defaultPlatforms = ['PC', 'PS', 'PS2', 'PS3'];
-        const defaultStores = ['Steam', 'Epic Games', 'GOG']; // These are now Digital Platforms
+        const defaultStores = ['Steam', 'Epic Games', 'GOG', 'Crack']; // Added 'Crack' as a default for clarity
         const defaultStatuses = ['Dimainkan', 'Belum Dimainkan', 'Selesai', 'Wishlist'];
         const defaultLokasiMentahanOptions = ['HDD Eksternal 4TB', 'HDD Eksternal 2TB'];
 
@@ -264,6 +265,7 @@
             }
         }
 
+        // [FIXED] Function to save game data, ensuring data integrity
         async function saveGameToFirestore(gameData) {
             if (!userId) {
                 displayMessage("Anda harus masuk untuk menyimpan game.", "error");
@@ -274,11 +276,15 @@
                 const gamesColRef = getUserGamesCollectionRef();
                 if (!gamesColRef) return false;
 
-                if (gameData.id) {
-                    const gameDocRef = doc(gamesColRef, gameData.id);
-                    await setDoc(gameDocRef, gameData, { merge: true });
+                const gameId = gameData.id; // Store the ID separately
+                const dataToSave = { ...gameData }; // Create a shallow copy
+                delete dataToSave.id; // IMPORTANT: Remove id from the object to be saved to Firestore
+
+                if (gameId) {
+                    const gameDocRef = doc(gamesColRef, gameId);
+                    await setDoc(gameDocRef, dataToSave, { merge: true });
                 } else {
-                    await addDoc(gamesColRef, gameData);
+                    await addDoc(gamesColRef, dataToSave);
                 }
                 hideLoading();
                 return true;
@@ -413,7 +419,7 @@
         }
 
         // --- Generic add custom option logic ---
-        async function handleAddCustomOption(inputElement, customArray, listElement) {
+        async function handleAddCustomOption(inputElement, customArray) {
             if (!userId) {
                 displayMessage("Anda harus masuk untuk menambahkan opsi kustom.", "error");
                 return;
@@ -462,7 +468,9 @@
             const sortOption = sortGamesSelect.value;
 
             let filteredGames = games.filter(game => {
-                const matchesSearch = game.title.toLowerCase().includes(searchTerm) || game.platform.toLowerCase().includes(searchTerm) || game.store.toLowerCase().includes(searchTerm);
+                const matchesSearch = (game.title && game.title.toLowerCase().includes(searchTerm)) || 
+                                      (game.platform && game.platform.toLowerCase().includes(searchTerm)) || 
+                                      (game.store && game.store.toLowerCase().includes(searchTerm));
                 const matchesStatus = filterStatus === 'all' || game.status === filterStatus;
                 const matchesPlatform = filterPlatform === 'all' || game.platform === filterPlatform;
                 const matchesDigitalPlatform = filterDigitalPlatform === 'all' || game.store === filterDigitalPlatform;
@@ -499,11 +507,11 @@
                     gameItem.innerHTML = `
                         <div class="flex-grow w-full mb-4">
                             <h3 class="text-lg font-semibold text-gray-900">${game.title}</h3>
-                            <p class="text-sm text-gray-600 mt-1">Platform: ${game.platform}</p>
-                            <p class="text-sm text-gray-600">Platform Digital: ${game.store}</p>
+                            <p class="text-sm text-gray-600 mt-1">Platform: ${game.platform || '-'}</p>
+                            <p class="text-sm text-gray-600">Platform Digital: ${game.store || '-'}</p>
                             <p class="text-sm text-gray-600">Lokasi: ${game.lokasiMentahan || '-'}</p>
                             <span class="inline-block px-3 py-1 mt-2 text-xs font-medium rounded-full ${getStatusColorClass(game.status)}">
-                                ${game.status}
+                                ${game.status || 'Tanpa Status'}
                             </span>
                         </div>
                         <div class="flex space-x-2 mt-auto">
@@ -585,10 +593,8 @@
         // Fungsi untuk menyiapkan data dari array game untuk diagram lingkaran
         function prepareChartData(dataArray, propertyName) {
             const counts = dataArray.reduce((acc, game) => {
-                const value = game[propertyName];
-                if (value) {
-                    acc[value] = (acc[value] || 0) + 1;
-                }
+                const value = game[propertyName] || 'Tidak Diketahui';
+                acc[value] = (acc[value] || 0) + 1;
                 return acc;
             }, {});
 
@@ -705,22 +711,26 @@
             reader.onload = (e) => {
                 try {
                     const importedData = JSON.parse(e.target.result);
-                    displayConfirmation(`Anda akan mengimpor ${importedData.games.length} game dan ${[...importedData.customPlatforms, ...importedData.customStores, ...importedData.customLocations, ...importedData.customStatuses].length} opsi kustom. Ini akan MENIMPA data yang ada. Lanjutkan?`, async () => {
+                    displayConfirmation(`Anda akan mengimpor ${importedData.games.length} game dan opsi kustom. Ini akan MENIMPA data yang ada. Lanjutkan?`, async () => {
                         showLoading("Mengimpor data...");
                         try {
                             // Clear existing data
                             const gamesColRef = getUserGamesCollectionRef();
-                            const snapshot = await getDocs(gamesColRef);
-                            const batch = writeBatch(db);
-                            snapshot.docs.forEach(doc => {
-                                batch.delete(doc.ref);
-                            });
-                            await batch.commit();
+                            if(gamesColRef) {
+                                const snapshot = await getDocs(gamesColRef);
+                                const batch = writeBatch(db);
+                                snapshot.docs.forEach(doc => {
+                                    batch.delete(doc.ref);
+                                });
+                                await batch.commit();
+                            }
 
                             // Import new data
-                            if (importedData.games && importedData.games.length > 0) {
+                            if (importedData.games && Array.isArray(importedData.games)) {
                                 for (const game of importedData.games) {
-                                    await saveGameToFirestore(game);
+                                    // Make sure not to pass an ID field
+                                    const { id, ...gameToSave } = game;
+                                    await saveGameToFirestore(gameToSave);
                                 }
                             }
                             if (importedData.customPlatforms || importedData.customStores || importedData.customLocations || importedData.customStatuses) {
@@ -769,11 +779,9 @@
                 } catch (error) {
                     console.error("Error signing in with custom token:", error);
                     displayMessage("Gagal masuk otomatis. Coba masuk manual.", "error");
-                    // Fallback to anonymous sign-in if custom token fails
                     await signInAnonymously(auth);
                 }
             } else {
-                // If no custom token, sign in anonymously
                 await signInAnonymously(auth);
             }
         });
@@ -790,6 +798,7 @@
             }
         });
 
+        // [FIXED] Open "Add Game" modal with correct setup
         openAddGameModalButton.addEventListener('click', () => {
             gameFormModal.classList.remove('hidden');
             formTitle.textContent = 'Tambah Game Baru';
@@ -797,6 +806,7 @@
             gameForm.reset();
             gameFormContainer.innerHTML = '';
             addGameRow();
+            addGameRowButton.classList.remove('hidden'); // Ensure "Add Row" is visible
             editingGameId = null;
         });
 
@@ -814,45 +824,71 @@
             addGameRow();
         });
 
+        // [FIXED] Form submission with guard and better error handling
         gameForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            let successCount = 0;
-            const gameRows = document.querySelectorAll('.game-row');
-            for (const row of gameRows) {
-                const gameTitle = row.querySelector('[id^="gameTitle-"]').value.trim();
-                const gamePlatform = row.querySelector('[id^="gamePlatform-"]').value;
-                let gamePlatformManual = row.querySelector('[id^="gamePlatformManual-"]')?.value.trim() || '';
-                const gameStore = row.querySelector('[id^="gameStore-"]').value;
-                let gameStoreManual = row.querySelector('[id^="gameStoreManual-"]')?.value.trim() || '';
-                const gameStatus = row.querySelector('[id^="gameStatus-"]').value;
-                const lokasiMentahan = row.querySelector('[id^="lokasiMentahan-"]').value;
-                let lokasiMentahanManual = row.querySelector('[id^="lokasiMentahanManual-"]')?.value.trim() || '';
+            if (isSubmitting) return;
 
-                if (gameTitle) {
-                    const gameData = {
-                        title: gameTitle,
-                        platform: gamePlatform === 'manual' ? gamePlatformManual : gamePlatform,
-                        store: gameStore === 'manual' ? gameStoreManual : gameStore,
-                        status: gameStatus,
-                        lokasiMentahan: lokasiMentahan === 'manual' ? lokasiMentahanManual : lokasiMentahan,
-                        id: row.dataset.gameId || editingGameId
-                    };
-                    const saved = await saveGameToFirestore(gameData);
-                    if (saved) successCount++;
+            isSubmitting = true;
+            const originalButtonText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'Menyimpan...';
+
+            try {
+                let successCount = 0;
+                const gameRows = document.querySelectorAll('.game-row');
+                for (const row of gameRows) {
+                    const gameTitle = row.querySelector('[id^="gameTitle-"]').value.trim();
+                    const gamePlatform = row.querySelector('[id^="gamePlatform-"]').value;
+                    let gamePlatformManual = row.querySelector('[id^="gamePlatformManual-"]')?.value.trim() || '';
+                    const gameStore = row.querySelector('[id^="gameStore-"]').value;
+                    let gameStoreManual = row.querySelector('[id^="gameStoreManual-"]')?.value.trim() || '';
+                    const gameStatus = row.querySelector('[id^="gameStatus-"]').value;
+                    const lokasiMentahan = row.querySelector('[id^="lokasiMentahan-"]').value;
+                    let lokasiMentahanManual = row.querySelector('[id^="lokasiMentahanManual-"]')?.value.trim() || '';
+
+                    if (gameTitle) {
+                        const gameData = {
+                            title: gameTitle,
+                            platform: gamePlatform === 'manual' ? gamePlatformManual : gamePlatform,
+                            store: gameStore === 'manual' ? gameStoreManual : gameStore,
+                            status: gameStatus,
+                            lokasiMentahan: lokasiMentahan === 'manual' ? lokasiMentahanManual : lokasiMentahan,
+                            id: editingGameId ? editingGameId : (row.dataset.gameId || null)
+                        };
+                        const saved = await saveGameToFirestore(gameData);
+                        if (saved) successCount++;
+                    }
                 }
-            }
 
-            if (successCount > 0) {
-                displayMessage(`Berhasil menyimpan ${successCount} game.`, "success");
-                gameFormModal.classList.add('hidden');
-            } else {
-                displayMessage("Tidak ada game yang disimpan.", "error");
+                if (successCount > 0) {
+                    displayMessage(`Berhasil menyimpan ${successCount} game.`, "success");
+                    gameFormModal.classList.add('hidden');
+                } else {
+                    const hasContent = Array.from(gameRows).some(row => row.querySelector('[id^="gameTitle-"]').value.trim());
+                    if (hasContent) {
+                        displayMessage("Gagal menyimpan game. Periksa koneksi atau coba lagi.", "error");
+                    } else {
+                        displayMessage("Tidak ada game yang disimpan. Judul tidak boleh kosong.", "error");
+                    }
+                }
+            } catch (error) {
+                console.error("Error submitting form:", error);
+                displayMessage(`Terjadi kesalahan: ${error.message}`, "error");
+            } finally {
+                isSubmitting = false;
+                submitButton.disabled = false;
+                submitButton.textContent = originalButtonText;
             }
         });
 
+        // [FIXED] Game list click listener with correct edit mode setup
         gameListContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('edit-button')) {
-                const gameId = e.target.dataset.id;
+            const editButton = e.target.closest('.edit-button');
+            const deleteButton = e.target.closest('.delete-button');
+
+            if (editButton) {
+                const gameId = editButton.dataset.id;
                 const gameToEdit = games.find(g => g.id === gameId);
                 if (gameToEdit) {
                     editingGameId = gameId;
@@ -860,10 +896,11 @@
                     submitButton.textContent = 'Simpan Perubahan';
                     gameFormContainer.innerHTML = ''; // Clear existing rows
                     addGameRow(gameToEdit); // Add one row with the game data
+                    addGameRowButton.classList.add('hidden'); // Hide "Add Row" button in edit mode
                     gameFormModal.classList.remove('hidden');
                 }
-            } else if (e.target.classList.contains('delete-button')) {
-                const gameId = e.target.dataset.id;
+            } else if (deleteButton) {
+                const gameId = deleteButton.dataset.id;
                 displayConfirmation("Apakah Anda yakin ingin menghapus game ini?", () => deleteGameFromFirestore(gameId));
             }
         });
@@ -916,25 +953,20 @@
         // Tab functionality
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
-                // Deactivate all tabs
                 tabButtons.forEach(btn => {
                     btn.classList.remove('bg-indigo-700', 'text-white');
                     btn.classList.add('hover:bg-indigo-600', 'text-indigo-200');
                 });
-                // Hide all content
                 Object.values(tabContents).forEach(content => content.classList.add('hidden'));
 
-                // Activate clicked tab
                 button.classList.add('bg-indigo-700', 'text-white');
                 button.classList.remove('hover:bg-indigo-600', 'text-indigo-200');
 
-                // Show corresponding content
                 const tabId = button.dataset.tab;
                 if (tabContents[tabId]) {
                     tabContents[tabId].classList.remove('hidden');
                 }
 
-                // Render charts when statistics tab is active to ensure canvas is visible
                 if (tabId === 'statistics' && isAuthReady) {
                     renderCharts();
                 }
@@ -944,56 +976,36 @@
         // Listener for adding new custom options
         addPlatformOptionButton.addEventListener('click', () => handleAddCustomOption(platformOptionInput, customPlatforms));
         platformOptionInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddCustomOption(platformOptionInput, customPlatforms);
-            }
+            if (e.key === 'Enter') e.preventDefault(); handleAddCustomOption(platformOptionInput, customPlatforms);
         });
 
         addStoreOptionButton.addEventListener('click', () => handleAddCustomOption(storeOptionInput, customStores));
         storeOptionInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddCustomOption(storeOptionInput, customStores);
-            }
+            if (e.key === 'Enter') e.preventDefault(); handleAddCustomOption(storeOptionInput, customStores);
         });
 
         addLokasiOptionButton.addEventListener('click', () => handleAddCustomOption(lokasiOptionInput, customLocations));
         lokasiOptionInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddCustomOption(lokasiOptionInput, customLocations);
-            }
+            if (e.key === 'Enter') e.preventDefault(); handleAddCustomOption(lokasiOptionInput, customLocations);
         });
 
         addStatusOptionButton.addEventListener('click', () => handleAddCustomOption(statusOptionInput, customStatuses));
         statusOptionInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleAddCustomOption(statusOptionInput, customStatuses);
-            }
+            if (e.key === 'Enter') e.preventDefault(); handleAddCustomOption(statusOptionInput, customStatuses);
         });
 
         // Listeners for deleting custom options (delegated)
         currentPlatformOptionsList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('delete-custom-option-button')) {
-                handleDeleteCustomOption(e, customPlatforms);
-            }
+            if (e.target.classList.contains('delete-custom-option-button')) handleDeleteCustomOption(e, customPlatforms);
         });
         currentStoreOptionsList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('delete-custom-option-button')) {
-                handleDeleteCustomOption(e, customStores);
-            }
+            if (e.target.classList.contains('delete-custom-option-button')) handleDeleteCustomOption(e, customStores);
         });
         currentLokasiOptionsList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('delete-custom-option-button')) {
-                handleDeleteCustomOption(e, customLocations);
-            }
+            if (e.target.classList.contains('delete-custom-option-button')) handleDeleteCustomOption(e, customLocations);
         });
         currentStatusOptionsList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('delete-custom-option-button')) {
-                handleDeleteCustomOption(e, customStatuses);
-            }
+            if (e.target.classList.contains('delete-custom-option-button')) handleDeleteCustomOption(e, customStatuses);
         });
 
         loginButton.addEventListener('click', handleGoogleLogin);
@@ -1009,50 +1021,28 @@
             loadingOverlay.classList.add('hidden');
         }
 
-        function showConfirmModal(message, onYes) {
-            confirmMessage.textContent = message;
-            confirmModal.classList.remove('hidden');
-            return new Promise((resolve) => {
-                confirmYesBtn.onclick = () => {
-                    confirmModal.classList.add('hidden');
-                    onYes();
-                    resolve(true);
-                };
-                confirmNoBtn.onclick = () => {
-                    confirmModal.classList.add('hidden');
-                    resolve(false);
-                };
-            });
-        }
-
-        // A function to display a custom confirmation modal
         function displayConfirmation(message, onConfirm) {
             confirmMessage.textContent = message;
             confirmModal.classList.remove('hidden');
 
-            const handleYes = () => {
+            // Clone and replace to remove old listeners
+            const newYesBtn = confirmYesBtn.cloneNode(true);
+            confirmYesBtn.parentNode.replaceChild(newYesBtn, confirmYesBtn);
+            const newNoBtn = confirmNoBtn.cloneNode(true);
+            confirmNoBtn.parentNode.replaceChild(newNoBtn, confirmNoBtn);
+
+            newYesBtn.addEventListener('click', () => {
                 confirmModal.classList.add('hidden');
                 onConfirm();
-                // Clean up listeners
-                confirmYesBtn.removeEventListener('click', handleYes);
-                confirmNoBtn.removeEventListener('click', handleNo);
-            };
-
-            const handleNo = () => {
+            });
+            newNoBtn.addEventListener('click', () => {
                 confirmModal.classList.add('hidden');
-                // Clean up listeners
-                confirmYesBtn.removeEventListener('click', handleYes);
-                confirmNoBtn.removeEventListener('click', handleNo);
-            };
-
-            confirmYesBtn.addEventListener('click', handleYes);
-            confirmNoBtn.addEventListener('click', handleNo);
+            });
         }
 
         function displayMessage(message, type = 'info') {
             messageText.textContent = message;
             messageModal.classList.remove('hidden');
-            // Set icon based on type
             let iconHtml = '';
             if (type === 'success') {
                 iconHtml = '<i class="fas fa-check-circle text-green-500 text-3xl"></i>';
@@ -1077,62 +1067,39 @@
             newRow.className = 'game-row grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 p-4 bg-gray-50 rounded-lg shadow-inner';
             newRow.dataset.gameId = gameData.id || '';
 
-            // Update all dropdowns before populating the new row
-            updateAllDropdowns();
-
-            // Create dropdowns with all custom options included
             const allPlatforms = [...new Set([...defaultPlatforms, ...customPlatforms])].sort();
             const allStores = [...new Set([...defaultStores, ...customStores])].sort();
             const allStatuses = [...new Set([...defaultStatuses, ...customStatuses])].sort();
             const allLokasiMentahan = [...new Set([...defaultLokasiMentahanOptions, ...customLocations])].sort();
 
             newRow.innerHTML = `
-                <!-- Title -->
                 <div class="col-span-1 md:col-span-5">
                     <label for="gameTitle-${rowId}" class="block text-sm font-medium text-gray-700">Nama Game</label>
                     <input type="text" id="gameTitle-${rowId}" value="${gameData.title || ''}" required
                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="Contoh: The Witcher 3">
                 </div>
-
-                <!-- Platform Dropdown -->
                 <div>
                     <label for="gamePlatform-${rowId}" class="block text-sm font-medium text-gray-700">Platform</label>
-                    <select id="gamePlatform-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <!-- Options will be populated by JS -->
-                    </select>
+                    <select id="gamePlatform-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
                     <input type="text" id="gamePlatformManual-${rowId}" placeholder="Input Platform Manual"
                            class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
-
-                <!-- Store Dropdown -->
                 <div>
                     <label for="gameStore-${rowId}" class="block text-sm font-medium text-gray-700">Platform Digital</label>
-                    <select id="gameStore-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <!-- Options will be populated by JS -->
-                    </select>
+                    <select id="gameStore-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
                     <input type="text" id="gameStoreManual-${rowId}" placeholder="Input Platform Digital Manual"
                            class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
-
-                <!-- Status Dropdown -->
                 <div>
                     <label for="gameStatus-${rowId}" class="block text-sm font-medium text-gray-700">Status</label>
-                    <select id="gameStatus-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <!-- Options will be populated by JS -->
-                    </select>
+                    <select id="gameStatus-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
                 </div>
-
-                <!-- Lokasi Mentahan Dropdown -->
                 <div>
                     <label for="lokasiMentahan-${rowId}" class="block text-sm font-medium text-gray-700">Lokasi Mentahan</label>
-                    <select id="lokasiMentahan-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <!-- Options will be populated by JS -->
-                    </select>
+                    <select id="lokasiMentahan-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></select>
                     <input type="text" id="lokasiMentahanManual-${rowId}" placeholder="Input Lokasi Manual"
                            class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                 </div>
-
-                <!-- Delete Row Button (hidden if only one row) -->
                 <div class="flex items-end justify-center">
                     <button type="button" class="delete-row-button bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md shadow-sm transition duration-300 ease-in-out transform hover:scale-105" title="Hapus Game">
                         <i class="fas fa-trash"></i>
@@ -1141,11 +1108,19 @@
             `;
 
             gameFormContainer.appendChild(newRow);
-            updateAllDropdowns();
 
-            // Populate the dropdowns for the new row with values if gameData exists
+            // Populate selects
+            const platformSelect = newRow.querySelector(`#gamePlatform-${rowId}`);
+            populateSelect(platformSelect, allPlatforms, true);
+            const storeSelect = newRow.querySelector(`#gameStore-${rowId}`);
+            populateSelect(storeSelect, allStores, true);
+            const statusSelect = newRow.querySelector(`#gameStatus-${rowId}`);
+            populateSelect(statusSelect, allStatuses, false);
+            const lokasiSelect = newRow.querySelector(`#lokasiMentahan-${rowId}`);
+            populateSelect(lokasiSelect, allLokasiMentahan, true, true);
+
+            // Set values if editing
             if (gameData.platform) {
-                const platformSelect = newRow.querySelector(`#gamePlatform-${rowId}`);
                 if (allPlatforms.includes(gameData.platform)) {
                     platformSelect.value = gameData.platform;
                 } else {
@@ -1156,7 +1131,6 @@
                 }
             }
             if (gameData.store) {
-                const storeSelect = newRow.querySelector(`#gameStore-${rowId}`);
                 if (allStores.includes(gameData.store)) {
                     storeSelect.value = gameData.store;
                 } else {
@@ -1167,13 +1141,11 @@
                 }
             }
             if (gameData.status) {
-                const statusSelect = newRow.querySelector(`#gameStatus-${rowId}`);
                 if (allStatuses.includes(gameData.status)) {
                     statusSelect.value = gameData.status;
                 }
             }
             if (gameData.lokasiMentahan) {
-                const lokasiSelect = newRow.querySelector(`#lokasiMentahan-${rowId}`);
                 if (allLokasiMentahan.includes(gameData.lokasiMentahan)) {
                     lokasiSelect.value = gameData.lokasiMentahan;
                 } else {
@@ -1185,29 +1157,29 @@
             }
 
             // Add event listeners for the new row
-            newRow.querySelector(`#gamePlatform-${rowId}`).addEventListener('change', (e) => toggleManualInput(e, `gamePlatformManual-${rowId}`));
-            newRow.querySelector(`#gameStore-${rowId}`).addEventListener('change', (e) => toggleManualInput(e, `gameStoreManual-${rowId}`));
-            newRow.querySelector(`#lokasiMentahan-${rowId}`).addEventListener('change', (e) => toggleManualInput(e, `lokasiMentahanManual-${rowId}`));
+            platformSelect.addEventListener('change', (e) => toggleManualInput(e.target, `gamePlatformManual-${rowId}`));
+            storeSelect.addEventListener('change', (e) => toggleManualInput(e.target, `gameStoreManual-${rowId}`));
+            lokasiSelect.addEventListener('change', (e) => toggleManualInput(e.target, `lokasiMentahanManual-${rowId}`));
             newRow.querySelector('.delete-row-button').addEventListener('click', () => {
                 newRow.remove();
+                updateDeleteButtonVisibility();
             });
 
-            // Handle initial visibility of delete button
             updateDeleteButtonVisibility();
         }
 
         function updateDeleteButtonVisibility() {
             const deleteButtons = document.querySelectorAll('.delete-row-button');
             if (deleteButtons.length > 1) {
-                deleteButtons.forEach(btn => btn.classList.remove('hidden'));
+                deleteButtons.forEach(btn => btn.parentElement.classList.remove('hidden'));
             } else if (deleteButtons.length === 1) {
-                deleteButtons.forEach(btn => btn.classList.add('hidden'));
+                deleteButtons.forEach(btn => btn.parentElement.classList.add('hidden'));
             }
         }
 
-        function toggleManualInput(event, inputId) {
+        function toggleManualInput(selectElement, inputId) {
             const manualInput = document.getElementById(inputId);
-            if (event.target.value === 'manual') {
+            if (selectElement.value === 'manual') {
                 manualInput.classList.remove('hidden');
             } else {
                 manualInput.classList.add('hidden');
@@ -1421,10 +1393,10 @@
                                     .dot {
                                         transition: transform 0.3s ease;
                                     }
-                                    input:checked + .block {
+                                    input:checked ~ .relative .block {
                                         background-color: #4f46e5;
                                     }
-                                    input:checked + .block .dot {
+                                    input:checked ~ .relative .dot {
                                         transform: translateX(100%);
                                     }
                                 </style>
@@ -1525,7 +1497,7 @@
                 </button>
             </div>
             <form id="gameForm" class="mt-4">
-                <div id="gameFormContainer" class="space-y-4">
+                <div id="gameFormContainer" class="space-y-4 max-h-[60vh] overflow-y-auto p-2">
                     <!-- Dynamic form rows will be inserted here by JS -->
                 </div>
                 <div class="flex justify-between items-center mt-6">
@@ -1533,7 +1505,7 @@
                         Tambah Baris
                     </button>
                     <button type="submit" id="submitButton"
-                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-md transition duration-300 ease-in-out transform hover:scale-105 disabled:bg-indigo-400 disabled:cursor-not-allowed">
                         Tambah Game
                     </button>
                 </div>
