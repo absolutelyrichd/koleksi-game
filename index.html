@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dasbor Koleksi Game</title>
 
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- Chart.js for Statistics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -52,11 +55,11 @@
             color: white;
             font-weight: bold;
         }
-        /* CSS Kustom untuk sidebar mobile telah dihapus dari sini */
     </style>
 </head>
 <body class="antialiased">
 
+    <!-- Login Screen -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-slate-800 rounded-2xl shadow-2xl p-8 text-center">
             <h1 class="text-3xl font-bold text-white mb-2">Dasbor Koleksi Game</h1>
@@ -68,10 +71,13 @@
         </div>
     </div>
 
+    <!-- Main App Screen -->
     <div id="app-screen" class="hidden">
         <div class="relative min-h-screen md:flex">
+            <!-- Mobile Menu Backdrop -->
             <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/50 z-20 md:hidden hidden"></div>
             
+            <!-- Sidebar -->
             <aside id="sidebar" class="fixed inset-y-0 left-0 bg-slate-800 w-64 p-6 flex flex-col z-30 transform transition-transform duration-300 md:relative md:translate-x-0 -translate-x-full">
                 <div class="flex-grow">
                     <div class="flex items-center justify-between mb-8">
@@ -113,16 +119,20 @@
                 </div>
             </aside>
 
+            <!-- Main Content -->
             <main class="flex-1 p-4 md:p-8 overflow-y-auto">
-                <header class="md:hidden flex items-center justify-between mb-6">
+                <!-- Header Mobile -->
+                 <header class="md:hidden flex items-center justify-between mb-6">
                     <button id="open-sidebar-button" class="text-slate-200 hover:text-white">
                          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
                         </svg>
                     </button>
                     <h1 class="text-xl font-bold text-white">Koleksi Game</h1>
-                    <div></div> </header>
+                    <div></div> <!-- Spacer -->
+                </header>
 
+                <!-- Tab: Daftar Game -->
                 <div id="tab-list" class="tab-content">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
                         <h2 class="text-2xl sm:text-3xl font-bold">Daftar Game</h2>
@@ -131,6 +141,7 @@
                             Tambah Game
                         </button>
                     </div>
+                    <!-- Filter Section -->
                     <div class="bg-slate-800 p-4 md:p-6 rounded-xl shadow-lg mb-6">
                         <h3 class="font-bold text-xl mb-4">Filter Game</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -149,6 +160,7 @@
                             </select>
                         </div>
                      </div>
+                    <!-- Game Table -->
                     <div class="bg-slate-800 rounded-xl shadow-lg overflow-x-auto">
                         <table class="w-full text-left min-w-[640px]">
                             <thead class="bg-slate-700">
@@ -162,13 +174,16 @@
                                 </tr>
                             </thead>
                             <tbody id="game-list-body">
+                                <!-- Game items will be injected here by JS -->
                                 <tr><td colspan="6" class="text-center p-8 text-slate-400">Memuat data game...</td></tr>
                             </tbody>
                         </table>
                     </div>
-                     <div id="pagination-container" class="flex justify-center items-center mt-6 space-x-1 sm:space-x-2"></div>
+                     <!-- Pagination -->
+                    <div id="pagination-container" class="flex justify-center items-center mt-6 space-x-1 sm:space-x-2"></div>
                 </div>
 
+                <!-- Tab: Statistik -->
                 <div id="tab-stats" class="tab-content hidden">
                      <h2 class="text-2xl sm:text-3xl font-bold mb-6">Statistik Game</h2>
                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -193,6 +208,7 @@
                      </div>
                 </div>
 
+                <!-- Tab: Aksi Masal -->
                 <div id="tab-bulk" class="tab-content hidden">
                      <h2 class="text-2xl sm:text-3xl font-bold mb-6">Aksi Masal</h2>
                      <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
@@ -205,6 +221,7 @@
                      </div>
                 </div>
 
+                <!-- Tab: Manajemen Data -->
                 <div id="tab-manage" class="tab-content hidden">
                     <h2 class="text-2xl sm:text-3xl font-bold mb-6">Manajemen Data</h2>
                     <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
@@ -233,6 +250,7 @@
         </div>
     </div>
 
+    <!-- Add/Edit Game Modal -->
     <div id="game-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
         <div class="bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="modal-content">
             <h3 id="modal-title" class="text-2xl font-bold mb-6">Tambah Game Baru</h3>
@@ -240,7 +258,8 @@
                 <div class="max-h-[70vh] overflow-y-auto pr-2">
                     <input type="hidden" id="game-id">
                     <div id="game-rows-container" class="space-y-4">
-                        </div>
+                        <!-- Game entry rows will be injected here -->
+                    </div>
                 </div>
                 <div class="flex flex-col sm:flex-row justify-between items-center mt-6 pt-4 border-t border-slate-700 gap-4">
                     <button type="button" id="add-row-button" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">Tambah Baris</button>
@@ -253,17 +272,18 @@
         </div>
     </div>
     
+    <!-- Custom Alert/Toast -->
     <div id="toast" class="fixed bottom-5 right-1/2 translate-x-1/2 w-11/12 max-w-sm bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
         <p id="toast-message">Operasi berhasil!</p>
     </div>
 
+    <!-- Firebase SDK & App Logic -->
     <script type="module">
-        // Import fungsi yang diperlukan dari SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, writeBatch, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Konfigurasi Firebase Anda
+        // Firebase config
         const firebaseConfig = {
             apiKey: "AIzaSyAzJTL179V9bT-DfefZq9gcG8Tz88VzLmQ",
             authDomain: "koleksi-game.firebaseapp.com",
@@ -274,7 +294,7 @@
             measurementId: "G-BYYCM7R4M8"
         };
         
-        // Inisialisasi Firebase
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -289,7 +309,7 @@
         let currentPage = 1;
         const gamesPerPage = 10;
 
-        // Elemen UI
+        // UI Elements
         const loginScreen = document.getElementById('login-screen');
         const appScreen = document.getElementById('app-screen');
         const loginButton = document.getElementById('login-button');
@@ -307,7 +327,7 @@
         const addRowButton = document.getElementById('add-row-button');
         const paginationContainer = document.getElementById('pagination-container');
         
-        // Elemen Mobile
+        // Mobile Elements
         const sidebar = document.getElementById('sidebar');
         const openSidebarButton = document.getElementById('open-sidebar-button');
         const closeSidebarButton = document.getElementById('close-sidebar-button');
@@ -316,7 +336,7 @@
         // Chart instances
         let platformChart, locationChart, statusChart;
 
-        // --- MOBILE SIDEBAR LOGIC (PERBAIKAN) ---
+        // --- MOBILE SIDEBAR LOGIC ---
         function openSidebar() {
             sidebar.classList.remove('-translate-x-full');
             mobileMenuBackdrop.classList.remove('hidden');
@@ -342,7 +362,7 @@
             }, 3000);
         }
 
-        // Fungsi otentikasi
+        // Authentication
         loginButton.addEventListener('click', () => {
             signInWithPopup(auth, provider)
                 .catch((error) => {
@@ -375,7 +395,20 @@
             }
         });
 
-        // Fungsi CRUD
+        // --- HELPER FUNCTION FOR PLATFORM COLORS ---
+        function getPlatformBadgeClasses(platform) {
+            const colors = {
+                'Steam': 'bg-blue-600/30 text-blue-300',
+                'Epic': 'bg-gray-400/30 text-gray-200',
+                'GOG': 'bg-purple-500/30 text-purple-300',
+                'PCSX': 'bg-yellow-500/30 text-yellow-300',
+                'Crack': 'bg-red-500/30 text-red-300',
+                'default': 'bg-slate-500/30 text-slate-300'
+            };
+            return colors[platform] || colors['default'];
+        }
+
+        // CRUD Functions
         function fetchGames() {
             if (!currentUser) return;
             const gamesCollectionRef = collection(db, 'games', currentUser.uid, 'userGames');
@@ -405,7 +438,7 @@
                 row.innerHTML = `
                     <td class="p-4"><input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-slate-600 border-slate-500"></td>
                     <td class="p-4 font-medium">${game.title}</td>
-                    <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/20 text-blue-300">${game.platform}</span></td>
+                    <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getPlatformBadgeClasses(game.platform)}">${game.platform}</span></td>
                     <td class="p-4 text-slate-300">${game.location}</td>
                     <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${game.status === 'Dimainkan' ? 'bg-yellow-500/20 text-yellow-300' : game.status === 'Selesai' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}">${game.status}</span></td>
                     <td class="p-4 whitespace-nowrap">
@@ -610,7 +643,6 @@
                     content.classList.add('hidden');
                 }
             });
-            // Close sidebar after tab change on mobile
             if (window.innerWidth < 768) {
                 closeSidebar();
             }
