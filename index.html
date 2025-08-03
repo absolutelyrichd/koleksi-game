@@ -56,6 +56,10 @@
             color: white;
             font-weight: bold;
         }
+        /* Sidebar transition */
+        #sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -74,11 +78,21 @@
 
     <!-- Main App Screen -->
     <div id="app-screen" class="hidden">
-        <div class="min-h-screen flex">
+        <div class="relative min-h-screen md:flex">
+            <!-- Mobile Nav Toggle -->
+            <div class="md:hidden flex justify-between items-center bg-slate-800 p-4 text-white">
+                <h1 class="text-xl font-bold">Koleksi Game</h1>
+                <button id="mobile-menu-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
+            </div>
+
             <!-- Sidebar -->
-            <aside class="w-64 bg-slate-800 p-6 flex flex-col">
+            <aside id="sidebar" class="bg-slate-800 w-64 p-6 flex flex-col fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 z-30">
                 <div class="flex-grow">
-                    <h1 class="text-2xl font-bold text-white mb-8">Koleksi Game</h1>
+                    <h1 class="text-2xl font-bold text-white mb-8 hidden md:block">Koleksi Game</h1>
                     <nav id="tabs" class="flex flex-col space-y-2">
                         <button data-tab="tab-list" class="tab-button tab-active flex items-center py-2 px-4 rounded-lg transition duration-200">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v1H2V6zM2 9v7a2 2 0 002 2h12a2 2 0 002-2V9H2zm4-4a1 1 0 100-2 1 1 0 000 2zM8 5a1 1 0 100-2 1 1 0 000 2z"/></svg>
@@ -111,18 +125,18 @@
             </aside>
 
             <!-- Main Content -->
-            <main class="flex-1 p-8 overflow-y-auto">
+            <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
                 <!-- Tab: Daftar Game -->
                 <div id="tab-list" class="tab-content">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-3xl font-bold">Daftar Game</h2>
-                        <button id="add-game-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-4">
+                        <h2 class="text-2xl sm:text-3xl font-bold">Daftar Game</h2>
+                        <button id="add-game-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 w-full sm:w-auto">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                             Tambah Game
                         </button>
                     </div>
                     <!-- Filter Section -->
-                    <div class="bg-slate-800 p-6 rounded-xl shadow-lg mb-6">
+                    <div class="bg-slate-800 p-4 sm:p-6 rounded-xl shadow-lg mb-6">
                         <h3 class="font-bold text-xl mb-4">Filter Game</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <input id="filter-title" type="text" placeholder="Filter berdasarkan judul..." class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
@@ -141,8 +155,8 @@
                         </div>
                      </div>
                     <!-- Game Table -->
-                    <div class="bg-slate-800 rounded-xl shadow-lg overflow-hidden">
-                        <table class="w-full text-left">
+                    <div class="bg-slate-800 rounded-xl shadow-lg overflow-x-auto">
+                        <table class="w-full text-left min-w-[640px]">
                             <thead class="bg-slate-700">
                                 <tr>
                                     <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="rounded bg-slate-600 border-slate-500"></th>
@@ -165,7 +179,7 @@
 
                 <!-- Tab: Statistik -->
                 <div id="tab-stats" class="tab-content hidden">
-                     <h2 class="text-3xl font-bold mb-6">Statistik Game</h2>
+                     <h2 class="text-2xl sm:text-3xl font-bold mb-6">Statistik Game</h2>
                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                             <h3 class="font-bold text-xl text-center mb-4">Game per Platform</h3>
@@ -190,11 +204,11 @@
 
                 <!-- Tab: Aksi Masal -->
                 <div id="tab-bulk" class="tab-content hidden">
-                     <h2 class="text-3xl font-bold mb-6">Aksi Masal</h2>
+                     <h2 class="text-2xl sm:text-3xl font-bold mb-6">Aksi Masal</h2>
                      <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                         <h3 class="font-bold text-xl mb-4">Tindakan untuk Game Terpilih</h3>
                         <p id="selection-info" class="text-slate-400 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.</p>
-                        <button id="bulk-delete-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:bg-red-800 disabled:cursor-not-allowed" disabled>
+                        <button id="bulk-delete-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:bg-red-800 disabled:cursor-not-allowed">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
                             Hapus Game Terpilih
                         </button>
@@ -203,7 +217,7 @@
 
                 <!-- Tab: Manajemen Data -->
                 <div id="tab-manage" class="tab-content hidden">
-                    <h2 class="text-3xl font-bold mb-6">Manajemen Data</h2>
+                    <h2 class="text-2xl sm:text-3xl font-bold mb-6">Manajemen Data</h2>
                     <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
@@ -241,11 +255,11 @@
                         <!-- Game entry rows will be injected here -->
                     </div>
                 </div>
-                <div class="flex justify-between items-center mt-6 pt-4 border-t border-slate-700">
-                    <button type="button" id="add-row-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">Tambah Baris</button>
-                    <div class="space-x-4">
-                        <button type="button" id="cancel-button" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition">Batal</button>
-                        <button type="submit" id="save-form-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Simpan</button>
+                <div class="flex flex-col sm:flex-row justify-between items-center mt-6 pt-4 border-t border-slate-700 gap-4">
+                    <button type="button" id="add-row-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition w-full sm:w-auto">Tambah Baris</button>
+                    <div class="flex space-x-4 w-full sm:w-auto">
+                        <button type="button" id="cancel-button" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition w-1/2 sm:w-auto">Batal</button>
+                        <button type="submit" id="save-form-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition w-1/2 sm:w-auto">Simpan</button>
                     </div>
                 </div>
             </form>
@@ -307,6 +321,8 @@
         const gameRowsContainer = document.getElementById('game-rows-container');
         const addRowButton = document.getElementById('add-row-button');
         const paginationContainer = document.getElementById('pagination-container');
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const sidebar = document.getElementById('sidebar');
         
         // Chart instances
         let platformChart, locationChart, statusChart;
@@ -321,6 +337,11 @@
                 toast.className = toast.className.replace('translate-y-0 opacity-100', 'translate-y-20 opacity-0');
             }, 3000);
         }
+
+        // Mobile Menu Toggle
+        mobileMenuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+        });
 
         // Fungsi otentikasi
         loginButton.addEventListener('click', () => {
@@ -591,7 +612,6 @@
         
         // Tab switching
         const tabs = document.getElementById('tabs');
-        const tabContents = document.querySelectorAll('.tab-content');
         tabs.addEventListener('click', (e) => {
             const button = e.target.closest('.tab-button');
             if (!button) return;
@@ -611,6 +631,10 @@
                     content.classList.add('hidden');
                 }
             });
+            // Hide sidebar on mobile after tab change
+            if (window.innerWidth < 768) {
+                sidebar.classList.add('-translate-x-full');
+            }
         });
 
         // Chart Logic
