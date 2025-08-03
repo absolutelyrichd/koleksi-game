@@ -59,7 +59,7 @@
         // Default options for dropdowns (not including 'manual' option)
         const defaultPlatforms = ['PC', 'PS', 'PS2', 'PS3'];
         const defaultStores = ['Steam', 'Epic Games', 'GOG']; // These are now Digital Platforms
-        const defaultStatuses = ['Dimainkan', 'Belum Dimainkan', 'Selesai', 'Wishlist'];
+        const defaultStatuses = ['Dimainkan', 'Belum Dimainkan', 'Selesai', 'Wishlist', 'Crack']; // BUG FIX: Added 'Crack'
         const defaultLokasiMentahanOptions = ['HDD Eksternal 4TB', 'HDD Eksternal 2TB'];
 
         // Define a more elegant color palette for the charts
@@ -462,12 +462,7 @@
             const sortOption = sortGamesSelect.value;
 
             let filteredGames = games.filter(game => {
-                // BUG FIX: Add defensive checks for null/undefined properties to prevent crashes.
-                const title = (game.title || '').toLowerCase();
-                const platform = (game.platform || '').toLowerCase();
-                const store = (game.store || '').toLowerCase();
-
-                const matchesSearch = title.includes(searchTerm) || platform.includes(searchTerm) || store.includes(searchTerm);
+                const matchesSearch = game.title.toLowerCase().includes(searchTerm) || (game.platform && game.platform.toLowerCase().includes(searchTerm)) || (game.store && game.store.toLowerCase().includes(searchTerm));
                 const matchesStatus = filterStatus === 'all' || game.status === filterStatus;
                 const matchesPlatform = filterPlatform === 'all' || game.platform === filterPlatform;
                 const matchesDigitalPlatform = filterDigitalPlatform === 'all' || game.store === filterDigitalPlatform;
@@ -475,11 +470,10 @@
                 return matchesSearch && matchesStatus && matchesPlatform && matchesDigitalPlatform && matchesLokasiMentahan;
             });
 
-            // BUG FIX: Add defensive checks for null/undefined properties in sorting to prevent crashes.
             filteredGames.sort((a, b) => {
                 switch (sortOption) {
-                    case 'title-asc': return (a.title || '').localeCompare(b.title || '');
-                    case 'title-desc': return (b.title || '').localeCompare(a.title || '');
+                    case 'title-asc': return a.title.localeCompare(b.title);
+                    case 'title-desc': return b.title.localeCompare(a.title);
                     case 'platform-asc': return (a.platform || '').localeCompare(b.platform || '');
                     case 'status-asc': return (a.status || '').localeCompare(b.status || '');
                     default: return 0;
@@ -504,7 +498,7 @@
                     gameItem.className = 'bg-white p-4 rounded-lg shadow-sm flex flex-col items-start justify-between border border-gray-200 hover:shadow-md transition-shadow';
                     gameItem.innerHTML = `
                         <div class="flex-grow w-full mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900">${game.title || 'Tanpa Judul'}</h3>
+                            <h3 class="text-lg font-semibold text-gray-900">${game.title}</h3>
                             <p class="text-sm text-gray-600 mt-1">Platform: ${game.platform || '-'}</p>
                             <p class="text-sm text-gray-600">Platform Digital: ${game.store || '-'}</p>
                             <p class="text-sm text-gray-600">Lokasi: ${game.lokasiMentahan || '-'}</p>
@@ -576,6 +570,7 @@
                 case 'Selesai': return 'bg-green-500 text-white';
                 case 'Belum Dimainkan': return 'bg-yellow-500 text-white';
                 case 'Wishlist': return 'bg-gray-500 text-white';
+                case 'Crack': return 'bg-purple-600 text-white'; // BUG FIX: Added style for 'Crack'
                 default: return 'bg-gray-300 text-gray-800';
             }
         }
@@ -591,7 +586,7 @@
         // Fungsi untuk menyiapkan data dari array game untuk diagram lingkaran
         function prepareChartData(dataArray, propertyName) {
             const counts = dataArray.reduce((acc, game) => {
-                const value = game[propertyName];
+                const value = game[propertyName] || 'Lainnya';
                 if (value) {
                     acc[value] = (acc[value] || 0) + 1;
                 }
@@ -711,10 +706,10 @@
             reader.onload = (e) => {
                 try {
                     const importedData = JSON.parse(e.target.result);
-                    displayConfirmation(`Anda akan mengimpor ${importedData.games.length} game dan ${[...importedData.customPlatforms, ...importedData.customStores, ...importedData.customLocations, ...importedData.customStatuses].length} opsi kustom. Ini akan MENIMPA data yang ada. Lanjutkan?`, async () => {
+                    displayConfirmation(`Anda akan mengimpor ${importedData.games.length} game dan opsi kustom. Ini akan MENIMPA data yang ada. Lanjutkan?`, async () => {
                         showLoading("Mengimpor data...");
                         try {
-                            // Clear existing data
+                            // Clear existing games
                             const gamesColRef = getUserGamesCollectionRef();
                             const snapshot = await getDocs(gamesColRef);
                             const batch = writeBatch(db);
@@ -726,7 +721,10 @@
                             // Import new data
                             if (importedData.games && importedData.games.length > 0) {
                                 for (const game of importedData.games) {
-                                    await saveGameToFirestore(game);
+                                    // Ensure game has an ID for saving, or let Firestore generate one
+                                    const gameToSave = { ...game };
+                                    delete gameToSave.id; // Remove old ID
+                                    await saveGameToFirestore(gameToSave);
                                 }
                             }
                             if (importedData.customPlatforms || importedData.customStores || importedData.customLocations || importedData.customStatuses) {
@@ -768,18 +766,16 @@
         // --- Event Listeners ---
         document.addEventListener('DOMContentLoaded', async () => {
             // Check for existing auth token and sign in
+            showLoading("Mengautentikasi...");
             if (initialAuthToken) {
                 try {
-                    showLoading("Masuk secara otomatis...");
                     await signInWithCustomToken(auth, initialAuthToken);
                 } catch (error) {
                     console.error("Error signing in with custom token:", error);
-                    displayMessage("Gagal masuk otomatis. Coba masuk manual.", "error");
-                    // Fallback to anonymous sign-in if custom token fails
+                    displayMessage("Gagal masuk otomatis, masuk sebagai anonim.", "error");
                     await signInAnonymously(auth);
                 }
             } else {
-                // If no custom token, sign in anonymously
                 await signInAnonymously(auth);
             }
         });
@@ -841,8 +837,13 @@
                         store: gameStore === 'manual' ? gameStoreManual : gameStore,
                         status: gameStatus,
                         lokasiMentahan: lokasiMentahan === 'manual' ? lokasiMentahanManual : lokasiMentahan,
-                        id: row.dataset.gameId || editingGameId
                     };
+                    
+                    // Add id only if we are editing an existing game
+                    if (row.dataset.gameId) {
+                        gameData.id = row.dataset.gameId;
+                    }
+
                     const saved = await saveGameToFirestore(gameData);
                     if (saved) successCount++;
                 }
@@ -857,19 +858,22 @@
         });
 
         gameListContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('edit-button')) {
-                const gameId = e.target.dataset.id;
+            const editButton = e.target.closest('.edit-button');
+            const deleteButton = e.target.closest('.delete-button');
+
+            if (editButton) {
+                const gameId = editButton.dataset.id;
                 const gameToEdit = games.find(g => g.id === gameId);
                 if (gameToEdit) {
-                    editingGameId = gameId;
+                    editingGameId = gameId; // Set global editing ID
                     formTitle.textContent = 'Edit Game';
                     submitButton.textContent = 'Simpan Perubahan';
                     gameFormContainer.innerHTML = ''; // Clear existing rows
                     addGameRow(gameToEdit); // Add one row with the game data
                     gameFormModal.classList.remove('hidden');
                 }
-            } else if (e.target.classList.contains('delete-button')) {
-                const gameId = e.target.dataset.id;
+            } else if (deleteButton) {
+                const gameId = deleteButton.dataset.id;
                 displayConfirmation("Apakah Anda yakin ingin menghapus game ini?", () => deleteGameFromFirestore(gameId));
             }
         });
@@ -982,22 +986,22 @@
 
         // Listeners for deleting custom options (delegated)
         currentPlatformOptionsList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('delete-custom-option-button')) {
+            if (e.target.closest('.delete-custom-option-button')) {
                 handleDeleteCustomOption(e, customPlatforms);
             }
         });
         currentStoreOptionsList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('delete-custom-option-button')) {
+            if (e.target.closest('.delete-custom-option-button')) {
                 handleDeleteCustomOption(e, customStores);
             }
         });
         currentLokasiOptionsList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('delete-custom-option-button')) {
+            if (e.target.closest('.delete-custom-option-button')) {
                 handleDeleteCustomOption(e, customLocations);
             }
         });
         currentStatusOptionsList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('delete-custom-option-button')) {
+            if (e.target.closest('.delete-custom-option-button')) {
                 handleDeleteCustomOption(e, customStatuses);
             }
         });
@@ -1020,25 +1024,28 @@
             confirmMessage.textContent = message;
             confirmModal.classList.remove('hidden');
 
-            // Clone and replace buttons to remove old event listeners
-            const oldYesBtn = confirmYesBtn;
-            const newYesBtn = oldYesBtn.cloneNode(true);
-            oldYesBtn.parentNode.replaceChild(newYesBtn, oldYesBtn);
-            confirmYesBtn = newYesBtn;
-
-            const oldNoBtn = confirmNoBtn;
-            const newNoBtn = oldNoBtn.cloneNode(true);
-            oldNoBtn.parentNode.replaceChild(newNoBtn, oldNoBtn);
-            confirmNoBtn = newNoBtn;
-
-            confirmYesBtn.addEventListener('click', () => {
+            const handleYes = () => {
                 confirmModal.classList.add('hidden');
                 onConfirm();
-            });
+                confirmYesBtn.removeEventListener('click', handleYes);
+                confirmNoBtn.removeEventListener('click', handleNo);
+            };
 
-            confirmNoBtn.addEventListener('click', () => {
+            const handleNo = () => {
                 confirmModal.classList.add('hidden');
-            });
+                confirmYesBtn.removeEventListener('click', handleYes);
+                confirmNoBtn.removeEventListener('click', handleNo);
+            };
+            
+            // Remove old listeners before adding new ones
+            confirmYesBtn.removeEventListener('click', confirmYesBtn.lastListener);
+            confirmNoBtn.removeEventListener('click', confirmNoBtn.lastListener);
+
+            confirmYesBtn.addEventListener('click', handleYes);
+            confirmNoBtn.addEventListener('click', handleNo);
+
+            confirmYesBtn.lastListener = handleYes;
+            confirmNoBtn.lastListener = handleNo;
         }
 
         function displayMessage(message, type = 'info') {
@@ -1046,14 +1053,19 @@
             messageModal.classList.remove('hidden');
             // Set icon based on type
             let iconHtml = '';
+            let iconColorClass = '';
             if (type === 'success') {
-                iconHtml = '<i class="fas fa-check-circle text-green-500 text-3xl"></i>';
+                iconHtml = '<i class="fas fa-check-circle text-3xl"></i>';
+                iconColorClass = 'text-green-500';
             } else if (type === 'error') {
-                iconHtml = '<i class="fas fa-times-circle text-red-500 text-3xl"></i>';
+                iconHtml = '<i class="fas fa-times-circle text-3xl"></i>';
+                iconColorClass = 'text-red-500';
             } else {
-                iconHtml = '<i class="fas fa-info-circle text-blue-500 text-3xl"></i>';
+                iconHtml = '<i class="fas fa-info-circle text-3xl"></i>';
+                iconColorClass = 'text-blue-500';
             }
             messageModalIcon.innerHTML = iconHtml;
+            messageModalIcon.className = `mx-auto flex items-center justify-center h-12 w-12 rounded-full ${iconColorClass}`;
         }
 
         messageCloseBtn.addEventListener('click', () => {
@@ -1067,7 +1079,9 @@
             const rowId = `game-row-${rowCounter}`;
             const newRow = document.createElement('div');
             newRow.className = 'game-row grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 p-4 bg-gray-50 rounded-lg shadow-inner';
-            newRow.dataset.gameId = gameData.id || '';
+            if (gameData.id) {
+                newRow.dataset.gameId = gameData.id;
+            }
 
             // Create dropdowns with all custom options included
             const allPlatforms = [...new Set([...defaultPlatforms, ...customPlatforms])].sort();
@@ -1087,7 +1101,6 @@
                 <div>
                     <label for="gamePlatform-${rowId}" class="block text-sm font-medium text-gray-700">Platform</label>
                     <select id="gamePlatform-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <!-- Options will be populated by JS -->
                     </select>
                     <input type="text" id="gamePlatformManual-${rowId}" placeholder="Input Platform Manual"
                            class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
@@ -1097,7 +1110,6 @@
                 <div>
                     <label for="gameStore-${rowId}" class="block text-sm font-medium text-gray-700">Platform Digital</label>
                     <select id="gameStore-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <!-- Options will be populated by JS -->
                     </select>
                     <input type="text" id="gameStoreManual-${rowId}" placeholder="Input Platform Digital Manual"
                            class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
@@ -1107,7 +1119,6 @@
                 <div>
                     <label for="gameStatus-${rowId}" class="block text-sm font-medium text-gray-700">Status</label>
                     <select id="gameStatus-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <!-- Options will be populated by JS -->
                     </select>
                 </div>
 
@@ -1115,7 +1126,6 @@
                 <div>
                     <label for="lokasiMentahan-${rowId}" class="block text-sm font-medium text-gray-700">Lokasi Mentahan</label>
                     <select id="lokasiMentahan-${rowId}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
-                        <!-- Options will be populated by JS -->
                     </select>
                     <input type="text" id="lokasiMentahanManual-${rowId}" placeholder="Input Lokasi Manual"
                            class="mt-2 hidden w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
@@ -1131,15 +1141,18 @@
 
             gameFormContainer.appendChild(newRow);
             
-            // Populate all dropdowns on the page
-            updateAllDropdowns();
-
-            // Then, set the specific values for the new row if editing
+            // Populate dropdowns for the new row
             const platformSelect = newRow.querySelector(`#gamePlatform-${rowId}`);
+            populateSelect(platformSelect, allPlatforms, true);
             const storeSelect = newRow.querySelector(`#gameStore-${rowId}`);
+            populateSelect(storeSelect, allStores, true);
             const statusSelect = newRow.querySelector(`#gameStatus-${rowId}`);
+            populateSelect(statusSelect, allStatuses, false);
             const lokasiSelect = newRow.querySelector(`#lokasiMentahan-${rowId}`);
-            
+            populateSelect(lokasiSelect, allLokasiMentahan, true, true);
+
+
+            // Set values if gameData exists
             if (gameData.platform) {
                 if (allPlatforms.includes(gameData.platform)) {
                     platformSelect.value = gameData.platform;
@@ -1168,7 +1181,7 @@
             if (gameData.lokasiMentahan) {
                 if (allLokasiMentahan.includes(gameData.lokasiMentahan)) {
                     lokasiSelect.value = gameData.lokasiMentahan;
-                } else {
+                } else if (gameData.lokasiMentahan) {
                     lokasiSelect.value = 'manual';
                     const manualInput = newRow.querySelector(`#lokasiMentahanManual-${rowId}`);
                     manualInput.classList.remove('hidden');
@@ -1191,13 +1204,11 @@
 
         function updateDeleteButtonVisibility() {
             const deleteButtons = document.querySelectorAll('.delete-row-button');
-            const formTitleText = formTitle.textContent;
-            
-            // Hide delete button if we are editing or if there's only one row for adding new games
-            if (formTitleText.includes('Edit Game') || deleteButtons.length <= 1) {
-                 deleteButtons.forEach(btn => btn.classList.add('hidden'));
+            const isEditing = !!editingGameId;
+            if (isEditing || deleteButtons.length <= 1) {
+                deleteButtons.forEach(btn => btn.classList.add('hidden'));
             } else {
-                 deleteButtons.forEach(btn => btn.classList.remove('hidden'));
+                deleteButtons.forEach(btn => btn.classList.remove('hidden'));
             }
         }
 
@@ -1220,9 +1231,6 @@
              class="fixed inset-y-0 left-0 w-64 bg-indigo-800 text-indigo-100 p-6 space-y-6 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out z-50">
             <div class="flex justify-between items-center">
                 <h1 class="text-2xl font-bold text-white">Koleksi Game</h1>
-                <button id="mobileMenuButtonClose" class="md:hidden text-white focus:outline-none">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
             </div>
             <nav class="space-y-2">
                 <button data-tab="game-list"
@@ -1261,8 +1269,8 @@
         <!-- Main Content Area -->
         <div id="mainContent" class="flex-1 flex flex-col hidden">
             <!-- Header for mobile view -->
-            <header class="md:hidden flex items-center justify-between p-4 bg-indigo-800 text-white">
-                <button id="mobileMenuButton" class="text-white">
+            <header class="md:hidden flex items-center justify-between p-4 bg-indigo-800 text-white shadow-md">
+                <button id="mobileMenuButton" class="text-white focus:outline-none">
                     <i class="fas fa-bars text-xl"></i>
                 </button>
                 <h1 class="text-xl font-bold">Koleksi Game</h1>
@@ -1417,10 +1425,10 @@
                                     .dot {
                                         transition: transform 0.3s ease;
                                     }
-                                    input:checked ~ .block {
+                                    input:checked ~ .relative .block {
                                         background-color: #4f46e5;
                                     }
-                                    input:checked ~ .block .dot {
+                                    input:checked ~ .relative .dot {
                                         transform: translateX(100%);
                                     }
                                 </style>
@@ -1521,10 +1529,10 @@
                 </button>
             </div>
             <form id="gameForm" class="mt-4">
-                <div id="gameFormContainer" class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                <div id="gameFormContainer" class="space-y-4 max-h-[60vh] overflow-y-auto p-2">
                     <!-- Dynamic form rows will be inserted here by JS -->
                 </div>
-                <div class="flex justify-between items-center mt-6">
+                <div class="flex justify-between items-center mt-6 pt-4 border-t">
                     <button type="button" id="addGameRowButton" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-300 ease-in-out transform hover:scale-105">
                         Tambah Baris
                     </button>
