@@ -77,31 +77,36 @@
         <div class="min-h-screen flex">
             <!-- Sidebar -->
             <aside class="w-64 bg-slate-800 p-6 flex flex-col">
-                <h1 class="text-2xl font-bold text-white mb-8">Koleksi Game</h1>
-                <nav id="tabs" class="flex flex-col space-y-2 flex-grow">
-                    <button data-tab="tab-list" class="tab-button tab-active flex items-center py-2 px-4 rounded-lg transition duration-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v1H2V6zM2 9v7a2 2 0 002 2h12a2 2 0 002-2V9H2zm4-4a1 1 0 100-2 1 1 0 000 2zM8 5a1 1 0 100-2 1 1 0 000 2z"/></svg>
-                        Daftar Game
-                    </button>
-                    <button data-tab="tab-stats" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
-                        Statistik
-                    </button>
-                    <button data-tab="tab-bulk" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
-                        Aksi Masal
-                    </button>
-                    <button data-tab="tab-manage" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
-                        Manajemen Data
-                    </button>
-                </nav>
-                <div id="user-profile" class="mt-auto flex items-center space-x-3 border-t border-slate-700 pt-4">
-                    <img id="user-photo" src="https://placehold.co/40x40/e2e8f0/e2e8f0" alt="User Photo" class="w-10 h-10 rounded-full">
-                    <div>
-                        <p id="user-name" class="font-semibold text-sm text-white">Guest User</p>
-                        <button id="logout-button" class="text-xs text-red-400 hover:text-red-300">Keluar</button>
+                <div class="flex-grow">
+                    <h1 class="text-2xl font-bold text-white mb-8">Koleksi Game</h1>
+                    <nav id="tabs" class="flex flex-col space-y-2">
+                        <button data-tab="tab-list" class="tab-button tab-active flex items-center py-2 px-4 rounded-lg transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v1H2V6zM2 9v7a2 2 0 002 2h12a2 2 0 002-2V9H2zm4-4a1 1 0 100-2 1 1 0 000 2zM8 5a1 1 0 100-2 1 1 0 000 2z"/></svg>
+                            Daftar Game
+                        </button>
+                        <button data-tab="tab-stats" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+                            Statistik
+                        </button>
+                        <button data-tab="tab-bulk" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200">
+                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
+                            Aksi Masal
+                        </button>
+                        <button data-tab="tab-manage" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                            Manajemen Data
+                        </button>
+                    </nav>
+                </div>
+                <div>
+                    <div id="user-profile" class="flex items-center space-x-3 border-t border-slate-700 pt-4 mb-4">
+                        <img id="user-photo" src="https://placehold.co/40x40/e2e8f0/e2e8f0" alt="User Photo" class="w-10 h-10 rounded-full">
+                        <div>
+                            <p id="user-name" class="font-semibold text-sm text-white">Guest User</p>
+                            <button id="logout-button" class="text-xs text-red-400 hover:text-red-300">Keluar</button>
+                        </div>
                     </div>
+                    <p class="text-xs text-slate-500 text-center">© 2024 RichD</p>
                 </div>
             </aside>
 
@@ -162,15 +167,15 @@
                 <div id="tab-stats" class="tab-content hidden">
                      <h2 class="text-3xl font-bold mb-6">Statistik Game</h2>
                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg flex justify-center items-center">
-                            <div class="relative h-64 w-full" style="max-width: 350px;">
-                                <h3 class="absolute top-0 left-1/2 -translate-x-1/2 font-bold text-xl text-center w-full">Game per Platform</h3>
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
+                            <h3 class="font-bold text-xl text-center mb-4">Game per Platform</h3>
+                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
                                 <canvas id="platform-chart"></canvas>
                             </div>
                         </div>
-                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg flex justify-center items-center">
-                            <div class="relative h-64 w-full" style="max-width: 350px;">
-                                <h3 class="absolute top-0 left-1/2 -translate-x-1/2 font-bold text-xl text-center w-full">Game per Lokasi</h3>
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
+                            <h3 class="font-bold text-xl text-center mb-4">Game per Lokasi</h3>
+                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
                                 <canvas id="location-chart"></canvas>
                             </div>
                         </div>
@@ -589,20 +594,35 @@
 
         // Chart Logic
         function initCharts() {
-            const chartOptions = {
+            const pieDoughnutOptions = {
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { display: false }
+                    legend: { 
+                        position: 'bottom',
+                        labels: {
+                            color: '#cbd5e1', // slate-300
+                            padding: 15,
+                        }
+                    }
                 }
             };
-            const barOptions = { ...chartOptions, scales: {
-                y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
-                x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
-            }};
+            const barOptions = { 
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+                    x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
+                }
+            };
 
-            platformChart = new Chart(document.getElementById('platform-chart'), { type: 'doughnut', data: {}, options: chartOptions });
-            locationChart = new Chart(document.getElementById('location-chart'), { type: 'pie', data: {}, options: chartOptions });
+            platformChart = new Chart(document.getElementById('platform-chart'), { type: 'doughnut', data: {}, options: pieDoughnutOptions });
+            locationChart = new Chart(document.getElementById('location-chart'), { type: 'pie', data: {}, options: pieDoughnutOptions });
             statusChart = new Chart(document.getElementById('status-chart'), { type: 'bar', data: {}, options: barOptions });
         }
 
@@ -615,7 +635,7 @@
             }, {});
             platformChart.data = {
                 labels: Object.keys(platformData),
-                datasets: [{ data: Object.values(platformData), backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#ef4444'] }]
+                datasets: [{ data: Object.values(platformData), backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#ef4444', '#facc15'] }]
             };
             platformChart.update();
 
@@ -625,7 +645,7 @@
             }, {});
             locationChart.data = {
                 labels: Object.keys(locationData),
-                datasets: [{ data: Object.values(locationData), backgroundColor: ['#10b981', '#06b6d4', '#6366f1'] }]
+                datasets: [{ data: Object.values(locationData), backgroundColor: ['#10b981', '#06b6d4', '#6366f1', '#f59e0b'] }]
             };
             locationChart.update();
             
