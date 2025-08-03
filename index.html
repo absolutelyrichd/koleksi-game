@@ -150,6 +150,8 @@
         const bulkEditStore = document.getElementById('bulkEditStore');
         const bulkEditLokasi = document.getElementById('bulkEditLokasi');
         const selectedCountDisplay = document.getElementById('selectedCount');
+        const bulkSearchInput = document.getElementById('bulkSearchInput');
+        const bulkSortSelect = document.getElementById('bulkSortSelect');
 
 
         // --- Firebase Authentication ---
@@ -953,6 +955,9 @@
         });
 
         // --- Bulk Actions Listeners ---
+        bulkSearchInput.addEventListener('input', renderBulkActionsList);
+        bulkSortSelect.addEventListener('change', renderBulkActionsList);
+
         selectAllCheckbox.addEventListener('change', () => {
             const checkboxes = bulkGameListContainer.querySelectorAll('.game-checkbox');
             checkboxes.forEach(checkbox => {
@@ -1183,12 +1188,30 @@
 
         // --- Bulk Actions Functions ---
         function renderBulkActionsList() {
+            const searchTerm = bulkSearchInput.value.toLowerCase();
+            const sortOption = bulkSortSelect.value;
+
+            let gamesToDisplay = games.filter(game => 
+                game.title.toLowerCase().includes(searchTerm)
+            );
+
+            gamesToDisplay.sort((a, b) => {
+                switch (sortOption) {
+                    case 'title-asc': return a.title.localeCompare(b.title);
+                    case 'title-desc': return b.title.localeCompare(a.title);
+                    case 'platform-asc': return (a.platform || '').localeCompare(b.platform || '');
+                    case 'status-asc': return (a.status || '').localeCompare(b.status || '');
+                    default: return 0;
+                }
+            });
+
             bulkGameListContainer.innerHTML = '';
-            if (games.length === 0) {
-                bulkGameListContainer.innerHTML = '<p class="text-gray-500 text-center col-span-full">Tidak ada game untuk ditampilkan.</p>';
+            if (gamesToDisplay.length === 0) {
+                bulkGameListContainer.innerHTML = '<p class="text-gray-500 text-center col-span-full">Tidak ada game yang cocok dengan pencarian.</p>';
                 return;
             }
-            games.forEach(game => {
+
+            gamesToDisplay.forEach(game => {
                 const item = document.createElement('div');
                 item.className = 'flex items-center p-3 bg-white rounded-lg shadow-sm border';
                 item.innerHTML = `
@@ -1215,8 +1238,10 @@
         function updateSelectedCount() {
             selectedCountDisplay.textContent = `${selectedGameIds.size} game terpilih`;
             const allCheckboxes = bulkGameListContainer.querySelectorAll('.game-checkbox');
-            const allSelected = allCheckboxes.length > 0 && selectedGameIds.size === allCheckboxes.length;
-            selectAllCheckbox.checked = allSelected;
+            const allVisibleCheckboxes = Array.from(allCheckboxes).filter(cb => cb.offsetParent !== null);
+            const allVisibleSelected = allVisibleCheckboxes.length > 0 && allVisibleCheckboxes.every(cb => cb.checked);
+            
+            selectAllCheckbox.checked = allVisibleSelected;
         }
 
         async function handleBulkDelete() {
@@ -1442,10 +1467,24 @@
                 <div id="bulk-actions" class="tab-content hidden">
                     <div class="bg-white rounded-lg shadow p-6">
                         <h2 class="text-2xl font-bold text-gray-900 mb-4">Aksi Massal</h2>
+                        
+                        <!-- Filter and Sort for Bulk Actions -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <input type="text" id="bulkSearchInput" placeholder="Cari game untuk disaring..."
+                                   class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
+                            <select id="bulkSortSelect"
+                                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm">
+                                <option value="title-asc">Urutkan: Judul (A-Z)</option>
+                                <option value="title-desc">Urutkan: Judul (Z-A)</option>
+                                <option value="platform-asc">Urutkan: Platform</option>
+                                <option value="status-asc">Urutkan: Status</option>
+                            </select>
+                        </div>
+
                         <div class="flex flex-col sm:flex-row justify-between items-center mb-4 p-4 bg-gray-50 rounded-lg border">
                             <div class="flex items-center">
                                 <input type="checkbox" id="selectAllCheckbox" class="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3">
-                                <label for="selectAllCheckbox" class="font-medium text-gray-700">Pilih Semua</label>
+                                <label for="selectAllCheckbox" class="font-medium text-gray-700">Pilih Semua yang Terlihat</label>
                                 <span id="selectedCount" class="ml-4 text-sm text-gray-600">0 game terpilih</span>
                             </div>
                             <div class="flex items-center space-x-2 mt-4 sm:mt-0">
