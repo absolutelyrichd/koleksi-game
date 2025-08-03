@@ -288,7 +288,7 @@
 
         // Pagination state
         let currentPage = 1;
-        const gamesPerPage = 10;
+        const gamesPerPage = 5;
 
         // Elemen UI
         const loginScreen = document.getElementById('login-screen');
@@ -603,7 +603,19 @@
                         labels: {
                             color: '#cbd5e1', // slate-300
                             padding: 15,
+                            font: {
+                                size: 12
+                            }
                         }
+                    }
+                },
+                onHover: (event, chartElement) => {
+                    event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default';
+                },
+                elements: {
+                    arc: {
+                        hoverOffset: 12,
+                        borderWidth: 0, 
                     }
                 }
             };
@@ -614,6 +626,9 @@
                     legend: {
                         display: false
                     }
+                },
+                onHover: (event, chartElement) => {
+                    event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default';
                 },
                 scales: {
                     y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
@@ -629,33 +644,64 @@
         function updateCharts() {
             if (!platformChart) initCharts();
 
+            // Platform Chart
             const platformData = games.reduce((acc, game) => {
                 acc[game.platform] = (acc[game.platform] || 0) + 1;
                 return acc;
             }, {});
             platformChart.data = {
                 labels: Object.keys(platformData),
-                datasets: [{ data: Object.values(platformData), backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#ef4444', '#facc15'] }]
+                datasets: [{ 
+                    data: Object.values(platformData), 
+                    backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#ef4444', '#facc15'],
+                }]
             };
             platformChart.update();
 
+            // Location Chart
             const locationData = games.reduce((acc, game) => {
                 acc[game.location] = (acc[game.location] || 0) + 1;
                 return acc;
             }, {});
             locationChart.data = {
                 labels: Object.keys(locationData),
-                datasets: [{ data: Object.values(locationData), backgroundColor: ['#10b981', '#06b6d4', '#6366f1', '#f59e0b'] }]
+                datasets: [{ 
+                    data: Object.values(locationData), 
+                    backgroundColor: ['#10b981', '#06b6d4', '#6366f1', '#f59e0b'],
+                }]
             };
             locationChart.update();
             
+            // Status Chart
             const statusData = games.reduce((acc, game) => {
                 acc[game.status] = (acc[game.status] || 0) + 1;
                 return acc;
             }, {});
+            const statusLabels = Object.keys(statusData);
+            const statusValues = Object.values(statusData);
+            const statusColors = {
+                'Belum dimainkan': '#64748b',
+                'Dimainkan': '#eab308',
+                'Selesai': '#22c55e'
+            };
+            const hoverStatusColors = {
+                'Belum dimainkan': '#94a3b8',
+                'Dimainkan': '#facc15',
+                'Selesai': '#4ade80'
+            };
+
             statusChart.data = {
-                labels: Object.keys(statusData),
-                datasets: [{ label: 'Jumlah Game', data: Object.values(statusData), backgroundColor: ['#64748b', '#eab308', '#22c55e'] }]
+                labels: statusLabels,
+                datasets: [{ 
+                    label: 'Jumlah Game', 
+                    data: statusValues, 
+                    backgroundColor: statusLabels.map(label => statusColors[label] || '#64748b'),
+                    hoverBackgroundColor: statusLabels.map(label => hoverStatusColors[label] || '#94a3b8'),
+                    borderRadius: 4,
+                    borderWidth: 2,
+                    borderColor: 'transparent',
+                    hoverBorderColor: '#6366f1'
+                }]
             };
             statusChart.update();
         }
