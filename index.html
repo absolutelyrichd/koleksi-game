@@ -326,7 +326,16 @@
 
         // Firebase configuration and initialization
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        // Updated Firebase config provided by the user
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzJTL179V9bT-DfefZq9gcG8Tz88VzLmQ",
+            authDomain: "koleksi-game.firebaseapp.com",
+            projectId: "koleksi-game",
+            storageBucket: "koleksi-game.appspot.com",
+            messagingSenderId: "222959670551",
+            appId: "1:222959670551:web:048b1e2c4ef16b7bd31352",
+            measurementId: "G-BYYCM7R4M8"
+        };
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
         
         const app = initializeApp(firebaseConfig);
@@ -809,7 +818,33 @@
             }
             
             const userId = currentUser.uid;
-            if (confirm("Apakah Anda yakin ingin menghapus game ini?")) {
+            // Use a custom modal instead of confirm
+            const confirmed = await new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.className = "fixed inset-0 z-50 overflow-y-auto modal-backdrop flex items-center justify-center p-4";
+                modal.innerHTML = `
+                    <div class="bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-lg relative text-center">
+                        <h3 class="text-2xl font-bold mb-4">Konfirmasi Hapus</h3>
+                        <p class="text-slate-300 mb-6">Apakah Anda yakin ingin menghapus game ini?</p>
+                        <div class="flex justify-center space-x-3">
+                            <button id="cancel-delete" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Batal</button>
+                            <button id="confirm-delete" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Hapus</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                document.getElementById('confirm-delete').addEventListener('click', () => {
+                    modal.remove();
+                    resolve(true);
+                });
+                document.getElementById('cancel-delete').addEventListener('click', () => {
+                    modal.remove();
+                    resolve(false);
+                });
+            });
+
+            if (confirmed) {
                 try {
                     const gameRef = doc(db, 'games', userId, 'userGames', gameId);
                     await deleteDoc(gameRef);
@@ -829,7 +864,33 @@
             const userId = currentUser.uid;
             const gameIdsToDelete = Array.from(selectedGames);
 
-            if (confirm(`Apakah Anda yakin ingin menghapus ${gameIdsToDelete.length} game terpilih?`)) {
+             // Use custom modal for confirmation
+             const confirmed = await new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.className = "fixed inset-0 z-50 overflow-y-auto modal-backdrop flex items-center justify-center p-4";
+                modal.innerHTML = `
+                    <div class="bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-lg relative text-center">
+                        <h3 class="text-2xl font-bold mb-4">Konfirmasi Hapus Masal</h3>
+                        <p class="text-slate-300 mb-6">Apakah Anda yakin ingin menghapus ${gameIdsToDelete.length} game terpilih?</p>
+                        <div class="flex justify-center space-x-3">
+                            <button id="cancel-delete" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Batal</button>
+                            <button id="confirm-delete" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Hapus</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                document.getElementById('confirm-delete').addEventListener('click', () => {
+                    modal.remove();
+                    resolve(true);
+                });
+                document.getElementById('cancel-delete').addEventListener('click', () => {
+                    modal.remove();
+                    resolve(false);
+                });
+            });
+
+            if (confirmed) {
                 try {
                     const batch = writeBatch(db);
                     gameIdsToDelete.forEach(id => {
@@ -861,7 +922,33 @@
                 return;
             }
 
-            if (confirm(`Apakah Anda yakin ingin memindahkan ${gameIdsToMove.length} game ke lokasi ${newLocation}?`)) {
+            // Use custom modal for confirmation
+             const confirmed = await new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.className = "fixed inset-0 z-50 overflow-y-auto modal-backdrop flex items-center justify-center p-4";
+                modal.innerHTML = `
+                    <div class="bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-lg relative text-center">
+                        <h3 class="text-2xl font-bold mb-4">Konfirmasi Pindah Masal</h3>
+                        <p class="text-slate-300 mb-6">Apakah Anda yakin ingin memindahkan ${gameIdsToMove.length} game ke lokasi ${newLocation}?</p>
+                        <div class="flex justify-center space-x-3">
+                            <button id="cancel-move" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Batal</button>
+                            <button id="confirm-move" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Pindah</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                document.getElementById('confirm-move').addEventListener('click', () => {
+                    modal.remove();
+                    resolve(true);
+                });
+                document.getElementById('cancel-move').addEventListener('click', () => {
+                    modal.remove();
+                    resolve(false);
+                });
+            });
+
+            if (confirmed) {
                 try {
                     const batch = writeBatch(db);
                     gameIdsToMove.forEach(id => {
@@ -991,7 +1078,7 @@
         // Checkbox selection for bulk actions
         gameListBody.addEventListener('change', (e) => {
             if (e.target.classList.contains('game-checkbox')) {
-                const gameId = e.target.dataset.gameId;
+                const gameId = e.target.dataset.game-id;
                 if (e.target.checked) {
                     selectedGames.add(gameId);
                 } else {
