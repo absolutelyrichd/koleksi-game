@@ -628,5 +628,3 @@
             };
             reader.readAsText(file);
         });
-
-   
