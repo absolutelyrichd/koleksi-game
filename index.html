@@ -10,7 +10,6 @@
 
     <!-- Chart.js for Statistics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -188,21 +187,24 @@
                 <div id="tab-stats" class="tab-content hidden">
                      <h2 class="text-2xl sm:text-3xl font-bold mb-6">Statistik Game</h2>
                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
+                        <!-- Chart container for platforms -->
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
                             <h3 class="font-bold text-xl text-center mb-4">Game per Platform</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
+                            <div class="relative h-64 w-64">
                                 <canvas id="platform-chart"></canvas>
                             </div>
                         </div>
-                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
+                        <!-- Chart container for locations -->
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
                             <h3 class="font-bold text-xl text-center mb-4">Game per Lokasi</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
+                            <div class="relative h-64 w-64">
                                 <canvas id="location-chart"></canvas>
                             </div>
                         </div>
-                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg col-span-1 lg:col-span-2">
+                        <!-- Chart container for status -->
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg col-span-1 lg:col-span-2 flex flex-col items-center justify-center">
                              <h3 class="font-bold mb-4 text-xl text-center">Status Permainan</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 800px;">
+                            <div class="relative w-full max-w-4xl h-72">
                                 <canvas id="status-chart"></canvas>
                             </div>
                         </div>
@@ -215,26 +217,18 @@
                      <div class="bg-slate-800 p-6 rounded-xl shadow-lg mb-6">
                         <h3 class="font-bold text-xl mb-4">Tindakan untuk Game Terpilih</h3>
                         <p id="selection-info" class="text-slate-400 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.</p>
-                        <div class="flex flex-col sm:flex-row gap-4 mb-4">
-                            <!-- Mass Move Feature -->
-                            <div class="flex-1">
-                                <label for="bulk-move-location" class="block text-sm font-medium text-slate-300 mb-1">Pindahkan ke Lokasi:</label>
-                                <select id="bulk-move-location" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                                    <option value="">Pilih Lokasi Baru</option>
-                                </select>
-                            </div>
-                            <div class="flex items-end">
-                                <button id="bulk-move-button" class="w-full sm:w-auto bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:bg-yellow-800 disabled:cursor-not-allowed" disabled>
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M8 5a1 1 0 00-1 1v2H5a1 1 0 000 2h2v2a1 1 0 002 0v-2h2a1 1 0 100-2h-2V6a1 1 0 00-1-1z" /><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0 2a10 10 0 100-20 10 10 0 000 20z" clip-rule="evenodd" /></svg>
-                                    Pindah
-                                </button>
-                            </div>
+                        <div class="flex flex-col sm:flex-row gap-4">
+                           <button id="bulk-delete-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:bg-red-800 disabled:cursor-not-allowed" disabled>
+                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                               Hapus Game Terpilih
+                           </button>
+                           <!-- New button for bulk move location -->
+                           <button id="bulk-move-location-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:bg-blue-800 disabled:cursor-not-allowed" disabled>
+                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.261l-2.48 2.052a1 1 0 01-1.298 0l-2.48-2.052H5a2 2 0 01-2-2V5zm10 2a1 1 0 11-2 0 1 1 0 012 0zm-4 0a1 1 0 11-2 0 1 1 0 012 0zm0 4a1 1 0 100 2h4a1 1 0 100-2h-4z" clip-rule="evenodd" /></svg>
+                               Pindah Lokasi Terpilih
+                           </button>
                         </div>
-                        <button id="bulk-delete-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:bg-red-800 disabled:cursor-not-allowed" disabled>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
-                            Hapus Game Terpilih
-                        </button>
-                    </div>
+                     </div>
                 </div>
 
                 <!-- Tab: Manajemen Data -->
@@ -247,939 +241,757 @@
                                 <p class="text-slate-400 mb-4">Unduh semua koleksi game Anda sebagai file JSON.</p>
                                 <button id="download-json-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                                    Unduh JSON
+                                    Unduh File JSON
                                 </button>
                             </div>
                             <div>
                                 <h3 class="font-bold text-xl mb-2">Impor Data</h3>
-                                <p class="text-slate-400 mb-4">Unggah file JSON untuk menambahkan game ke koleksi Anda. (Format harus sesuai)</p>
-                                <input type="file" id="json-file-input" accept=".json" class="hidden">
-                                <button id="import-json-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300">
+                                <p class="text-slate-400 mb-4">Unggah file JSON untuk menambahkan game ke koleksi Anda. (Perhatian: file harus dalam format yang benar)</p>
+                                <label for="json-file-input" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 cursor-pointer">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
-                                    Unggah JSON
-                                </button>
+                                    Pilih File JSON
+                                </label>
+                                <input id="json-file-input" type="file" accept=".json" class="hidden">
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Toast Notification Container -->
+                <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
             </main>
         </div>
     </div>
     
-    <!-- Modal for adding/editing game -->
-    <div id="game-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-backdrop flex items-center justify-center p-4">
-        <div class="bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-lg relative">
-            <h3 id="modal-title" class="text-2xl font-bold mb-6">Tambah Game Baru</h3>
-            <form id="game-form">
-                <input type="hidden" id="game-id">
-                <div class="mb-4">
-                    <label for="game-title" class="block text-sm font-medium text-slate-300 mb-1">Judul Game</label>
-                    <input type="text" id="game-title" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+    <!-- Modal for Add/Edit Game -->
+    <div id="game-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-lg relative">
+            <h3 id="modal-title" class="text-2xl font-bold mb-4">Tambah Game Baru</h3>
+            <button id="close-modal-button" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <form id="game-form" class="space-y-4">
+                <div>
+                    <label for="game-title" class="block text-sm font-medium text-slate-400">Judul Game</label>
+                    <input type="text" id="game-title" class="mt-1 block w-full rounded-lg bg-slate-700 border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 p-2" required>
                 </div>
-                <div class="mb-4">
-                    <label for="game-platform" class="block text-sm font-medium text-slate-300 mb-1">Platform</label>
-                    <select id="game-platform" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <option value="">Pilih Platform</option>
-                        <option>Steam</option>
-                        <option>Epic</option>
-                        <option>GOG</option>
-                        <option>PCSX</option>
-                        <option>Crack</option>
+                <div>
+                    <label for="game-platform" class="block text-sm font-medium text-slate-400">Platform</label>
+                    <input type="text" id="game-platform" class="mt-1 block w-full rounded-lg bg-slate-700 border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 p-2" required>
+                </div>
+                <div>
+                    <label for="game-location" class="block text-sm font-medium text-slate-400">Lokasi</label>
+                    <input type="text" id="game-location" class="mt-1 block w-full rounded-lg bg-slate-700 border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 p-2" required>
+                </div>
+                <div>
+                    <label for="game-status" class="block text-sm font-medium text-slate-400">Status</label>
+                    <select id="game-status" class="mt-1 block w-full rounded-lg bg-slate-700 border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 p-2" required>
+                        <option value="Dimainkan">Dimainkan</option>
+                        <option value="Belum dimainkan">Belum dimainkan</option>
+                        <option value="Selesai">Selesai</option>
                     </select>
                 </div>
-                <div class="mb-4">
-                    <label for="game-location" class="block text-sm font-medium text-slate-300 mb-1">Lokasi</label>
-                    <select id="game-location" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <option value="">Pilih Lokasi</option>
-                        <option>HDD Eksternal 2TB</option>
-                        <option>HDD Eksternal 4TB</option>
-                        <option>Internal SSD</option>
-                        <option>Belum Install</option>
-                    </select>
-                </div>
-                <div class="mb-6">
-                    <label for="game-status" class="block text-sm font-medium text-slate-300 mb-1">Status</label>
-                    <select id="game-status" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <option value="">Pilih Status</option>
-                        <option>Dimainkan</option>
-                        <option>Belum dimainkan</option>
-                        <option>Selesai</option>
-                    </select>
-                </div>
-                <div class="flex justify-end space-x-3">
-                    <button type="button" id="close-modal-button" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Batal</button>
-                    <button type="submit" id="save-game-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Simpan Game</button>
+                <div class="flex justify-end pt-4">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Simpan Game</button>
                 </div>
             </form>
         </div>
     </div>
     
-    <!-- Custom Toast/Message Box -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
-    
-    <!-- Firestore and Firebase App -->
+    <!-- Modal for Move Location -->
+    <div id="move-location-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-lg relative">
+            <h3 class="text-2xl font-bold mb-4">Pindahkan Lokasi Game Terpilih</h3>
+            <button id="close-move-location-modal-button" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <form id="move-location-form" class="space-y-4">
+                <div>
+                    <label for="new-game-location" class="block text-sm font-medium text-slate-400">Pilih Lokasi Baru</label>
+                    <select id="new-game-location" class="mt-1 block w-full rounded-lg bg-slate-700 border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 p-2" required>
+                        <option value="HDD Eksternal 2TB">HDD Eksternal 2TB</option>
+                        <option value="HDD Eksternal 4TB">HDD Eksternal 4TB</option>
+                        <option value="Internal SSD">Internal SSD</option>
+                        <option value="Belum Install">Belum Install</option>
+                    </select>
+                </div>
+                <div class="flex justify-end pt-4">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Pindahkan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
     <script type="module">
-        // Import Firebase functions
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, addDoc, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, onSnapshot, getDoc, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase configuration and initialization
+        // Global variables provided by the Canvas environment
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        // Updated Firebase config provided by the user
-        const firebaseConfig = {
-            apiKey: "AIzaSyAzJTL179V9bT-DfefZq9gcG8Tz88VzLmQ",
-            authDomain: "koleksi-game.firebaseapp.com",
-            projectId: "koleksi-game",
-            storageBucket: "koleksi-game.appspot.com",
-            messagingSenderId: "222959670551",
-            appId: "1:222959670551:web:048b1e2c4ef16b7bd31352",
-            measurementId: "G-BYYCM7R4M8"
-        };
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-        
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
 
-        let currentUser = null;
-        let gamesData = [];
-        let gamesPerPage = 10;
-        let currentPage = 1;
-        let totalPages = 1;
-        let selectedGames = new Set();
-        let chartInstances = {};
+        // Initialize Firebase
+        let app, db, auth, currentUser;
         
-        // --- UI Elements ---
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } catch (error) {
+            console.error("Error initializing Firebase:", error);
+        }
+        
+        // UI Elements
         const loginScreen = document.getElementById('login-screen');
         const appScreen = document.getElementById('app-screen');
         const loginButton = document.getElementById('login-button');
         const logoutButton = document.getElementById('logout-button');
         const userPhoto = document.getElementById('user-photo');
         const userName = document.getElementById('user-name');
-        const sidebar = document.getElementById('sidebar');
-        const openSidebarButton = document.getElementById('open-sidebar-button');
-        const closeSidebarButton = document.getElementById('close-sidebar-button');
-        const tabsContainer = document.getElementById('tabs');
+        const toastContainer = document.getElementById('toast-container');
+        const tabButtons = document.querySelectorAll('.tab-button');
         const tabContents = document.querySelectorAll('.tab-content');
+        const gameListBody = document.getElementById('game-list-body');
         const addGameButton = document.getElementById('add-game-button');
         const gameModal = document.getElementById('game-modal');
         const closeModalButton = document.getElementById('close-modal-button');
-        const gameForm = document.getElementById('game-form');
-        const gameListBody = document.getElementById('game-list-body');
         const modalTitle = document.getElementById('modal-title');
-        const paginationContainer = document.getElementById('pagination-container');
-        const selectAllCheckbox = document.getElementById('select-all-checkbox');
-        const bulkDeleteButton = document.getElementById('bulk-delete-button');
-        const selectionInfo = document.getElementById('selection-info');
-        const toastContainer = document.getElementById('toast-container');
-        const downloadJsonButton = document.getElementById('download-json-button');
-        const importJsonButton = document.getElementById('import-json-button');
-        const jsonFileInput = document.getElementById('json-file-input');
+        const gameForm = document.getElementById('game-form');
+        const gameTitleInput = document.getElementById('game-title');
+        const gamePlatformInput = document.getElementById('game-platform');
+        const gameLocationInput = document.getElementById('game-location');
+        const gameStatusInput = document.getElementById('game-status');
         const filterTitle = document.getElementById('filter-title');
         const filterPlatform = document.getElementById('filter-platform');
         const filterLocation = document.getElementById('filter-location');
         const filterStatus = document.getElementById('filter-status');
+        const paginationContainer = document.getElementById('pagination-container');
+        const selectAllCheckbox = document.getElementById('select-all-checkbox');
+        const bulkDeleteButton = document.getElementById('bulk-delete-button');
+        const bulkMoveLocationButton = document.getElementById('bulk-move-location-button');
+        const selectionInfo = document.getElementById('selection-info');
+        const downloadJsonButton = document.getElementById('download-json-button');
+        const jsonFileInput = document.getElementById('json-file-input');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+        const sidebar = document.getElementById('sidebar');
+        const openSidebarButton = document.getElementById('open-sidebar-button');
+        const closeSidebarButton = document.getElementById('close-sidebar-button');
 
-        // New UI for mass move
-        const bulkMoveLocationSelect = document.getElementById('bulk-move-location');
-        const bulkMoveButton = document.getElementById('bulk-move-button');
-        
+        // New modal and form elements for bulk move
+        const moveLocationModal = document.getElementById('move-location-modal');
+        const closeMoveLocationModalButton = document.getElementById('close-move-location-modal-button');
+        const moveLocationForm = document.getElementById('move-location-form');
+        const newGameLocationSelect = document.getElementById('new-game-location');
+        let selectedGameIds = new Set();
+        let currentEditingGameId = null;
+        let allGames = [];
+        let filteredGames = [];
+        let currentPage = 1;
+        const gamesPerPage = 10;
+        let platformChart, locationChart, statusChart;
+        let gameLocations = new Set(['HDD Eksternal 2TB', 'HDD Eksternal 4TB', 'Internal SSD', 'Belum Install']);
+        let gamePlatforms = new Set(['Steam', 'Epic', 'GOG', 'PCSX', 'Crack']);
+
         // --- Utility Functions ---
-        
-        // Shows a toast message
+
         function showToast(message, isError = false) {
             const toast = document.createElement('div');
-            toast.className = `p-4 rounded-lg shadow-lg text-white mb-2 transition-opacity duration-300 ${isError ? 'bg-red-500' : 'bg-green-500'}`;
+            toast.className = `p-4 rounded-lg shadow-xl text-white ${isError ? 'bg-red-600' : 'bg-green-600'} transition-opacity duration-300 opacity-0`;
             toast.textContent = message;
             toastContainer.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('opacity-100'), 100);
             setTimeout(() => {
-                toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 300);
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+                toast.addEventListener('transitionend', () => toast.remove());
             }, 5000);
         }
 
-        // Toggles the sidebar on mobile
-        function toggleSidebar() {
-            sidebar.classList.toggle('-translate-x-full');
-            document.getElementById('mobile-menu-backdrop').classList.toggle('hidden');
+        // Handle modal opening and closing
+        function openModal(modal) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         }
 
-        // Handles tab switching
-        function switchTab(tabId) {
-            tabContents.forEach(tab => {
-                tab.classList.add('hidden');
-            });
-            tabsContainer.querySelectorAll('.tab-button').forEach(button => {
-                button.classList.remove('tab-active');
-                button.classList.add('tab-inactive');
-            });
-            document.getElementById(tabId).classList.remove('hidden');
-            document.querySelector(`[data-tab="${tabId}"]`).classList.remove('tab-inactive');
-            document.querySelector(`[data-tab="${tabId}"]`).classList.add('tab-active');
-
-            if (tabId === 'tab-list') {
-                renderGames();
-            } else if (tabId === 'tab-stats') {
-                renderCharts();
-            } else if (tabId === 'tab-bulk') {
-                updateBulkActionsUI();
-            }
+        function closeModal(modal) {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
         }
-        
-        // --- Render Functions ---
-        
-        // Renders the list of games
-        function renderGames() {
-            const filteredGames = filterGames(gamesData);
-            const startIndex = (currentPage - 1) * gamesPerPage;
-            const endIndex = Math.min(startIndex + gamesPerPage, filteredGames.length);
-            const paginatedGames = filteredGames.slice(startIndex, endIndex);
-            
+
+        // Function to render the game list
+        function renderGameList() {
             gameListBody.innerHTML = '';
-            if (paginatedGames.length === 0) {
-                 gameListBody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-400">Tidak ada game yang ditemukan.</td></tr>';
-            } else {
-                paginatedGames.forEach(game => {
-                    const isSelected = selectedGames.has(game.id);
-                    const row = document.createElement('tr');
-                    row.className = 'border-t border-slate-700 hover:bg-slate-700 transition duration-150';
-                    row.innerHTML = `
-                        <td class="p-4">
-                            <input type="checkbox" data-game-id="${game.id}" class="game-checkbox rounded bg-slate-600 border-slate-500" ${isSelected ? 'checked' : ''}>
-                        </td>
-                        <td class="p-4 font-semibold">${game.title}</td>
-                        <td class="p-4 text-slate-300">${game.platform}</td>
-                        <td class="p-4 text-slate-300">${game.location}</td>
-                        <td class="p-4">
-                             <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                 game.status === 'Dimainkan' ? 'bg-blue-800 text-blue-100' :
-                                 game.status === 'Belum dimainkan' ? 'bg-gray-800 text-gray-100' :
-                                 'bg-green-800 text-green-100'
-                             }">${game.status}</span>
-                        </td>
-                        <td class="p-4">
-                            <div class="flex space-x-2">
-                                <button data-id="${game.id}" class="edit-button text-blue-400 hover:text-blue-300 transition duration-150">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
-                                </button>
-                                <button data-id="${game.id}" class="delete-button text-red-400 hover:text-red-300 transition duration-150">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
-                                </button>
-                            </div>
-                        </td>
-                    `;
-                    gameListBody.appendChild(row);
-                });
-            }
-            renderPagination(filteredGames.length);
-        }
+            const startIndex = (currentPage - 1) * gamesPerPage;
+            const endIndex = startIndex + gamesPerPage;
+            const paginatedGames = filteredGames.slice(startIndex, endIndex);
 
-        // Renders the pagination controls
-        function renderPagination(totalGames) {
-            totalPages = Math.ceil(totalGames / gamesPerPage);
+            if (paginatedGames.length === 0) {
+                gameListBody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-400">Tidak ada game yang ditemukan.</td></tr>';
+                return;
+            }
+
+            paginatedGames.forEach(game => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-700 last:border-b-0 hover:bg-slate-700 transition-colors';
+                row.innerHTML = `
+                    <td class="p-4"><input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-slate-600 border-slate-500" ${selectedGameIds.has(game.id) ? 'checked' : ''}></td>
+                    <td class="p-4 font-medium">${game.title}</td>
+                    <td class="p-4 text-slate-400">${game.platform}</td>
+                    <td class="p-4 text-slate-400">${game.location}</td>
+                    <td class="p-4">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold
+                            ${game.status === 'Dimainkan' ? 'bg-blue-800 text-blue-200' : ''}
+                            ${game.status === 'Belum dimainkan' ? 'bg-yellow-800 text-yellow-200' : ''}
+                            ${game.status === 'Selesai' ? 'bg-green-800 text-green-200' : ''}">
+                            ${game.status}
+                        </span>
+                    </td>
+                    <td class="p-4">
+                        <button class="edit-game-button text-blue-400 hover:text-blue-200 mr-2" data-id="${game.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
+                        </button>
+                        <button class="delete-game-button text-red-400 hover:text-red-200" data-id="${game.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </td>
+                `;
+                gameListBody.appendChild(row);
+            });
+            updateBulkButtons();
+        }
+        
+        // Function to render pagination
+        function renderPagination() {
             paginationContainer.innerHTML = '';
+            const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
 
             if (totalPages <= 1) return;
 
-            const createButton = (text, page, isActive = false) => {
+            const createButton = (page, text, disabled) => {
                 const button = document.createElement('button');
-                button.className = `pagination-button px-3 py-1 rounded-lg text-slate-300 hover:bg-slate-700 transition duration-150 ${isActive ? 'active' : ''}`;
+                button.className = `pagination-button bg-slate-700 text-slate-300 hover:bg-slate-600 font-medium py-2 px-4 rounded-lg transition-colors duration-200 ${page === currentPage ? 'active' : ''} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
                 button.textContent = text;
-                button.disabled = isActive;
+                button.disabled = disabled;
                 button.addEventListener('click', () => {
-                    currentPage = page;
-                    renderGames();
+                    if (!disabled) {
+                        currentPage = page;
+                        renderGameList();
+                        renderPagination();
+                    }
                 });
                 return button;
             };
 
-            const addEllipsis = () => {
-                const span = document.createElement('span');
-                span.className = 'text-slate-400 px-2';
-                span.textContent = '...';
-                return span;
-            };
+            // Previous button
+            paginationContainer.appendChild(createButton(currentPage - 1, '«', currentPage === 1));
 
-            paginationContainer.appendChild(createButton('<<', 1, currentPage === 1));
-            paginationContainer.appendChild(createButton('<', currentPage - 1, currentPage === 1));
+            // Page number buttons
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
 
-            if (totalPages <= 7) {
-                for (let i = 1; i <= totalPages; i++) {
-                    paginationContainer.appendChild(createButton(i, i, i === currentPage));
-                }
-            } else {
-                paginationContainer.appendChild(createButton(1, 1, currentPage === 1));
-                if (currentPage > 4) {
-                    paginationContainer.appendChild(addEllipsis());
-                }
-
-                let start = Math.max(2, currentPage - 2);
-                let end = Math.min(totalPages - 1, currentPage + 2);
-
-                if (currentPage <= 4) {
-                    end = 5;
-                }
-                if (currentPage >= totalPages - 3) {
-                    start = totalPages - 4;
-                }
-
-                for (let i = start; i <= end; i++) {
-                    paginationContainer.appendChild(createButton(i, i, i === currentPage));
-                }
-
-                if (currentPage < totalPages - 3) {
-                    paginationContainer.appendChild(addEllipsis());
-                }
-                paginationContainer.appendChild(createButton(totalPages, totalPages, currentPage === totalPages));
+            for (let i = startPage; i <= endPage; i++) {
+                paginationContainer.appendChild(createButton(i, i, false));
             }
-            
-            paginationContainer.appendChild(createButton('>', currentPage + 1, currentPage === totalPages));
-            paginationContainer.appendChild(createButton('>>', totalPages, currentPage === totalPages));
+
+            if (startPage > 1) {
+                if (startPage > 2) {
+                     const spacer = document.createElement('span');
+                     spacer.textContent = '...';
+                     spacer.className = 'mx-2';
+                     paginationContainer.insertBefore(spacer, paginationContainer.children[1]);
+                }
+                paginationContainer.insertBefore(createButton(1, 1, false), paginationContainer.children[1]);
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                     const spacer = document.createElement('span');
+                     spacer.textContent = '...';
+                     spacer.className = 'mx-2';
+                     paginationContainer.insertBefore(spacer, paginationContainer.children[paginationContainer.children.length - 1]);
+                }
+                paginationContainer.insertBefore(createButton(totalPages, totalPages, false), paginationContainer.children[paginationContainer.children.length - 1]);
+            }
+
+            // Next button
+            paginationContainer.appendChild(createButton(currentPage + 1, '»', currentPage === totalPages));
         }
 
-        // Renders all the charts
-        function renderCharts() {
-            // Destroy existing charts to prevent conflicts
-            for (const chart in chartInstances) {
-                if (chartInstances[chart]) {
-                    chartInstances[chart].destroy();
-                }
-            }
-            
-            const platformCount = {};
-            const locationCount = {};
-            const statusCount = {};
-
-            gamesData.forEach(game => {
-                platformCount[game.platform] = (platformCount[game.platform] || 0) + 1;
-                locationCount[game.location] = (locationCount[game.location] || 0) + 1;
-                statusCount[game.status] = (statusCount[game.status] || 0) + 1;
-            });
-            
-            // Get a list of all possible platforms and locations from the select options
-            const allPlatforms = Array.from(document.getElementById('filter-platform').options).map(o => o.value).filter(v => v);
-            const allLocations = Array.from(document.getElementById('filter-location').options).map(o => o.value).filter(v => v);
-            const allStatuses = ['Dimainkan', 'Belum dimainkan', 'Selesai'];
-
-            // Ensure all categories are represented, even if count is 0
-            const platformLabels = allPlatforms;
-            const platformData = platformLabels.map(label => platformCount[label] || 0);
-            
-            const locationLabels = allLocations;
-            const locationData = locationLabels.map(label => locationCount[label] || 0);
-
-            const statusLabels = allStatuses;
-            const statusData = statusLabels.map(label => statusCount[label] || 0);
-
-            // Chart Colors
-            const chartColors = [
-                '#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
-                '#6366f1', '#2563eb', '#059669', '#d97706', '#dc2626',
-            ];
-
-            const chartBackgroundColor = chartColors.slice(0, Math.max(platformLabels.length, locationLabels.length));
-            
-            const statusChartColors = [
-                '#3b82f6', // Dimainkan (blue)
-                '#94a3b8', // Belum dimainkan (slate)
-                '#10b981'  // Selesai (green)
-            ];
-
-            // Platform Chart (Doughnut)
-            const platformCtx = document.getElementById('platform-chart').getContext('2d');
-            chartInstances.platformChart = new Chart(platformCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: platformLabels,
-                    datasets: [{
-                        data: platformData,
-                        backgroundColor: chartBackgroundColor.slice(0, platformLabels.length),
-                        borderColor: '#0f172a',
-                        borderWidth: 2,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#f8fafc'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(tooltipItem) {
-                                    const total = tooltipItem.dataset.data.reduce((acc, val) => acc + val, 0);
-                                    const value = tooltipItem.raw;
-                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(2) + '%' : '0%';
-                                    return `${tooltipItem.label}: ${value} (${percentage})`;
-                                }
-                            }
-                        },
-                        datalabels: {
-                            formatter: (value, ctx) => {
-                                let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                                let percentage = Math.round((value * 100) / sum) + '%';
-                                return percentage;
-                            },
-                            color: '#fff',
-                            font: {
-                                weight: 'bold'
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Location Chart (Doughnut)
-            const locationCtx = document.getElementById('location-chart').getContext('2d');
-            chartInstances.locationChart = new Chart(locationCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: locationLabels,
-                    datasets: [{
-                        data: locationData,
-                        backgroundColor: chartBackgroundColor.slice(0, locationLabels.length),
-                        borderColor: '#0f172a',
-                        borderWidth: 2,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                color: '#f8fafc'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(tooltipItem) {
-                                    const total = tooltipItem.dataset.data.reduce((acc, val) => acc + val, 0);
-                                    const value = tooltipItem.raw;
-                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(2) + '%' : '0%';
-                                    return `${tooltipItem.label}: ${value} (${percentage})`;
-                                }
-                            }
-                        },
-                        datalabels: {
-                            formatter: (value, ctx) => {
-                                let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
-                                let percentage = Math.round((value * 100) / sum) + '%';
-                                return percentage;
-                            },
-                            color: '#fff',
-                            font: {
-                                weight: 'bold'
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Status Chart (Bar)
-            const statusCtx = document.getElementById('status-chart').getContext('2d');
-            chartInstances.statusChart = new Chart(statusCtx, {
-                type: 'bar',
-                data: {
-                    labels: statusLabels,
-                    datasets: [{
-                        label: 'Jumlah Game',
-                        data: statusData,
-                        backgroundColor: statusChartColors,
-                        borderColor: '#0f172a',
-                        borderWidth: 1,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(tooltipItem) {
-                                    return `${tooltipItem.raw} Game`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                color: '#94a3b8',
-                                callback: function(value) {
-                                    if (value % 1 === 0) {
-                                        return value;
-                                    }
-                                }
-                            },
-                            grid: {
-                                color: '#334155'
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                color: '#94a3b8'
-                            },
-                            grid: {
-                                color: '#334155'
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
-        // --- Data Handling ---
-        
-        // Filters games based on user input
-        function filterGames(games) {
+        // Function to handle filtering and sorting
+        function applyFilters() {
             const title = filterTitle.value.toLowerCase();
             const platform = filterPlatform.value;
             const location = filterLocation.value;
             const status = filterStatus.value;
             
-            return games.filter(game => {
-                const titleMatch = game.title.toLowerCase().includes(title);
-                const platformMatch = !platform || game.platform === platform;
-                const locationMatch = !location || game.location === location;
-                const statusMatch = !status || game.status === status;
-                return titleMatch && platformMatch && locationMatch && statusMatch;
+            filteredGames = allGames.filter(game => {
+                const matchesTitle = game.title.toLowerCase().includes(title);
+                const matchesPlatform = platform ? game.platform === platform : true;
+                const matchesLocation = location ? game.location === location : true;
+                const matchesStatus = status ? game.status === status : true;
+                return matchesTitle && matchesPlatform && matchesLocation && matchesStatus;
+            });
+
+            // Sort filtered games alphabetically by title
+            filteredGames.sort((a, b) => a.title.localeCompare(b.title));
+
+            currentPage = 1;
+            renderGameList();
+            renderPagination();
+        }
+
+        // Function to create a pie chart
+        function createPieChart(canvasId, labels, data) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#4f46e5', // indigo-600
+                            '#14b8a6', // teal-500
+                            '#eab308', // yellow-500
+                            '#f43f5e', // rose-500
+                            '#6366f1', // indigo-500
+                            '#0d9488', // teal-600
+                            '#ca8a04', // yellow-600
+                            '#e11d48' // rose-600
+                        ],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right', // Place legend on the right
+                            labels: {
+                                color: '#e2e8f0', // slate-200
+                                font: {
+                                    family: 'Inter'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#334155', // slate-700
+                            titleColor: '#f8fafc', // slate-50
+                            bodyColor: '#e2e8f0', // slate-200
+                            borderColor: '#475569', // slate-600
+                            borderWidth: 1,
+                            cornerRadius: 6,
+                            padding: 10
+                        }
+                    }
+                }
             });
         }
         
-        // Fetches game data from Firestore
-        function fetchGames() {
-            if (!currentUser) return;
-            const userId = currentUser.uid;
-            const gamesCollection = collection(db, 'games', userId, 'userGames');
-            
-            onSnapshot(gamesCollection, (snapshot) => {
-                gamesData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderGames();
-                renderCharts();
-                updateBulkActionsUI();
-                populateBulkMoveLocations();
-            }, (error) => {
-                console.error("Error fetching games: ", error);
-                showToast("Gagal memuat data game.", true);
+        // Function to create a bar chart
+        function createBarChart(canvasId, labels, data) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Jumlah Game',
+                        data: data,
+                        backgroundColor: [
+                            '#4f46e5', // indigo-600
+                            '#14b8a6', // teal-500
+                            '#eab308', // yellow-500
+                        ],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // Hide legend
+                        },
+                        tooltip: {
+                            backgroundColor: '#334155', // slate-700
+                            titleColor: '#f8fafc', // slate-50
+                            bodyColor: '#e2e8f0', // slate-200
+                            borderColor: '#475569', // slate-600
+                            borderWidth: 1,
+                            cornerRadius: 6,
+                            padding: 10
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#e2e8f0' // slate-200
+                            },
+                            grid: {
+                                color: 'rgba(71, 85, 105, 0.5)' // slate-600 with transparency
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#e2e8f0', // slate-200
+                                precision: 0 // Show integer values
+                            },
+                            grid: {
+                                color: 'rgba(71, 85, 105, 0.5)' // slate-600 with transparency
+                            }
+                        }
+                    }
+                }
             });
         }
         
-        // Adds a new game or updates an existing one in Firestore
-        async function saveGame(e) {
-            e.preventDefault();
-            const gameId = document.getElementById('game-id').value;
-            const title = document.getElementById('game-title').value;
-            const platform = document.getElementById('game-platform').value;
-            const location = document.getElementById('game-location').value;
-            const status = document.getElementById('game-status').value;
+        // Function to update charts with new data
+        function updateCharts() {
+            if (platformChart) platformChart.destroy();
+            if (locationChart) locationChart.destroy();
+            if (statusChart) statusChart.destroy();
 
-            if (!currentUser) {
-                showToast("Anda harus login untuk menyimpan game.", true);
-                return;
-            }
+            // Prepare data for charts
+            const platformCounts = allGames.reduce((acc, game) => {
+                acc[game.platform] = (acc[game.platform] || 0) + 1;
+                return acc;
+            }, {});
+            const locationCounts = allGames.reduce((acc, game) => {
+                acc[game.location] = (acc[game.location] || 0) + 1;
+                return acc;
+            }, {});
+            const statusCounts = allGames.reduce((acc, game) => {
+                acc[game.status] = (acc[game.status] || 0) + 1;
+                return acc;
+            }, {});
 
-            const userId = currentUser.uid;
-            try {
-                if (gameId) {
-                    // Update existing game
-                    const gameRef = doc(db, 'games', userId, 'userGames', gameId);
-                    await updateDoc(gameRef, { title, platform, location, status });
-                    showToast("Game berhasil diperbarui!");
-                } else {
-                    // Add new game
-                    const gamesCollection = collection(db, 'games', userId, 'userGames');
-                    await addDoc(gamesCollection, { title, platform, location, status });
-                    showToast("Game berhasil ditambahkan!");
-                }
-                gameModal.classList.add('hidden');
-                gameForm.reset();
-            } catch (error) {
-                console.error("Error saving game: ", error);
-                showToast("Gagal menyimpan game.", true);
-            }
-        }
-        
-        // Deletes a game from Firestore
-        async function deleteGame(gameId) {
-            if (!currentUser) {
-                showToast("Anda harus login untuk menghapus game.", true);
-                return;
-            }
+            // Sort and get labels and data
+            const platforms = Object.keys(platformCounts).sort();
+            const platformData = platforms.map(p => platformCounts[p]);
             
-            const userId = currentUser.uid;
-            // Use a custom modal instead of confirm
-            const confirmed = await new Promise((resolve) => {
-                const modal = document.createElement('div');
-                modal.className = "fixed inset-0 z-50 overflow-y-auto modal-backdrop flex items-center justify-center p-4";
-                modal.innerHTML = `
-                    <div class="bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-lg relative text-center">
-                        <h3 class="text-2xl font-bold mb-4">Konfirmasi Hapus</h3>
-                        <p class="text-slate-300 mb-6">Apakah Anda yakin ingin menghapus game ini?</p>
-                        <div class="flex justify-center space-x-3">
-                            <button id="cancel-delete" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Batal</button>
-                            <button id="confirm-delete" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Hapus</button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
+            const locations = Object.keys(locationCounts).sort();
+            const locationData = locations.map(l => locationCounts[l]);
 
-                document.getElementById('confirm-delete').addEventListener('click', () => {
-                    modal.remove();
-                    resolve(true);
-                });
-                document.getElementById('cancel-delete').addEventListener('click', () => {
-                    modal.remove();
-                    resolve(false);
-                });
-            });
+            const statuses = Object.keys(statusCounts).sort();
+            const statusData = statuses.map(s => statusCounts[s]);
 
-            if (confirmed) {
-                try {
-                    const gameRef = doc(db, 'games', userId, 'userGames', gameId);
-                    await deleteDoc(gameRef);
-                    showToast("Game berhasil dihapus.");
-                } catch (error) {
-                    console.error("Error deleting game: ", error);
-                    showToast("Gagal menghapus game.", true);
-                }
-            }
-        }
-        
-        // Deletes multiple selected games from Firestore
-        async function bulkDeleteGames() {
-            if (!currentUser) return;
-            if (selectedGames.size === 0) return;
-            
-            const userId = currentUser.uid;
-            const gameIdsToDelete = Array.from(selectedGames);
-
-             // Use custom modal for confirmation
-             const confirmed = await new Promise((resolve) => {
-                const modal = document.createElement('div');
-                modal.className = "fixed inset-0 z-50 overflow-y-auto modal-backdrop flex items-center justify-center p-4";
-                modal.innerHTML = `
-                    <div class="bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-lg relative text-center">
-                        <h3 class="text-2xl font-bold mb-4">Konfirmasi Hapus Masal</h3>
-                        <p class="text-slate-300 mb-6">Apakah Anda yakin ingin menghapus ${gameIdsToDelete.length} game terpilih?</p>
-                        <div class="flex justify-center space-x-3">
-                            <button id="cancel-delete" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Batal</button>
-                            <button id="confirm-delete" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Hapus</button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-
-                document.getElementById('confirm-delete').addEventListener('click', () => {
-                    modal.remove();
-                    resolve(true);
-                });
-                document.getElementById('cancel-delete').addEventListener('click', () => {
-                    modal.remove();
-                    resolve(false);
-                });
-            });
-
-            if (confirmed) {
-                try {
-                    const batch = writeBatch(db);
-                    gameIdsToDelete.forEach(id => {
-                        const gameRef = doc(db, 'games', userId, 'userGames', id);
-                        batch.delete(gameRef);
-                    });
-                    await batch.commit();
-                    showToast(`${gameIdsToDelete.length} game berhasil dihapus.`);
-                    selectedGames.clear();
-                    renderGames();
-                } catch (error) {
-                    console.error("Error performing bulk delete: ", error);
-                    showToast("Gagal menghapus game secara masal.", true);
-                }
-            }
+            platformChart = createPieChart('platform-chart', platforms, platformData);
+            locationChart = createPieChart('location-chart', locations, locationData);
+            statusChart = createBarChart('status-chart', statuses, statusData);
         }
 
-        // Moves multiple selected games to a new location in Firestore
-        async function bulkMoveGames() {
-            if (!currentUser) return;
-            if (selectedGames.size === 0) return;
-            
-            const userId = currentUser.uid;
-            const gameIdsToMove = Array.from(selectedGames);
-            const newLocation = bulkMoveLocationSelect.value;
-            
-            if (!newLocation) {
-                showToast("Pilih lokasi baru untuk memindahkan game.", true);
-                return;
-            }
-
-            // Use custom modal for confirmation
-             const confirmed = await new Promise((resolve) => {
-                const modal = document.createElement('div');
-                modal.className = "fixed inset-0 z-50 overflow-y-auto modal-backdrop flex items-center justify-center p-4";
-                modal.innerHTML = `
-                    <div class="bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-lg relative text-center">
-                        <h3 class="text-2xl font-bold mb-4">Konfirmasi Pindah Masal</h3>
-                        <p class="text-slate-300 mb-6">Apakah Anda yakin ingin memindahkan ${gameIdsToMove.length} game ke lokasi ${newLocation}?</p>
-                        <div class="flex justify-center space-x-3">
-                            <button id="cancel-move" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Batal</button>
-                            <button id="confirm-move" class="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Pindah</button>
-                        </div>
-                    </div>
-                `;
-                document.body.appendChild(modal);
-
-                document.getElementById('confirm-move').addEventListener('click', () => {
-                    modal.remove();
-                    resolve(true);
-                });
-                document.getElementById('cancel-move').addEventListener('click', () => {
-                    modal.remove();
-                    resolve(false);
-                });
-            });
-
-            if (confirmed) {
-                try {
-                    const batch = writeBatch(db);
-                    gameIdsToMove.forEach(id => {
-                        const gameRef = doc(db, 'games', userId, 'userGames', id);
-                        batch.update(gameRef, { location: newLocation });
-                    });
-                    await batch.commit();
-                    showToast(`${gameIdsToMove.length} game berhasil dipindahkan ke ${newLocation}.`);
-                    selectedGames.clear();
-                    renderGames();
-                } catch (error) {
-                    console.error("Error performing bulk move: ", error);
-                    showToast("Gagal memindahkan game secara masal.", true);
-                }
-            }
-        }
-
-        // Populates the bulk move location select box
-        function populateBulkMoveLocations() {
-            const allLocations = Array.from(new Set(gamesData.map(g => g.location))).sort();
-            bulkMoveLocationSelect.innerHTML = '<option value="">Pilih Lokasi Baru</option>';
-            allLocations.forEach(location => {
-                const option = document.createElement('option');
-                option.value = location;
-                option.textContent = location;
-                bulkMoveLocationSelect.appendChild(option);
-            });
-        }
-
-        // Updates the UI for bulk actions based on selected games
-        function updateBulkActionsUI() {
-            const hasSelection = selectedGames.size > 0;
+        // Update bulk action button states
+        function updateBulkButtons() {
+            const hasSelection = selectedGameIds.size > 0;
             bulkDeleteButton.disabled = !hasSelection;
-            bulkMoveButton.disabled = !hasSelection;
-            selectionInfo.textContent = hasSelection 
-                ? `Saat ini ada ${selectedGames.size} game yang dipilih.` 
-                : "Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.";
+            bulkMoveLocationButton.disabled = !hasSelection;
+            selectionInfo.textContent = hasSelection ? `${selectedGameIds.size} game terpilih.` : `Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.`;
+        }
+
+        // Populate filter dropdowns dynamically
+        function updateFilterOptions() {
+            const uniquePlatforms = new Set();
+            const uniqueLocations = new Set();
+
+            allGames.forEach(game => {
+                uniquePlatforms.add(game.platform);
+                uniqueLocations.add(game.location);
+            });
+
+            // Populate Platform filter
+            filterPlatform.innerHTML = '<option value="">Semua Platform</option>';
+            Array.from(uniquePlatforms).sort().forEach(platform => {
+                const option = document.createElement('option');
+                option.textContent = platform;
+                option.value = platform;
+                filterPlatform.appendChild(option);
+            });
+
+            // Populate Location filter and new location modal select
+            filterLocation.innerHTML = '<option value="">Semua Lokasi</option>';
+            newGameLocationSelect.innerHTML = '';
+            Array.from(uniqueLocations).sort().forEach(location => {
+                const optionFilter = document.createElement('option');
+                optionFilter.textContent = location;
+                optionFilter.value = location;
+                filterLocation.appendChild(optionFilter);
+
+                const optionModal = document.createElement('option');
+                optionModal.textContent = location;
+                optionModal.value = location;
+                newGameLocationSelect.appendChild(optionModal);
+            });
         }
         
+
         // --- Event Listeners ---
-        
-        // Handles user login/logout state
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                loginScreen.classList.add('hidden');
-                appScreen.classList.remove('hidden');
-                userPhoto.src = user.photoURL || 'https://placehold.co/40x40/e2e8f0/e2e8f0';
-                userName.textContent = user.displayName || 'Pengguna';
-                
-                // Fetch games for the signed-in user
-                fetchGames();
-            } else {
-                currentUser = null;
-                loginScreen.classList.remove('hidden');
-                appScreen.classList.add('hidden');
-                gamesData = [];
-                renderGames(); // Clear the list
-                selectedGames.clear();
-                updateBulkActionsUI();
-            }
-        });
 
         // Login with Google
         loginButton.addEventListener('click', async () => {
             const provider = new GoogleAuthProvider();
             try {
                 await signInWithPopup(auth, provider);
+                // Auth state change handler will take care of UI
             } catch (error) {
-                console.error("Error during Google sign-in: ", error);
-                showToast("Gagal login dengan Google.", true);
+                showToast(`Gagal login: ${error.message}`, true);
             }
         });
         
         // Logout
         logoutButton.addEventListener('click', async () => {
-             await signOut(auth);
-        });
-        
-        // Tab and sidebar controls
-        tabsContainer.addEventListener('click', (e) => {
-            const tabButton = e.target.closest('.tab-button');
-            if (tabButton) {
-                switchTab(tabButton.dataset.tab);
-                toggleSidebar();
-            }
-        });
-        openSidebarButton.addEventListener('click', toggleSidebar);
-        closeSidebarButton.addEventListener('click', toggleSidebar);
-        document.getElementById('mobile-menu-backdrop').addEventListener('click', toggleSidebar);
-        
-        // Add/Edit game modal
-        addGameButton.addEventListener('click', () => {
-            gameForm.reset();
-            document.getElementById('game-id').value = '';
-            modalTitle.textContent = 'Tambah Game Baru';
-            gameModal.classList.remove('hidden');
-        });
-        
-        closeModalButton.addEventListener('click', () => {
-            gameModal.classList.add('hidden');
+            await signOut(auth);
+            // Auth state change handler will take care of UI
         });
 
-        gameForm.addEventListener('submit', saveGame);
-        
-        // Edit and Delete buttons in the table
-        gameListBody.addEventListener('click', (e) => {
-            if (e.target.closest('.edit-button')) {
-                const gameId = e.target.closest('button').dataset.id;
-                const game = gamesData.find(g => g.id === gameId);
-                if (game) {
-                    modalTitle.textContent = 'Edit Game';
-                    document.getElementById('game-id').value = game.id;
-                    document.getElementById('game-title').value = game.title;
-                    document.getElementById('game-platform').value = game.platform;
-                    document.getElementById('game-location').value = game.location;
-                    document.getElementById('game-status').value = game.status;
-                    gameModal.classList.remove('hidden');
-                }
-            }
-            if (e.target.closest('.delete-button')) {
-                const gameId = e.target.closest('button').dataset.id;
-                deleteGame(gameId);
-            }
-        });
-        
-        // Checkbox selection for bulk actions
-        gameListBody.addEventListener('change', (e) => {
-            if (e.target.classList.contains('game-checkbox')) {
-                const gameId = e.target.dataset.game-id;
-                if (e.target.checked) {
-                    selectedGames.add(gameId);
-                } else {
-                    selectedGames.delete(gameId);
-                }
-                updateBulkActionsUI();
-                
-                // Update select-all checkbox state
-                const allCheckboxes = document.querySelectorAll('.game-checkbox');
-                const allChecked = Array.from(allCheckboxes).every(cb => cb.checked);
-                selectAllCheckbox.checked = allChecked;
-            }
-        });
-        
-        // Select all checkbox functionality (only for current page)
-        selectAllCheckbox.addEventListener('change', (e) => {
-            const isChecked = e.target.checked;
-            document.querySelectorAll('.game-checkbox').forEach(cb => {
-                cb.checked = isChecked;
-                const gameId = cb.dataset.game-id;
-                if (isChecked) {
-                    selectedGames.add(gameId);
-                } else {
-                    selectedGames.delete(gameId);
-                }
+        // Tab switching
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetTab = button.dataset.tab;
+                tabButtons.forEach(btn => btn.classList.replace('tab-active', 'tab-inactive'));
+                button.classList.replace('tab-inactive', 'tab-active');
+
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                    if (content.id === targetTab) {
+                        content.classList.remove('hidden');
+                        if (targetTab === 'tab-stats') {
+                            updateCharts();
+                        }
+                    }
+                });
             });
-            updateBulkActionsUI();
+        });
+
+        // Add game button
+        addGameButton.addEventListener('click', () => {
+            modalTitle.textContent = 'Tambah Game Baru';
+            gameForm.reset();
+            currentEditingGameId = null;
+            openModal(gameModal);
         });
         
-        // Bulk actions button listeners
-        bulkDeleteButton.addEventListener('click', bulkDeleteGames);
-        bulkMoveButton.addEventListener('click', bulkMoveGames);
+        // Close modal button
+        closeModalButton.addEventListener('click', () => closeModal(gameModal));
+
+        // Game form submission
+        gameForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const gameData = {
+                title: gameTitleInput.value,
+                platform: gamePlatformInput.value,
+                location: gameLocationInput.value,
+                status: gameStatusInput.value,
+                timestamp: new Date().toISOString()
+            };
+
+            const gamesCollection = collection(db, `artifacts/${appId}/users/${currentUser.uid}/games`);
+            
+            try {
+                if (currentEditingGameId) {
+                    // Update existing game
+                    const gameRef = doc(gamesCollection, currentEditingGameId);
+                    await updateDoc(gameRef, gameData);
+                    showToast('Game berhasil diperbarui.');
+                } else {
+                    // Add new game
+                    await addDoc(gamesCollection, gameData);
+                    showToast('Game berhasil ditambahkan.');
+                }
+                closeModal(gameModal);
+            } catch (error) {
+                console.error("Error adding/updating document: ", error);
+                showToast(`Gagal menyimpan game: ${error.message}`, true);
+            }
+        });
+
+        // Event delegation for edit and delete buttons on the game list
+        gameListBody.addEventListener('click', async (e) => {
+            if (e.target.closest('.edit-game-button')) {
+                const gameId = e.target.closest('.edit-game-button').dataset.id;
+                const game = allGames.find(g => g.id === gameId);
+                if (game) {
+                    currentEditingGameId = gameId;
+                    modalTitle.textContent = `Edit Game: ${game.title}`;
+                    gameTitleInput.value = game.title;
+                    gamePlatformInput.value = game.platform;
+                    gameLocationInput.value = game.location;
+                    gameStatusInput.value = game.status;
+                    openModal(gameModal);
+                }
+            }
+            if (e.target.closest('.delete-game-button')) {
+                const gameId = e.target.closest('.delete-game-button').dataset.id;
+                try {
+                    // Use a custom modal instead of a browser confirm dialog
+                    if (window.confirm("Apakah Anda yakin ingin menghapus game ini?")) {
+                       const gamesCollection = collection(db, `artifacts/${appId}/users/${currentUser.uid}/games`);
+                       await deleteDoc(doc(gamesCollection, gameId));
+                       showToast('Game berhasil dihapus.');
+                    }
+                } catch (error) {
+                    console.error("Error deleting document: ", error);
+                    showToast(`Gagal menghapus game: ${error.message}`, true);
+                }
+            }
+        });
 
         // Filter event listeners
-        filterTitle.addEventListener('input', () => { currentPage = 1; renderGames(); });
-        filterPlatform.addEventListener('change', () => { currentPage = 1; renderGames(); });
-        filterLocation.addEventListener('change', () => { currentPage = 1; renderGames(); });
-        filterStatus.addEventListener('change', () => { currentPage = 1; renderGames(); });
+        filterTitle.addEventListener('input', applyFilters);
+        filterPlatform.addEventListener('change', applyFilters);
+        filterLocation.addEventListener('change', applyFilters);
+        filterStatus.addEventListener('change', applyFilters);
 
-        // Data Management - Download
+        // Select All checkbox logic
+        selectAllCheckbox.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            const checkboxes = document.querySelectorAll('.game-checkbox');
+            const startIndex = (currentPage - 1) * gamesPerPage;
+            const endIndex = startIndex + gamesPerPage;
+            const paginatedGames = filteredGames.slice(startIndex, endIndex);
+
+            checkboxes.forEach(cb => {
+                const gameId = cb.dataset.id;
+                cb.checked = isChecked;
+                if (isChecked) {
+                     if (!selectedGameIds.has(gameId)) {
+                        selectedGameIds.add(gameId);
+                     }
+                } else {
+                     if (selectedGameIds.has(gameId)) {
+                        selectedGameIds.delete(gameId);
+                     }
+                }
+            });
+            updateBulkButtons();
+        });
+
+        // Individual checkbox change listener
+        gameListBody.addEventListener('change', (e) => {
+            if (e.target.classList.contains('game-checkbox')) {
+                const gameId = e.target.dataset.id;
+                if (e.target.checked) {
+                    selectedGameIds.add(gameId);
+                } else {
+                    selectedGameIds.delete(gameId);
+                }
+                updateBulkButtons();
+            }
+        });
+
+        // Bulk delete button action
+        bulkDeleteButton.addEventListener('click', async () => {
+            // Use a custom modal instead of a browser confirm dialog
+            if (window.confirm(`Apakah Anda yakin ingin menghapus ${selectedGameIds.size} game terpilih?`)) {
+                try {
+                    const gamesCollection = collection(db, `artifacts/${appId}/users/${currentUser.uid}/games`);
+                    const batch = writeBatch(db);
+                    selectedGameIds.forEach(id => {
+                        const gameRef = doc(gamesCollection, id);
+                        batch.delete(gameRef);
+                    });
+                    await batch.commit();
+                    showToast(`${selectedGameIds.size} game berhasil dihapus.`);
+                    selectedGameIds.clear();
+                    selectAllCheckbox.checked = false;
+                    updateBulkButtons();
+                } catch (error) {
+                    console.error("Error bulk deleting games: ", error);
+                    showToast(`Gagal menghapus game: ${error.message}`, true);
+                }
+            }
+        });
+
+        // New event listener for opening the bulk move location modal
+        bulkMoveLocationButton.addEventListener('click', () => {
+            if (selectedGameIds.size > 0) {
+                // Populate the new location dropdown with available locations
+                const uniqueLocations = new Set(allGames.map(game => game.location));
+                newGameLocationSelect.innerHTML = '';
+                Array.from(uniqueLocations).sort().forEach(location => {
+                    const option = document.createElement('option');
+                    option.textContent = location;
+                    option.value = location;
+                    newGameLocationSelect.appendChild(option);
+                });
+                openModal(moveLocationModal);
+            }
+        });
+
+        // Close move location modal
+        closeMoveLocationModalButton.addEventListener('click', () => closeModal(moveLocationModal));
+
+        // Handle bulk move location form submission
+        moveLocationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newLocation = newGameLocationSelect.value;
+            if (!newLocation) {
+                showToast("Pilih lokasi baru.", true);
+                return;
+            }
+
+            try {
+                const gamesCollection = collection(db, `artifacts/${appId}/users/${currentUser.uid}/games`);
+                const batch = writeBatch(db);
+                selectedGameIds.forEach(id => {
+                    const gameRef = doc(gamesCollection, id);
+                    batch.update(gameRef, { location: newLocation });
+                });
+                await batch.commit();
+                showToast(`${selectedGameIds.size} game berhasil dipindahkan ke ${newLocation}.`);
+                selectedGameIds.clear();
+                selectAllCheckbox.checked = false;
+                updateBulkButtons();
+                closeModal(moveLocationModal);
+            } catch (error) {
+                console.error("Error bulk moving games: ", error);
+                showToast(`Gagal memindahkan game: ${error.message}`, true);
+            }
+        });
+
+
+        // Download JSON file
         downloadJsonButton.addEventListener('click', () => {
-            const jsonString = JSON.stringify(gamesData, null, 2);
-            const blob = new Blob([jsonString], { type: 'application/json' });
+            if (allGames.length === 0) {
+                showToast('Tidak ada data game untuk diekspor.', true);
+                return;
+            }
+            const dataStr = JSON.stringify(allGames.map(({id, ...rest}) => rest), null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'game_collection.json';
+            a.download = 'koleksi_game.json';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            showToast("Data koleksi game berhasil diunduh.");
+            showToast('Data game berhasil diekspor.');
         });
-
-        // Data Management - Import
-        importJsonButton.addEventListener('click', () => {
-            jsonFileInput.click();
-        });
-
-        jsonFileInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
+        
+        // Upload JSON file
+        jsonFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) {
+                return;
+            }
             const reader = new FileReader();
             reader.onload = async (event) => {
                 try {
                     const importedGames = JSON.parse(event.target.result);
                     if (!Array.isArray(importedGames)) {
+                        // Use a custom modal instead of a browser confirm dialog
                         throw new Error("File JSON harus berisi sebuah array.");
                     }
-
-                    // Use custom modal instead of confirm
-                    const confirmImport = await new Promise((resolve) => {
-                        const modal = document.createElement('div');
-                        modal.className = "fixed inset-0 z-50 overflow-y-auto modal-backdrop flex items-center justify-center p-4";
-                        modal.innerHTML = `
-                            <div class="bg-slate-800 rounded-2xl shadow-2xl p-6 md:p-8 w-full max-w-lg relative text-center">
-                                <h3 class="text-2xl font-bold mb-4">Konfirmasi Impor</h3>
-                                <p class="text-slate-300 mb-6">Anda akan mengimpor ${importedGames.length} game. Lanjutkan?</p>
-                                <div class="flex justify-center space-x-3">
-                                    <button id="cancel-import" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Batal</button>
-                                    <button id="confirm-import" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Lanjutkan</button>
-                                </div>
-                            </div>
-                        `;
-                        document.body.appendChild(modal);
-
-                        document.getElementById('confirm-import').addEventListener('click', () => {
-                            modal.remove();
-                            resolve(true);
-                        });
-                        document.getElementById('cancel-import').addEventListener('click', () => {
-                            modal.remove();
-                            resolve(false);
-                        });
-                    });
-
-                    if (confirmImport) {
+                    if (window.confirm(`Anda akan mengimpor ${importedGames.length} game. Lanjutkan?`)) {
                         const batch = writeBatch(db);
-                        const gamesCollection = collection(db, 'games', currentUser.uid, 'userGames');
+                        const gamesCollection = collection(db, `artifacts/${appId}/users/${currentUser.uid}/games`);
                         importedGames.forEach(game => {
+                            // Ensure data integrity before adding
                             if (game.title && game.platform && game.location && game.status) {
                                 const newGameRef = doc(gamesCollection);
                                 batch.set(newGameRef, game);
@@ -1198,6 +1010,68 @@
             reader.readAsText(file);
         });
 
+        // Mobile sidebar functionality
+        openSidebarButton.addEventListener('click', () => {
+            sidebar.classList.remove('-translate-x-full');
+            mobileMenuBackdrop.classList.remove('hidden');
+        });
+
+        closeSidebarButton.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            mobileMenuBackdrop.classList.add('hidden');
+        });
+
+        mobileMenuBackdrop.addEventListener('click', () => {
+             sidebar.classList.add('-translate-x-full');
+             mobileMenuBackdrop.classList.add('hidden');
+        });
+
+
+        // --- Firebase Auth & Firestore Logic ---
+        
+        // Auth state change listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                loginScreen.classList.add('hidden');
+                appScreen.classList.remove('hidden');
+                
+                // Set user profile info
+                userName.textContent = user.displayName || 'Pengguna';
+                userPhoto.src = user.photoURL || 'https://placehold.co/40x40/e2e8f0/e2e8f0';
+
+                // Listen to games collection for real-time updates
+                const gamesCollection = collection(db, `artifacts/${appId}/users/${currentUser.uid}/games`);
+                onSnapshot(gamesCollection, (snapshot) => {
+                    allGames = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    updateFilterOptions();
+                    applyFilters();
+                    if (document.querySelector('.tab-button.tab-active').dataset.tab === 'tab-stats') {
+                        updateCharts();
+                    }
+                });
+            } else {
+                currentUser = null;
+                loginScreen.classList.remove('hidden');
+                appScreen.classList.add('hidden');
+            }
+        });
+        
+        // Initial authentication with custom token if available
+        async function authenticate() {
+            try {
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Authentication error:", error);
+                // Fallback to anonymous sign-in or handle as needed
+            }
+        }
+
+        authenticate();
     </script>
 </body>
 </html>
