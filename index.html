@@ -55,6 +55,12 @@
             color: white;
             font-weight: bold;
         }
+        /* Style for disabled button in bulk actions */
+        .btn-disabled {
+            background-color: #374151; /* gray-700 */
+            color: #9ca3af; /* gray-400 */
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -214,12 +220,12 @@
                      <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                         <h3 class="font-bold text-xl mb-4">Tindakan untuk Game Terpilih</h3>
                         <p id="selection-info" class="text-slate-400 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.</p>
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <button id="bulk-edit-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:bg-blue-800 disabled:cursor-not-allowed" disabled>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
+                        <div class="flex flex-wrap gap-4">
+                            <button id="bulk-edit-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:btn-disabled" disabled>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
                                 Edit Game Terpilih
                             </button>
-                             <button id="bulk-delete-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:bg-red-800 disabled:cursor-not-allowed" disabled>
+                            <button id="bulk-delete-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:btn-disabled" disabled>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
                                 Hapus Game Terpilih
                             </button>
@@ -230,7 +236,7 @@
                 <!-- Tab: Manajemen Data -->
                 <div id="tab-manage" class="tab-content hidden">
                     <h2 class="text-2xl sm:text-3xl font-bold mb-6">Manajemen Data</h2>
-                     <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
+                    <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <h3 class="font-bold text-xl mb-2">Ekspor Data</h3>
@@ -242,122 +248,100 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-xl mb-2">Impor Data</h3>
-                                <p class="text-slate-400 mb-4">Unggah file JSON untuk menambahkan game ke koleksi Anda.</p>
-                                <label for="json-file-input" class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 13a.5.5 0 01.5-.5h2a.5.5 0 010 1H6a.5.5 0 01-.5-.5z" /><path d="M12 2a1 1 0 011 1v2a1 1 0 01-1 1H8a1 1 0 01-1-1V3a1 1 0 011-1h4zM8 12a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 01-1 1H9a1 1 0 01-1-1v-2zm-1.5-6a.5.5 0 00-.5.5v7a.5.5 0 00.5.5h6a.5.5 0 00.5-.5v-7a.5.5 0 00-.5-.5h-6z" clip-rule="evenodd" fill-rule="evenodd" /></svg>
-                                    Impor JSON
-                                </label>
-                                <input id="json-file-input" type="file" accept="application/json" class="hidden">
+                                <p class="text-slate-400 mb-4">Muat koleksi game dari file JSON. Game yang ada akan ditambahkan, bukan diganti.</p>
+                                <button id="upload-json-button" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                                    Muat JSON
+                                </button>
+                                <input type="file" id="json-file-input" class="hidden" accept=".json">
                             </div>
                         </div>
                     </div>
                 </div>
-
             </main>
         </div>
     </div>
+
+    <!-- Add/Edit Game Modal -->
+    <div id="game-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="modal-content">
+            <h3 id="modal-title" class="text-2xl font-bold mb-6">Tambah Game Baru</h3>
+            <form id="game-form">
+                <div class="max-h-[70vh] overflow-y-auto pr-2">
+                    <input type="hidden" id="game-id">
+                    <div id="game-rows-container" class="space-y-4">
+                        <!-- Game entry rows will be injected here -->
+                    </div>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-between items-center mt-6 pt-4 border-t border-slate-700 gap-4">
+                    <button type="button" id="add-row-button" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">Tambah Baris</button>
+                    <div class="w-full sm:w-auto flex justify-end space-x-4">
+                        <button type="button" id="cancel-button" class="flex-1 sm:flex-none bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition">Batal</button>
+                        <button type="submit" id="save-form-button" class="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Simpan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Edit Modal -->
+    <div id="bulk-edit-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-slate-800 w-full max-w-lg rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="bulk-edit-modal-content">
+            <h3 id="bulk-edit-modal-title" class="text-2xl font-bold mb-6">Edit Game Secara Masal</h3>
+            <form id="bulk-edit-form">
+                <p id="bulk-edit-info" class="text-slate-400 mb-4"></p>
+                <div class="space-y-4">
+                    <!-- Platform -->
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg">
+                        <input type="checkbox" id="bulk-update-platform-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-indigo-600 focus:ring-indigo-500">
+                        <div class="flex-grow">
+                            <label for="bulk-platform" class="block text-slate-300 text-sm font-bold mb-1">Platform</label>
+                            <select id="bulk-platform" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option>Steam</option><option>Epic</option><option>GOG</option><option>PCSX</option><option>Crack</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Location -->
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg">
+                        <input type="checkbox" id="bulk-update-location-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-indigo-600 focus:ring-indigo-500">
+                        <div class="flex-grow">
+                            <label for="bulk-location" class="block text-slate-300 text-sm font-bold mb-1">Lokasi</label>
+                            <select id="bulk-location" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Status -->
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg">
+                        <input type="checkbox" id="bulk-update-status-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-indigo-600 focus:ring-indigo-500">
+                        <div class="flex-grow">
+                            <label for="bulk-status" class="block text-slate-300 text-sm font-bold mb-1">Status</label>
+                            <select id="bulk-status" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option>Belum dimainkan</option><option>Dimainkan</option><option>Selesai</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4 mt-6 pt-4 border-t border-slate-700">
+                    <button type="button" id="bulk-edit-cancel-button" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition">Batal</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
     
-    <!-- Modal for adding/editing a game -->
-    <div id="game-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4">
-        <div class="bg-slate-800 w-full max-w-lg p-6 rounded-xl shadow-2xl scale-95 opacity-0 transition-all duration-300 transform">
-            <h3 id="modal-title" class="text-2xl font-bold mb-4">Tambah Game Baru</h3>
-            <form id="game-form" class="space-y-4">
-                <div>
-                    <label for="game-title" class="block text-sm font-medium mb-1">Judul Game</label>
-                    <input type="text" id="game-title" name="title" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                </div>
-                <div>
-                    <label for="game-platform" class="block text-sm font-medium mb-1">Platform</label>
-                    <select id="game-platform" name="platform" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <option>Steam</option>
-                        <option>Epic</option>
-                        <option>GOG</option>
-                        <option>PCSX</option>
-                        <option>Crack</option>
-                    </select>
-                </div>
-                 <div>
-                    <label for="game-location" class="block text-sm font-medium mb-1">Lokasi</label>
-                    <select id="game-location" name="location" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <option>HDD Eksternal 2TB</option>
-                        <option>HDD Eksternal 4TB</option>
-                        <option>Internal SSD</option>
-                        <option>Belum Install</option>
-                    </select>
-                </div>
-                 <div>
-                    <label for="game-status" class="block text-sm font-medium mb-1">Status</label>
-                    <select id="game-status" name="status" required class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                        <option>Dimainkan</option>
-                        <option>Belum dimainkan</option>
-                        <option>Selesai</option>
-                    </select>
-                </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="button" id="close-modal-button" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Batal</button>
-                    <button type="submit" id="save-game-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Simpan</button>
-                </div>
-            </form>
-        </div>
+    <!-- Custom Alert/Toast -->
+    <div id="toast" class="fixed bottom-5 right-1/2 translate-x-1/2 w-11/12 max-w-sm bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <p id="toast-message">Operasi berhasil!</p>
     </div>
 
-    <!-- Modal for bulk editing games -->
-    <div id="bulk-edit-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center p-4">
-        <div class="bg-slate-800 w-full max-w-lg p-6 rounded-xl shadow-2xl scale-95 opacity-0 transition-all duration-300 transform">
-            <h3 class="text-2xl font-bold mb-4">Edit Game Terpilih</h3>
-            <p class="text-slate-400 mb-4">Pilih properti yang ingin Anda perbarui untuk semua game yang dipilih.</p>
-            <form id="bulk-edit-form" class="space-y-4">
-                <div class="flex items-center space-x-2">
-                    <input type="checkbox" id="bulk-edit-platform-check" class="rounded bg-slate-600 border-slate-500">
-                    <label for="bulk-edit-platform-check" class="text-sm font-medium">Ubah Platform:</label>
-                    <select id="bulk-edit-platform" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" disabled>
-                        <option>Steam</option>
-                        <option>Epic</option>
-                        <option>GOG</option>
-                        <option>PCSX</option>
-                        <option>Crack</option>
-                    </select>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <input type="checkbox" id="bulk-edit-location-check" class="rounded bg-slate-600 border-slate-500">
-                    <label for="bulk-edit-location-check" class="text-sm font-medium">Ubah Lokasi:</label>
-                    <select id="bulk-edit-location" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" disabled>
-                        <option>HDD Eksternal 2TB</option>
-                        <option>HDD Eksternal 4TB</option>
-                        <option>Internal SSD</option>
-                        <option>Belum Install</option>
-                    </select>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <input type="checkbox" id="bulk-edit-status-check" class="rounded bg-slate-600 border-slate-500">
-                    <label for="bulk-edit-status-check" class="text-sm font-medium">Ubah Status:</label>
-                    <select id="bulk-edit-status" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" disabled>
-                        <option>Dimainkan</option>
-                        <option>Belum dimainkan</option>
-                        <option>Selesai</option>
-                    </select>
-                </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="button" id="close-bulk-edit-modal-button" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Batal</button>
-                    <button type="submit" id="save-bulk-edit-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Simpan Perubahan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-
-    <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
-
-
-    <!-- Firebase App (from a CDN) and its services -->
+    <!-- Firebase SDK & App Logic -->
     <script type="module">
-        // Mengimpor modul Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, query, orderBy, onSnapshot, limit, startAfter, endBefore, limitToLast, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, writeBatch, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Konfigurasi Firebase (tetap tidak diubah)
+        // --- Firebase Config (DO NOT CHANGE) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAzJTL179V9bT-DfefZq9gcG8Tz88VzLmQ",
             authDomain: "koleksi-game.firebaseapp.com",
@@ -367,616 +351,673 @@
             appId: "1:222959670551:web:048b1e2c4ef16b7bd31352",
             measurementId: "G-BYYCM7R4M8"
         };
+        
+        // --- Initialize Firebase ---
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
-        // Global variables for authentication and data
         let currentUser = null;
-        let gamesData = [];
-        let gamesQuery = null;
+        let games = [];
+        let filteredGames = [];
+        let unsubscribe = null; 
+
+        // --- Pagination state ---
         let currentPage = 1;
         const gamesPerPage = 10;
-        let currentFilters = {};
-        let selectedGameIds = new Set();
-        let currentSorting = { field: 'title', direction: 'asc' };
 
-        // DOM Elements
+        // --- UI Elements ---
         const loginScreen = document.getElementById('login-screen');
         const appScreen = document.getElementById('app-screen');
         const loginButton = document.getElementById('login-button');
         const logoutButton = document.getElementById('logout-button');
-        const userName = document.getElementById('user-name');
         const userPhoto = document.getElementById('user-photo');
-        const tabsContainer = document.getElementById('tabs');
-        const tabContents = document.querySelectorAll('.tab-content');
+        const userName = document.getElementById('user-name');
         const gameListBody = document.getElementById('game-list-body');
-        const paginationContainer = document.getElementById('pagination-container');
         const addGameButton = document.getElementById('add-game-button');
+        const paginationContainer = document.getElementById('pagination-container');
+        
+        // --- Add/Edit Modal Elements ---
         const gameModal = document.getElementById('game-modal');
-        const closeModalButton = document.getElementById('close-modal-button');
+        const modalContent = document.getElementById('modal-content');
         const gameForm = document.getElementById('game-form');
+        const cancelButton = document.getElementById('cancel-button');
         const modalTitle = document.getElementById('modal-title');
-        const bulkDeleteButton = document.getElementById('bulk-delete-button');
-        const bulkEditButton = document.getElementById('bulk-edit-button'); // Tombol baru
-        const selectionInfo = document.getElementById('selection-info');
-        const selectAllCheckbox = document.getElementById('select-all-checkbox');
+        const gameRowsContainer = document.getElementById('game-rows-container');
+        const addRowButton = document.getElementById('add-row-button');
+        
+        // --- Bulk Edit Modal Elements ---
+        const bulkEditModal = document.getElementById('bulk-edit-modal');
+        const bulkEditModalContent = document.getElementById('bulk-edit-modal-content');
+        const bulkEditForm = document.getElementById('bulk-edit-form');
+        const bulkEditCancelButton = document.getElementById('bulk-edit-cancel-button');
+        const bulkEditInfo = document.getElementById('bulk-edit-info');
+
+        // --- Mobile Elements ---
+        const sidebar = document.getElementById('sidebar');
+        const openSidebarButton = document.getElementById('open-sidebar-button');
+        const closeSidebarButton = document.getElementById('close-sidebar-button');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+
+        // --- Chart instances ---
+        let platformChart, locationChart, statusChart;
+
+        // --- MOBILE SIDEBAR LOGIC ---
+        function openSidebar() {
+            sidebar.classList.remove('-translate-x-full');
+            mobileMenuBackdrop.classList.remove('hidden');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            mobileMenuBackdrop.classList.add('hidden');
+        }
+
+        openSidebarButton.addEventListener('click', openSidebar);
+        closeSidebarButton.addEventListener('click', closeSidebar);
+        mobileMenuBackdrop.addEventListener('click', closeSidebar);
+
+        // --- TOAST/ALERT FUNCTION ---
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.className = `fixed bottom-5 right-1/2 translate-x-1/2 w-11/12 max-w-sm text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 z-50 ${isError ? 'bg-red-500' : 'bg-green-500'} translate-y-0 opacity-100`;
+            setTimeout(() => {
+                toast.className = toast.className.replace('translate-y-0 opacity-100', 'translate-y-20 opacity-0');
+            }, 3000);
+        }
+
+        // --- AUTHENTICATION ---
+        loginButton.addEventListener('click', () => {
+            signInWithPopup(auth, provider)
+                .catch((error) => {
+                    console.error("Error signing in: ", error);
+                    showToast(`Gagal masuk: ${error.message}`, true);
+                });
+        });
+
+        logoutButton.addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                loginScreen.classList.add('hidden');
+                appScreen.classList.remove('hidden');
+                userPhoto.src = user.photoURL;
+                userName.textContent = user.displayName;
+                fetchGames();
+            } else {
+                currentUser = null;
+                loginScreen.classList.remove('hidden');
+                appScreen.classList.add('hidden');
+                if (unsubscribe) unsubscribe();
+                games = [];
+                filteredGames = [];
+                displayPage();
+                updateCharts();
+            }
+        });
+
+        // --- HELPER FUNCTION FOR PLATFORM COLORS ---
+        function getPlatformBadgeClasses(platform) {
+            const colors = {
+                'Steam': 'bg-blue-600/30 text-blue-300',
+                'Epic': 'bg-gray-400/30 text-gray-200',
+                'GOG': 'bg-purple-500/30 text-purple-300',
+                'PCSX': 'bg-yellow-500/30 text-yellow-300',
+                'Crack': 'bg-red-500/30 text-red-300',
+                'default': 'bg-slate-500/30 text-slate-300'
+            };
+            return colors[platform] || colors['default'];
+        }
+
+        // --- CRUD FUNCTIONS ---
+        function fetchGames() {
+            if (!currentUser) return;
+            const gamesCollectionRef = collection(db, 'games', currentUser.uid, 'userGames');
+            const q = query(gamesCollectionRef, orderBy("title"));
+
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                games = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                applyFilters();
+                updateCharts();
+                updateBulkActionUI();
+            }, (error) => {
+                console.error("Error fetching games: ", error);
+                showToast("Gagal memuat data game. Pastikan Firestore index sudah dibuat.", true);
+            });
+        }
+        
+        function renderGames(gamesToRender) {
+            gameListBody.innerHTML = '';
+            if (!gamesToRender || gamesToRender.length === 0) {
+                gameListBody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-400">Tidak ada game yang cocok dengan filter atau belum ada game ditambahkan.</td></tr>';
+                return;
+            }
+
+            gamesToRender.forEach(game => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-700 hover:bg-slate-700/50 transition-colors';
+                row.innerHTML = `
+                    <td class="p-4"><input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-slate-600 border-slate-500"></td>
+                    <td class="p-4 font-medium">${game.title}</td>
+                    <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getPlatformBadgeClasses(game.platform)}">${game.platform}</span></td>
+                    <td class="p-4 text-slate-300">${game.location}</td>
+                    <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${game.status === 'Dimainkan' ? 'bg-yellow-500/20 text-yellow-300' : game.status === 'Selesai' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}">${game.status}</span></td>
+                    <td class="p-4 whitespace-nowrap">
+                        <button class="edit-btn p-1 text-slate-400 hover:text-white" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
+                        <button class="delete-btn p-1 text-slate-400 hover:text-red-400" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
+                    </td>
+                `;
+                gameListBody.appendChild(row);
+            });
+            
+            document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEdit));
+            document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', handleDelete));
+            document.querySelectorAll('.game-checkbox').forEach(cb => cb.addEventListener('change', updateBulkActionUI));
+        }
+
+        // --- ADD/EDIT MODAL LOGIC ---
+        function createGameRowHTML(game = {}) {
+            const isEdit = !!game.id;
+            return `
+                <div class="game-row p-4 border border-slate-700 rounded-lg space-y-3 relative">
+                    ${isEdit ? '' : '<button type="button" class="remove-row-btn absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center">&times;</button>'}
+                    <div class="mb-2">
+                        <label class="block text-slate-300 text-sm font-bold mb-1">Judul Game</label>
+                        <input type="text" class="game-title w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" value="${game.title || ''}" required>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-1">Platform</label>
+                            <select class="game-platform w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option ${game.platform === 'Steam' ? 'selected' : ''}>Steam</option>
+                                <option ${game.platform === 'Epic' ? 'selected' : ''}>Epic</option>
+                                <option ${game.platform === 'GOG' ? 'selected' : ''}>GOG</option>
+                                <option ${game.platform === 'PCSX' ? 'selected' : ''}>PCSX</option>
+                                <option ${game.platform === 'Crack' ? 'selected' : ''}>Crack</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-1">Lokasi</label>
+                            <select class="game-location w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option ${game.location === 'HDD Eksternal 2TB' ? 'selected' : ''}>HDD Eksternal 2TB</option>
+                                <option ${game.location === 'HDD Eksternal 4TB' ? 'selected' : ''}>HDD Eksternal 4TB</option>
+                                <option ${game.location === 'Internal SSD' ? 'selected' : ''}>Internal SSD</option>
+                                <option ${game.location === 'Belum Install' ? 'selected' : ''}>Belum Install</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-1">Status</label>
+                            <select class="game-status w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option ${game.status === 'Belum dimainkan' ? 'selected' : ''}>Belum dimainkan</option>
+                                <option ${game.status === 'Dimainkan' ? 'selected' : ''}>Dimainkan</option>
+                                <option ${game.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function addNewGameRow() {
+            gameRowsContainer.insertAdjacentHTML('beforeend', createGameRowHTML());
+        }
+
+        gameRowsContainer.addEventListener('click', (e) => {
+            if (e.target.matches('.remove-row-btn')) {
+                e.target.closest('.game-row').remove();
+            }
+        });
+
+        function openModal(game = null) {
+            gameRowsContainer.innerHTML = '';
+            document.getElementById('game-id').value = game ? game.id : '';
+            
+            if (game) { // Edit mode
+                modalTitle.textContent = 'Edit Game';
+                gameRowsContainer.innerHTML = createGameRowHTML(game);
+                addRowButton.classList.add('hidden');
+            } else { // Add mode
+                modalTitle.textContent = 'Tambah Game Baru';
+                addNewGameRow();
+                addRowButton.classList.remove('hidden');
+            }
+            
+            gameModal.classList.remove('hidden');
+            gameModal.classList.add('flex');
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function closeModal() {
+            modalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                gameModal.classList.add('hidden');
+                gameModal.classList.remove('flex');
+            }, 200);
+        }
+
+        addGameButton.addEventListener('click', () => openModal());
+        addRowButton.addEventListener('click', addNewGameRow);
+        cancelButton.addEventListener('click', closeModal);
+        gameModal.addEventListener('click', (e) => {
+            if (e.target === gameModal) closeModal();
+        });
+
+        gameForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+            const id = document.getElementById('game-id').value;
+            
+            try {
+                if (id) {
+                    const row = gameRowsContainer.querySelector('.game-row');
+                    const gameData = {
+                        title: row.querySelector('.game-title').value,
+                        platform: row.querySelector('.game-platform').value,
+                        location: row.querySelector('.game-location').value,
+                        status: row.querySelector('.game-status').value,
+                    };
+                    if (!gameData.title) {
+                        showToast("Judul game tidak boleh kosong.", true);
+                        return;
+                    }
+                    const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
+                    await updateDoc(gameRef, gameData);
+                    showToast('Game berhasil diperbarui!');
+                } else {
+                    const rows = gameRowsContainer.querySelectorAll('.game-row');
+                    if (rows.length === 0) {
+                        showToast("Tidak ada game untuk ditambahkan.", true);
+                        return;
+                    }
+                    
+                    const batch = writeBatch(db);
+                    let gamesAdded = 0;
+                    rows.forEach(row => {
+                        const gameData = {
+                            title: row.querySelector('.game-title').value,
+                            platform: row.querySelector('.game-platform').value,
+                            location: row.querySelector('.game-location').value,
+                            status: row.querySelector('.game-status').value,
+                        };
+                        if (gameData.title) {
+                            const newGameRef = doc(collection(db, 'games', currentUser.uid, 'userGames'));
+                            batch.set(newGameRef, gameData);
+                            gamesAdded++;
+                        }
+                    });
+                    
+                    if (gamesAdded > 0) {
+                        await batch.commit();
+                        showToast(`${gamesAdded} game berhasil ditambahkan!`);
+                    } else {
+                        showToast("Tidak ada game untuk ditambahkan.", true);
+                        return;
+                    }
+                }
+                closeModal();
+            } catch (error) {
+                console.error("Error saving game(s): ", error);
+                showToast(`Gagal menyimpan: ${error.message}`, true);
+            }
+        });
+
+        function handleEdit(e) {
+            const id = e.currentTarget.dataset.id;
+            const game = games.find(g => g.id === id);
+            if(game) openModal(game);
+        }
+
+        async function handleDelete(e) {
+            const id = e.currentTarget.dataset.id;
+            if (confirm('Apakah Anda yakin ingin menghapus game ini?')) {
+                try {
+                    const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
+                    await deleteDoc(gameRef);
+                    showToast('Game berhasil dihapus.');
+                } catch (error) {
+                    console.error("Error deleting game: ", error);
+                    showToast(`Gagal menghapus: ${error.message}`, true);
+                }
+            }
+        }
+        
+        // --- TAB SWITCHING ---
+        const tabs = document.getElementById('tabs');
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabs.addEventListener('click', (e) => {
+            const button = e.target.closest('.tab-button');
+            if (!button) return;
+
+            tabs.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('tab-inactive');
+            });
+            button.classList.add('tab-active');
+            button.classList.remove('tab-inactive');
+            
+            const tabId = button.dataset.tab;
+            tabContents.forEach(content => {
+                if (content.id === tabId) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+            if (window.innerWidth < 768) {
+                closeSidebar();
+            }
+        });
+
+        // --- CHART LOGIC ---
+        function initCharts() {
+             const pieDoughnutOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        position: 'bottom',
+                        labels: { color: '#cbd5e1', padding: 15, font: { size: 12 } }
+                    }
+                },
+                onHover: (event, chartElement) => {
+                    event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default';
+                },
+                elements: { arc: { hoverOffset: 12, borderWidth: 0 } }
+            };
+            const barOptions = { 
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                onHover: (event, chartElement) => {
+                    event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default';
+                },
+                scales: {
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
+                    x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
+                }
+            };
+
+            platformChart = new Chart(document.getElementById('platform-chart'), { type: 'doughnut', data: {}, options: pieDoughnutOptions });
+            locationChart = new Chart(document.getElementById('location-chart'), { type: 'pie', data: {}, options: pieDoughnutOptions });
+            statusChart = new Chart(document.getElementById('status-chart'), { type: 'bar', data: {}, options: barOptions });
+        }
+
+        function updateCharts() {
+            if (!platformChart) initCharts();
+
+            const platformData = games.reduce((acc, game) => { acc[game.platform] = (acc[game.platform] || 0) + 1; return acc; }, {});
+            platformChart.data = {
+                labels: Object.keys(platformData),
+                datasets: [{ data: Object.values(platformData), backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#ef4444', '#facc15'] }]
+            };
+            platformChart.update();
+
+            const locationData = games.reduce((acc, game) => { acc[game.location] = (acc[game.location] || 0) + 1; return acc; }, {});
+            locationChart.data = {
+                labels: Object.keys(locationData),
+                datasets: [{ data: Object.values(locationData), backgroundColor: ['#10b981', '#06b6d4', '#6366f1', '#f59e0b'] }]
+            };
+            locationChart.update();
+            
+            const statusData = games.reduce((acc, game) => { acc[game.status] = (acc[game.status] || 0) + 1; return acc; }, {});
+            const statusLabels = Object.keys(statusData);
+            const statusValues = Object.values(statusData);
+            const statusColors = { 'Belum dimainkan': '#64748b', 'Dimainkan': '#eab308', 'Selesai': '#22c55e' };
+            const hoverStatusColors = { 'Belum dimainkan': '#94a3b8', 'Dimainkan': '#facc15', 'Selesai': '#4ade80' };
+            statusChart.data = {
+                labels: statusLabels,
+                datasets: [{ 
+                    label: 'Jumlah Game', 
+                    data: statusValues, 
+                    backgroundColor: statusLabels.map(label => statusColors[label] || '#64748b'),
+                    hoverBackgroundColor: statusLabels.map(label => hoverStatusColors[label] || '#94a3b8'),
+                    borderRadius: 4, borderWidth: 2, borderColor: 'transparent', hoverBorderColor: '#6366f1'
+                }]
+            };
+            statusChart.update();
+        }
+
+        // --- FILTERING AND PAGINATION LOGIC ---
         const filterTitle = document.getElementById('filter-title');
         const filterPlatform = document.getElementById('filter-platform');
         const filterLocation = document.getElementById('filter-location');
         const filterStatus = document.getElementById('filter-status');
-        const platformChartCtx = document.getElementById('platform-chart').getContext('2d');
-        const locationChartCtx = document.getElementById('location-chart').getContext('2d');
-        const statusChartCtx = document.getElementById('status-chart').getContext('2d');
-        const downloadJsonButton = document.getElementById('download-json-button');
-        const jsonFileInput = document.getElementById('json-file-input');
-        const openSidebarButton = document.getElementById('open-sidebar-button');
-        const closeSidebarButton = document.getElementById('close-sidebar-button');
-        const sidebar = document.getElementById('sidebar');
-        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
-        const bulkEditModal = document.getElementById('bulk-edit-modal'); // Modal baru
-        const closeBulkEditModalButton = document.getElementById('close-bulk-edit-modal-button'); // Tombol baru
-        const bulkEditForm = document.getElementById('bulk-edit-form'); // Form baru
-        const bulkEditPlatformCheck = document.getElementById('bulk-edit-platform-check');
-        const bulkEditLocationCheck = document.getElementById('bulk-edit-location-check');
-        const bulkEditStatusCheck = document.getElementById('bulk-edit-status-check');
-        const bulkEditPlatformSelect = document.getElementById('bulk-edit-platform');
-        const bulkEditLocationSelect = document.getElementById('bulk-edit-location');
-        const bulkEditStatusSelect = document.getElementById('bulk-edit-status');
 
-        // State for editing
-        let editingGameId = null;
+        [filterTitle, filterPlatform, filterLocation, filterStatus].forEach(el => {
+            el.addEventListener('input', () => {
+                currentPage = 1;
+                applyFilters();
+            });
+        });
 
-        // Utility functions
-        function showToast(message, isError = false) {
-            const toast = document.createElement('div');
-            toast.className = `p-4 rounded-lg shadow-lg text-white font-medium mb-2 animate-fade-in-up transition-transform transform ${isError ? 'bg-red-500' : 'bg-green-500'}`;
-            toast.textContent = message;
-            document.getElementById('toast-container').appendChild(toast);
-            setTimeout(() => {
-                toast.classList.remove('animate-fade-in-up');
-                toast.classList.add('animate-fade-out-down');
-                toast.addEventListener('animationend', () => toast.remove());
-            }, 3000);
-        }
+        function applyFilters() {
+            const title = filterTitle.value.toLowerCase();
+            const platform = filterPlatform.value;
+            const location = filterLocation.value;
+            const status = filterStatus.value;
 
-        function showModal(modalElement) {
-            modalElement.classList.remove('hidden');
-            modalElement.classList.add('flex');
-            setTimeout(() => {
-                modalElement.querySelector('div').classList.remove('scale-95', 'opacity-0');
-            }, 10);
-        }
-
-        function hideModal(modalElement) {
-            modalElement.querySelector('div').classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                modalElement.classList.remove('flex');
-                modalElement.classList.add('hidden');
-            }, 300);
-        }
-
-        // Firebase Auth
-        async function signIn() {
-            try {
-                // Gunakan konfigurasi Firebase yang sudah ada, jangan panggil signInWithCustomToken
-                // const provider = new GoogleAuthProvider();
-                // await signInWithPopup(auth, provider);
-                // showToast('Berhasil masuk!');
-                 // Masuk secara anonim jika tidak ada token, sesuai permintaan
-                await signInAnonymously(auth);
-                showToast('Berhasil masuk sebagai anonim!');
-            } catch (error) {
-                console.error("Error signing in: ", error);
-                showToast('Gagal masuk. Silakan coba lagi.', true);
-            }
+            filteredGames = games.filter(game => {
+                return (title === '' || game.title.toLowerCase().includes(title)) &&
+                       (platform === '' || game.platform === platform) &&
+                       (location === '' || game.location === location) &&
+                       (status === '' || game.status === status);
+            });
+            displayPage();
         }
         
-        async function signOutUser() {
-             try {
-                await signOut(auth);
-                showToast('Berhasil keluar.');
-            } catch (error) {
-                console.error("Error signing out: ", error);
-                showToast('Gagal keluar.', true);
-            }
-        }
-
-        // --- CRUD Operations ---
-        async function addGame(game) {
-            try {
-                if (currentUser) {
-                    await addDoc(collection(db, 'games', currentUser.uid, 'userGames'), game);
-                    showToast('Game berhasil ditambahkan!');
-                    hideModal(gameModal);
-                }
-            } catch (e) {
-                console.error("Error adding document: ", e);
-                showToast('Gagal menambahkan game.', true);
-            }
-        }
-
-        async function updateGame(id, updatedData) {
-            try {
-                if (currentUser) {
-                    await updateDoc(doc(db, 'games', currentUser.uid, 'userGames', id), updatedData);
-                    showToast('Game berhasil diperbarui!');
-                    hideModal(gameModal);
-                }
-            } catch (e) {
-                console.error("Error updating document: ", e);
-                showToast('Gagal memperbarui game.', true);
-            }
-        }
-
-        async function deleteGame(id) {
-            try {
-                if (currentUser) {
-                    await deleteDoc(doc(db, 'games', currentUser.uid, 'userGames', id));
-                    showToast('Game berhasil dihapus!');
-                }
-            } catch (e) {
-                console.error("Error deleting document: ", e);
-                showToast('Gagal menghapus game.', true);
-            }
-        }
-
-        // --- Bulk Operations ---
-        async function deleteSelectedGames() {
-            if (selectedGameIds.size === 0) {
-                showToast('Tidak ada game yang dipilih.', true);
-                return;
-            }
-            if (confirm(`Anda yakin ingin menghapus ${selectedGameIds.size} game terpilih?`)) {
-                try {
-                    const batch = writeBatch(db);
-                    const gamesCollection = collection(db, 'games', currentUser.uid, 'userGames');
-                    selectedGameIds.forEach(id => {
-                        const gameRef = doc(gamesCollection, id);
-                        batch.delete(gameRef);
-                    });
-                    await batch.commit();
-                    showToast(`${selectedGameIds.size} game berhasil dihapus!`);
-                    selectedGameIds.clear();
-                    updateSelectionState();
-                } catch (e) {
-                    console.error("Error deleting documents in bulk: ", e);
-                    showToast('Gagal menghapus game secara masal.', true);
-                }
-            }
-        }
-
-        // Fungsi baru untuk mengedit game secara masal
-        async function editSelectedGames(updatedData) {
-            if (selectedGameIds.size === 0) {
-                showToast('Tidak ada game yang dipilih.', true);
-                return;
-            }
-            if (Object.keys(updatedData).length === 0) {
-                showToast('Tidak ada properti yang dipilih untuk diperbarui.', true);
-                return;
-            }
-
-            try {
-                const batch = writeBatch(db);
-                const gamesCollection = collection(db, 'games', currentUser.uid, 'userGames');
-                selectedGameIds.forEach(id => {
-                    const gameRef = doc(gamesCollection, id);
-                    batch.update(gameRef, updatedData);
-                });
-                await batch.commit();
-                showToast(`${selectedGameIds.size} game berhasil diperbarui!`);
-                selectedGameIds.clear();
-                updateSelectionState();
-                hideModal(bulkEditModal);
-            } catch (e) {
-                console.error("Error updating documents in bulk: ", e);
-                showToast('Gagal mengedit game secara masal.', true);
-            }
-        }
-
-        // --- UI Rendering & State Management ---
-        function renderGames() {
-            gameListBody.innerHTML = '';
-            if (gamesData.length === 0) {
-                gameListBody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-400">Tidak ada game.</td></tr>';
-                return;
-            }
-
+        function displayPage() {
             const startIndex = (currentPage - 1) * gamesPerPage;
             const endIndex = startIndex + gamesPerPage;
-            const gamesToRender = gamesData.slice(startIndex, endIndex);
-
-            gamesToRender.forEach(game => {
-                const tr = document.createElement('tr');
-                tr.className = 'border-b border-slate-700 hover:bg-slate-700 transition duration-150';
-                tr.dataset.id = game.id;
-                
-                const isSelected = selectedGameIds.has(game.id);
-
-                tr.innerHTML = `
-                    <td class="p-4"><input type="checkbox" class="game-checkbox rounded bg-slate-600 border-slate-500" data-id="${game.id}" ${isSelected ? 'checked' : ''}></td>
-                    <td class="p-4 font-semibold">${game.title}</td>
-                    <td class="p-4">${game.platform}</td>
-                    <td class="p-4 text-slate-400">${game.location}</td>
-                    <td class="p-4">
-                        <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full ${getStatusClass(game.status)}">
-                            ${game.status}
-                        </span>
-                    </td>
-                    <td class="p-4 text-right space-x-2">
-                        <button class="edit-game-button text-blue-400 hover:text-blue-300" data-id="${game.id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
-                        </button>
-                        <button class="delete-game-button text-red-400 hover:text-red-300" data-id="${game.id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
-                        </button>
-                    </td>
-                `;
-                gameListBody.appendChild(tr);
-            });
-            renderPagination();
+            const paginatedGames = filteredGames.slice(startIndex, endIndex);
+            
+            renderGames(paginatedGames);
+            setupPagination();
+            updateBulkActionUI();
+            document.getElementById('select-all-checkbox').checked = false;
         }
 
-        function getStatusClass(status) {
-            switch (status) {
-                case 'Dimainkan':
-                    return 'bg-blue-800 text-blue-200';
-                case 'Selesai':
-                    return 'bg-green-800 text-green-200';
-                case 'Belum dimainkan':
-                    return 'bg-slate-600 text-slate-200';
-                default:
-                    return 'bg-slate-600 text-slate-200';
-            }
-        }
-
-        function renderPagination() {
+        function setupPagination() {
             paginationContainer.innerHTML = '';
-            const totalPages = Math.ceil(gamesData.length / gamesPerPage);
-
+            const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
             if (totalPages <= 1) return;
 
-            const createButton = (text, page, isActive, isDisabled = false) => {
-                const button = document.createElement('button');
-                button.textContent = text;
-                button.dataset.page = page;
-                button.disabled = isDisabled;
-                button.className = `pagination-button px-3 py-1 rounded-lg text-sm font-medium transition-colors duration-200 ${isActive ? 'active' : 'bg-slate-700 text-slate-300 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed'}`;
-                return button;
-            };
-
-            // Previous button
-            const prevButton = createButton('Sebelumnya', currentPage - 1, false, currentPage === 1);
+            const prevButton = document.createElement('button');
+            prevButton.innerHTML = '&laquo;';
+            prevButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
+            prevButton.disabled = currentPage === 1;
+            prevButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; displayPage(); } });
             paginationContainer.appendChild(prevButton);
 
-            // Page buttons
-            const startPage = Math.max(1, currentPage - 2);
-            const endPage = Math.min(totalPages, currentPage + 2);
+            const maxPageButtons = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2));
+            let endPage = Math.min(totalPages, startPage + maxPageButtons - 1);
+            if (endPage - startPage + 1 < maxPageButtons) {
+                startPage = Math.max(1, endPage - maxPageButtons + 1);
+            }
+
+            if (startPage > 1) {
+                const firstButton = document.createElement('button');
+                firstButton.textContent = '1';
+                firstButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
+                firstButton.addEventListener('click', () => { currentPage = 1; displayPage(); });
+                paginationContainer.appendChild(firstButton);
+                if (startPage > 2) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-slate-400">...</span>`);
+            }
+            
             for (let i = startPage; i <= endPage; i++) {
-                const pageButton = createButton(i, i, i === currentPage);
+                const pageButton = document.createElement('button');
+                pageButton.textContent = i;
+                pageButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
+                if (i === currentPage) pageButton.classList.add('active');
+                pageButton.addEventListener('click', () => { currentPage = i; displayPage(); });
                 paginationContainer.appendChild(pageButton);
             }
 
-            // Next button
-            const nextButton = createButton('Berikutnya', currentPage + 1, false, currentPage === totalPages);
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-slate-400">...</span>`);
+                const lastButton = document.createElement('button');
+                lastButton.textContent = totalPages;
+                lastButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
+                lastButton.addEventListener('click', () => { currentPage = totalPages; displayPage(); });
+                paginationContainer.appendChild(lastButton);
+            }
+
+            const nextButton = document.createElement('button');
+            nextButton.innerHTML = '&raquo;';
+            nextButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; displayPage(); } });
             paginationContainer.appendChild(nextButton);
         }
-
-        function updateSelectionState() {
-            const hasSelection = selectedGameIds.size > 0;
-            bulkDeleteButton.disabled = !hasSelection;
-            bulkEditButton.disabled = !hasSelection;
-            selectionInfo.textContent = hasSelection 
-                ? `${selectedGameIds.size} game dipilih. Anda bisa menghapus atau mengedit properti dari game-game ini.`
-                : 'Pilih game dari \'Daftar Game\' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.';
-        }
-
-        function getFilteredAndSortedGames(allGames) {
-            let filteredGames = allGames.filter(game => {
-                const titleMatch = game.title.toLowerCase().includes(currentFilters.title || '');
-                const platformMatch = currentFilters.platform ? game.platform === currentFilters.platform : true;
-                const locationMatch = currentFilters.location ? game.location === currentFilters.location : true;
-                const statusMatch = currentFilters.status ? game.status === currentFilters.status : true;
-                return titleMatch && platformMatch && locationMatch && statusMatch;
-            });
-             // Sort the filtered games in memory
-            filteredGames.sort((a, b) => {
-                const fieldA = a[currentSorting.field];
-                const fieldB = b[currentSorting.field];
-                if (fieldA < fieldB) return currentSorting.direction === 'asc' ? -1 : 1;
-                if (fieldA > fieldB) return currentSorting.direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-            return filteredGames;
-        }
-
-        let platformChart, locationChart, statusChart;
-        function updateCharts() {
-            const platformCounts = {};
-            const locationCounts = {};
-            const statusCounts = {};
-
-            gamesData.forEach(game => {
-                platformCounts[game.platform] = (platformCounts[game.platform] || 0) + 1;
-                locationCounts[game.location] = (locationCounts[game.location] || 0) + 1;
-                statusCounts[game.status] = (statusCounts[game.status] || 0) + 1;
-            });
-
-            const generateColors = (count) => {
-                const colors = ['#4f46e5', '#38bdf8', '#fbbf24', '#f87171', '#a78bfa', '#2dd4bf'];
-                const result = [];
-                for (let i = 0; i < count; i++) {
-                    result.push(colors[i % colors.length]);
-                }
-                return result;
-            };
-
-            const updateChart = (chart, labels, data) => {
-                if (chart) {
-                    chart.data.labels = labels;
-                    chart.data.datasets[0].data = data;
-                    chart.data.datasets[0].backgroundColor = generateColors(labels.length);
-                    chart.update();
-                } else {
-                    return new Chart(chart, {
-                        type: 'pie',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                data: data,
-                                backgroundColor: generateColors(labels.length),
-                                hoverOffset: 4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    labels: {
-                                        color: '#f8fafc',
-                                        font: { family: 'Inter' }
-                                    },
-                                    position: 'right',
-                                },
-                            }
-                        }
-                    });
-                }
-            };
-            const updateBarChart = (chart, labels, data) => {
-                 if (chart) {
-                    chart.data.labels = labels;
-                    chart.data.datasets[0].data = data;
-                    chart.update();
-                } else {
-                     return new Chart(chart, {
-                        type: 'bar',
-                        data: {
-                            labels: labels,
-                            datasets: [{
-                                label: 'Jumlah Game',
-                                data: data,
-                                backgroundColor: generateColors(labels.length),
-                                borderColor: generateColors(labels.length),
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: { display: false },
-                                title: { display: false }
-                            },
-                             scales: {
-                                x: {
-                                    ticks: { color: '#94a3b8' },
-                                    grid: { color: 'rgba(248, 250, 252, 0.1)' }
-                                },
-                                y: {
-                                    ticks: { color: '#94a3b8', stepSize: 1 },
-                                    grid: { color: 'rgba(248, 250, 252, 0.1)' }
-                                }
-                            }
-                        }
-                     });
-                }
-            };
-            
-            platformChart = updateChart(platformChart, Object.keys(platformCounts), Object.values(platformCounts));
-            locationChart = updateChart(locationChart, Object.keys(locationCounts), Object.values(locationCounts));
-            statusChart = updateBarChart(statusChart, Object.keys(statusCounts), Object.values(statusCounts));
-        }
-
-        // Event Listeners
-        loginButton.addEventListener('click', signIn);
-        logoutButton.addEventListener('click', signOutUser);
-
-        tabsContainer.addEventListener('click', (e) => {
-            const tabButton = e.target.closest('.tab-button');
-            if (tabButton) {
-                document.querySelector('.tab-button.tab-active').classList.remove('tab-active');
-                document.querySelector('.tab-button.tab-active').classList.add('tab-inactive');
-                tabButton.classList.remove('tab-inactive');
-                tabButton.classList.add('tab-active');
-
-                const targetTabId = tabButton.dataset.tab;
-                tabContents.forEach(content => {
-                    content.classList.toggle('hidden', content.id !== targetTabId);
-                });
-                if (targetTabId === 'tab-stats') {
-                    updateCharts();
-                }
-            }
-        });
-
-        addGameButton.addEventListener('click', () => {
-            modalTitle.textContent = 'Tambah Game Baru';
-            gameForm.reset();
-            editingGameId = null;
-            showModal(gameModal);
-        });
-
-        closeModalButton.addEventListener('click', () => hideModal(gameModal));
-
-        gameForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(gameForm);
-            const gameData = Object.fromEntries(formData.entries());
-            if (editingGameId) {
-                await updateGame(editingGameId, gameData);
-            } else {
-                await addGame(gameData);
-            }
-        });
-
-        bulkDeleteButton.addEventListener('click', deleteSelectedGames);
         
-        // Listener baru untuk tombol edit masal
-        bulkEditButton.addEventListener('click', () => {
-            showModal(bulkEditModal);
-        });
-
-        // Listener baru untuk menutup modal edit masal
-        closeBulkEditModalButton.addEventListener('click', () => hideModal(bulkEditModal));
-
-        // Listener untuk checkbox di modal edit masal
-        bulkEditPlatformCheck.addEventListener('change', (e) => {
-            bulkEditPlatformSelect.disabled = !e.target.checked;
-        });
-        bulkEditLocationCheck.addEventListener('change', (e) => {
-            bulkEditLocationSelect.disabled = !e.target.checked;
-        });
-        bulkEditStatusCheck.addEventListener('change', (e) => {
-            bulkEditStatusSelect.disabled = !e.target.checked;
-        });
-
-        // Listener untuk form edit masal
-        bulkEditForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const updatedData = {};
-            if (bulkEditPlatformCheck.checked) {
-                updatedData.platform = bulkEditPlatformSelect.value;
-            }
-            if (bulkEditLocationCheck.checked) {
-                updatedData.location = bulkEditLocationSelect.value;
-            }
-            if (bulkEditStatusCheck.checked) {
-                updatedData.status = bulkEditStatusSelect.value;
-            }
-            await editSelectedGames(updatedData);
-        });
-
-        gameListBody.addEventListener('click', (e) => {
-            const deleteButton = e.target.closest('.delete-game-button');
-            const editButton = e.target.closest('.edit-game-button');
-            if (deleteButton) {
-                const gameId = deleteButton.dataset.id;
-                if (confirm('Anda yakin ingin menghapus game ini?')) {
-                    deleteGame(gameId);
-                }
-            } else if (editButton) {
-                const gameId = editButton.dataset.id;
-                const game = gamesData.find(g => g.id === gameId);
-                if (game) {
-                    modalTitle.textContent = 'Edit Game';
-                    document.getElementById('game-title').value = game.title;
-                    document.getElementById('game-platform').value = game.platform;
-                    document.getElementById('game-location').value = game.location;
-                    document.getElementById('game-status').value = game.status;
-                    editingGameId = gameId;
-                    showModal(gameModal);
-                }
-            }
-        });
-
-        gameListBody.addEventListener('change', (e) => {
-            const checkbox = e.target;
-            if (checkbox.classList.contains('game-checkbox')) {
-                const gameId = checkbox.dataset.id;
-                if (checkbox.checked) {
-                    selectedGameIds.add(gameId);
-                } else {
-                    selectedGameIds.delete(gameId);
-                }
-                updateSelectionState();
-            }
-        });
+        // --- BULK ACTIONS LOGIC ---
+        const selectAllCheckbox = document.getElementById('select-all-checkbox');
+        const bulkDeleteButton = document.getElementById('bulk-delete-button');
+        const bulkEditButton = document.getElementById('bulk-edit-button');
+        const selectionInfo = document.getElementById('selection-info');
 
         selectAllCheckbox.addEventListener('change', (e) => {
-            const checkboxes = document.querySelectorAll('.game-checkbox');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = e.target.checked;
-                const gameId = checkbox.dataset.id;
-                if (e.target.checked) {
-                    selectedGameIds.add(gameId);
-                } else {
-                    selectedGameIds.delete(gameId);
-                }
-            });
-            updateSelectionState();
+            document.querySelectorAll('.game-checkbox').forEach(cb => { cb.checked = e.target.checked; });
+            updateBulkActionUI();
         });
-        
-        // Pagination listener
-        paginationContainer.addEventListener('click', (e) => {
-            const button = e.target.closest('.pagination-button');
-            if (button && !button.disabled) {
-                const newPage = parseInt(button.dataset.page);
-                if (newPage > 0 && newPage <= Math.ceil(gamesData.length / gamesPerPage)) {
-                    currentPage = newPage;
-                    renderGames();
-                    window.scrollTo(0, 0);
+
+        function updateBulkActionUI() {
+            const selectedIds = getSelectedGameIds();
+            const hasSelection = selectedIds.length > 0;
+            
+            bulkDeleteButton.disabled = !hasSelection;
+            bulkEditButton.disabled = !hasSelection;
+            
+            if (hasSelection) {
+                selectionInfo.innerHTML = `<b>${selectedIds.length} game terpilih.</b> Aksi hanya berlaku untuk item yang terlihat di halaman ini.`;
+            } else {
+                selectionInfo.textContent = `Pilih game dari 'Daftar Game' untuk melakukan aksi masal.`;
+            }
+        }
+
+        function getSelectedGameIds() {
+            return Array.from(document.querySelectorAll('.game-checkbox:checked')).map(cb => cb.dataset.id);
+        }
+
+        bulkDeleteButton.addEventListener('click', async () => {
+            const idsToDelete = getSelectedGameIds();
+            if (idsToDelete.length === 0) return;
+            if (confirm(`Apakah Anda yakin ingin menghapus ${idsToDelete.length} game terpilih?`)) {
+                try {
+                    const batch = writeBatch(db);
+                    idsToDelete.forEach(id => {
+                        const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
+                        batch.delete(gameRef);
+                    });
+                    await batch.commit();
+                    showToast(`${idsToDelete.length} game berhasil dihapus.`);
+                    selectAllCheckbox.checked = false;
+                } catch (error) {
+                    console.error("Error bulk deleting: ", error);
+                    showToast(`Gagal menghapus game: ${error.message}`, true);
                 }
             }
         });
 
-        // Filter listeners
-        filterTitle.addEventListener('input', () => {
-            currentFilters.title = filterTitle.value.toLowerCase();
-            currentPage = 1;
-            gamesData = getFilteredAndSortedGames(gamesDataOnSnapshot);
-            renderGames();
+        // --- BULK EDIT MODAL LOGIC ---
+        function openBulkEditModal() {
+            const selectedIds = getSelectedGameIds();
+            if (selectedIds.length === 0) return;
+
+            bulkEditInfo.textContent = `Anda akan mengedit ${selectedIds.length} game. Centang properti yang ingin Anda ubah.`;
+            bulkEditForm.reset(); // Clear previous selections
+            
+            bulkEditModal.classList.remove('hidden');
+            bulkEditModal.classList.add('flex');
+            setTimeout(() => {
+                bulkEditModalContent.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function closeBulkEditModal() {
+            bulkEditModalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                bulkEditModal.classList.add('hidden');
+                bulkEditModal.classList.remove('flex');
+            }, 200);
+        }
+
+        bulkEditButton.addEventListener('click', openBulkEditModal);
+        bulkEditCancelButton.addEventListener('click', closeBulkEditModal);
+        bulkEditModal.addEventListener('click', (e) => {
+            if (e.target === bulkEditModal) closeBulkEditModal();
         });
 
-        filterPlatform.addEventListener('change', () => {
-            currentFilters.platform = filterPlatform.value;
-            currentPage = 1;
-            gamesData = getFilteredAndSortedGames(gamesDataOnSnapshot);
-            renderGames();
+        bulkEditForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const idsToUpdate = getSelectedGameIds();
+            if (idsToUpdate.length === 0) return;
+
+            const updateData = {};
+            if (document.getElementById('bulk-update-platform-check').checked) {
+                updateData.platform = document.getElementById('bulk-platform').value;
+            }
+            if (document.getElementById('bulk-update-location-check').checked) {
+                updateData.location = document.getElementById('bulk-location').value;
+            }
+            if (document.getElementById('bulk-update-status-check').checked) {
+                updateData.status = document.getElementById('bulk-status').value;
+            }
+
+            if (Object.keys(updateData).length === 0) {
+                showToast("Tidak ada perubahan yang dipilih. Centang properti yang ingin diubah.", true);
+                return;
+            }
+
+            if (confirm(`Apakah Anda yakin ingin memperbarui ${Object.keys(updateData).length} properti untuk ${idsToUpdate.length} game?`)) {
+                try {
+                    const batch = writeBatch(db);
+                    idsToUpdate.forEach(id => {
+                        const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
+                        batch.update(gameRef, updateData);
+                    });
+                    await batch.commit();
+                    showToast(`${idsToUpdate.length} game berhasil diperbarui.`);
+                    selectAllCheckbox.checked = false;
+                    closeBulkEditModal();
+                } catch (error) {
+                    console.error("Error bulk updating: ", error);
+                    showToast(`Gagal memperbarui game: ${error.message}`, true);
+                }
+            }
         });
 
-        filterLocation.addEventListener('change', () => {
-            currentFilters.location = filterLocation.value;
-            currentPage = 1;
-            gamesData = getFilteredAndSortedGames(gamesDataOnSnapshot);
-            renderGames();
-        });
-
-        filterStatus.addEventListener('change', () => {
-            currentFilters.status = filterStatus.value;
-            currentPage = 1;
-            gamesData = getFilteredAndSortedGames(gamesDataOnSnapshot);
-            renderGames();
-        });
+        // --- DATA MANAGEMENT ---
+        const downloadJsonButton = document.getElementById('download-json-button');
+        const uploadJsonButton = document.getElementById('upload-json-button');
+        const jsonFileInput = document.getElementById('json-file-input');
         
-        // Data Management Listeners
         downloadJsonButton.addEventListener('click', () => {
-            const dataStr = JSON.stringify(gamesData.map(({ id, ...rest }) => rest), null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `game_collection_${new Date().toISOString()}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            if (games.length === 0) {
+                showToast("Tidak ada data untuk diunduh.", true);
+                return;
+            }
+            const dataStr = JSON.stringify(games.map(({id, ...rest}) => rest), null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', 'koleksi_game.json');
+            linkElement.click();
+            showToast("Data sedang diunduh...");
         });
 
-        jsonFileInput.addEventListener('change', async (event) => {
-            const file = event.target.files[0];
+        uploadJsonButton.addEventListener('click', () => jsonFileInput.click());
+
+        jsonFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
             if (!file) return;
 
             const reader = new FileReader();
@@ -984,43 +1025,9 @@
                 try {
                     const importedGames = JSON.parse(event.target.result);
                     if (!Array.isArray(importedGames)) {
-                        showToast("File JSON harus berisi sebuah array.", true);
                         throw new Error("File JSON harus berisi sebuah array.");
                     }
-                    // Gunakan modal kustom alih-alih konfirmasi browser
-                    const confirmed = await new Promise(resolve => {
-                        const confirmModal = document.createElement('div');
-                        confirmModal.className = 'fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-[99]';
-                        confirmModal.innerHTML = `
-                            <div class="bg-slate-800 w-full max-w-sm p-6 rounded-xl shadow-2xl transition-all duration-300 transform scale-95 opacity-0">
-                                <h4 class="text-xl font-bold mb-4">Konfirmasi Impor</h4>
-                                <p class="text-slate-400 mb-6">Anda akan mengimpor ${importedGames.length} game. Lanjutkan?</p>
-                                <div class="flex justify-end space-x-2">
-                                    <button id="cancel-import" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Batal</button>
-                                    <button id="confirm-import" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Lanjutkan</button>
-                                </div>
-                            </div>
-                        `;
-                        document.body.appendChild(confirmModal);
-                        // Animate in
-                        setTimeout(() => {
-                             confirmModal.querySelector('div').classList.remove('scale-95', 'opacity-0');
-                        }, 10);
-                        document.getElementById('cancel-import').addEventListener('click', () => {
-                            // Animate out and remove
-                            confirmModal.querySelector('div').classList.add('scale-95', 'opacity-0');
-                            setTimeout(() => confirmModal.remove(), 300);
-                            resolve(false);
-                        });
-                        document.getElementById('confirm-import').addEventListener('click', () => {
-                            // Animate out and remove
-                            confirmModal.querySelector('div').classList.add('scale-95', 'opacity-0');
-                            setTimeout(() => confirmModal.remove(), 300);
-                            resolve(true);
-                        });
-                    });
-
-                    if (confirmed) {
+                    if (confirm(`Anda akan mengimpor ${importedGames.length} game. Lanjutkan?`)) {
                         const batch = writeBatch(db);
                         const gamesCollection = collection(db, 'games', currentUser.uid, 'userGames');
                         importedGames.forEach(game => {
@@ -1041,79 +1048,6 @@
             };
             reader.readAsText(file);
         });
-
-        // Mobile sidebar listeners
-        openSidebarButton.addEventListener('click', () => {
-            sidebar.classList.remove('-translate-x-full');
-            mobileMenuBackdrop.classList.remove('hidden');
-        });
-
-        closeSidebarButton.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            mobileMenuBackdrop.classList.add('hidden');
-        });
-
-        mobileMenuBackdrop.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            mobileMenuBackdrop.classList.add('hidden');
-        });
-        
-        // Auth state listener to handle UI changes
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                loginScreen.classList.add('hidden');
-                appScreen.classList.remove('hidden');
-                userName.textContent = user.displayName || 'Pengguna Anonim';
-                if (user.photoURL) {
-                    userPhoto.src = user.photoURL;
-                } else {
-                    userPhoto.src = `https://api.dicebear.com/7.x/initials/svg?seed=${user.displayName || 'Anonim'}&backgroundColor=3b82f6,60a5fa,93c5fd&backgroundType=gradientLinear&fontFamily=Inter`;
-                }
-
-                // Subscribe to real-time updates from Firestore
-                const gamesCollection = collection(db, 'games', currentUser.uid, 'userGames');
-                
-                // onSnapshot for real-time updates
-                onSnapshot(gamesCollection, (querySnapshot) => {
-                    gamesDataOnSnapshot = [];
-                    querySnapshot.forEach((doc) => {
-                        gamesDataOnSnapshot.push({ id: doc.id, ...doc.data() });
-                    });
-                     // Re-apply filters and sorting on every update
-                    gamesData = getFilteredAndSortedGames(gamesDataOnSnapshot);
-                    
-                    // Reset selected games if any are deleted
-                    const currentIds = new Set(gamesData.map(g => g.id));
-                    selectedGameIds = new Set([...selectedGameIds].filter(id => currentIds.has(id)));
-                    updateSelectionState();
-                    
-                    // Render UI with new data
-                    renderGames();
-                    updateCharts();
-                });
-
-            } else {
-                currentUser = null;
-                loginScreen.classList.remove('hidden');
-                appScreen.classList.add('hidden');
-                gamesData = [];
-                renderGames();
-            }
-        });
-        
-        // Initial anonymous login if no user is signed in
-        if (typeof __initial_auth_token !== 'undefined') {
-            try {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } catch(e) {
-                console.error("Error signing in with custom token: ", e);
-                // Fallback to anonymous sign-in if custom token fails
-                await signInAnonymously(auth);
-            }
-        } else {
-            await signInAnonymously(auth);
-        }
 
     </script>
 </body>
