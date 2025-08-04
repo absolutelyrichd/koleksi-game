@@ -16,6 +16,821 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, getDoc, updateDoc, deleteDoc, query, where, writeBatch, onSnapshot, orderBy, startAfter, limit, startAt } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase configuration from user
+        const firebaseConfig = {
+            apiKey: "AIzaSyAzJTL179V9bT-DfefZq9gcG8Tz88VzLmQ",
+            authDomain: "koleksi-game.firebaseapp.com",
+            projectId: "koleksi-game",
+            storageBucket: "koleksi-game.appspot.com",
+            messagingSenderId: "222959670551",
+            appId: "1:222959670551:web:048b1e2c4ef16b7bd31352",
+            measurementId: "G-BYYCM7R4M8"
+        };
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Firebase Auth Provider
+        const provider = new GoogleAuthProvider();
+
+        // DOM elements
+        const loginScreen = document.getElementById('login-screen');
+        const appScreen = document.getElementById('app-screen');
+        const loginButton = document.getElementById('login-button');
+        const logoutButton = document.getElementById('logout-button');
+        const userName = document.getElementById('user-name');
+        const userPhoto = document.getElementById('user-photo');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const sidebar = document.getElementById('sidebar');
+        const openSidebarButton = document.getElementById('open-sidebar-button');
+        const closeSidebarButton = document.getElementById('close-sidebar-button');
+        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
+        const tabsContainer = document.getElementById('tabs');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const addGameButton = document.getElementById('add-game-button');
+        const filterTitleInput = document.getElementById('filter-title');
+        const filterPlatformSelect = document.getElementById('filter-platform');
+        const filterLocationSelect = document.getElementById('filter-location');
+        const filterStatusSelect = document.getElementById('filter-status');
+        const gameListBody = document.getElementById('game-list-body');
+        const paginationContainer = document.getElementById('pagination-container');
+        const selectAllCheckbox = document.getElementById('select-all-checkbox');
+        const bulkDeleteButton = document.getElementById('bulk-delete-button');
+        const bulkMoveButton = document.getElementById('bulk-move-button'); // New bulk move button
+        const bulkMoveSelect = document.getElementById('bulk-move-select'); // New select for bulk move
+        const downloadJsonButton = document.getElementById('download-json-button');
+        const jsonFileInput = document.getElementById('json-file-input');
+        const importJsonButton = document.getElementById('import-json-button');
+        const selectionInfo = document.getElementById('selection-info');
+        const platformChartCtx = document.getElementById('platform-chart')?.getContext('2d');
+        const locationChartCtx = document.getElementById('location-chart')?.getContext('2d');
+        const statusChartCtx = document.getElementById('status-chart')?.getContext('2d');
+
+        // Modal elements
+        const modalContainer = document.getElementById('modal-container');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('modal-content');
+        const modalActions = document.getElementById('modal-actions');
+        
+        let dbRef;
+        let currentUser;
+        let allGames = [];
+        let filteredGames = [];
+        let selectedGameIds = new Set();
+        let currentPage = 1;
+        const pageSize = 10;
+        let platformChart, locationChart, statusChart;
+        let locations = [];
+        let platforms = [];
+
+        // Global functions for modularity
+        window.showModal = (title, content, actions) => {
+            modalTitle.textContent = title;
+            modalContent.innerHTML = content;
+            modalActions.innerHTML = '';
+            modalActions.append(...actions);
+            modalContainer.classList.remove('hidden');
+        };
+
+        window.hideModal = () => {
+            modalContainer.classList.add('hidden');
+        };
+
+        window.showToast = (message, isError = false) => {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.className = `fixed bottom-4 left-1/2 -translate-x-1/2 p-4 rounded-lg shadow-lg text-white transition-all duration-300 transform ${isError ? 'bg-red-500' : 'bg-green-500'} z-[100]`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 3000);
+        };
+        
+        window.formatDate = (timestamp) => {
+            if (!timestamp) return 'N/A';
+            const date = timestamp.toDate();
+            return date.toLocaleDateString('id-ID', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        };
+
+        // UI functions
+        const showApp = (user) => {
+            loginScreen.classList.add('hidden');
+            appScreen.classList.remove('hidden');
+            userName.textContent = user.displayName || 'Pengguna';
+            userPhoto.src = user.photoURL || 'https://placehold.co/40x40/e2e8f0/e2e8f0';
+            userIdDisplay.textContent = `ID Pengguna: ${user.uid}`;
+            currentUser = user;
+
+            // Set up Firestore reference
+            dbRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'userGames');
+            
+            setupRealtimeListener();
+        };
+
+        const showLogin = () => {
+            loginScreen.classList.remove('hidden');
+            appScreen.classList.add('hidden');
+        };
+        
+        const openSidebar = () => {
+             sidebar.classList.remove('-translate-x-full');
+             mobileMenuBackdrop.classList.remove('hidden');
+        };
+
+        const closeSidebar = () => {
+            sidebar.classList.add('-translate-x-full');
+            mobileMenuBackdrop.classList.add('hidden');
+        };
+
+        const switchTab = (tabId) => {
+            tabContents.forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(tabId).classList.remove('hidden');
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('tab-active');
+                button.classList.add('tab-inactive');
+            });
+            document.querySelector(`[data-tab="${tabId}"]`).classList.remove('tab-inactive');
+            document.querySelector(`[data-tab="${tabId}"]`).classList.add('tab-active');
+
+            if (tabId === 'tab-stats') {
+                updateCharts();
+            }
+        };
+
+        const renderGameList = () => {
+            gameListBody.innerHTML = '';
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = startIndex + pageSize;
+            const paginatedGames = filteredGames.slice(startIndex, endIndex);
+
+            if (paginatedGames.length === 0) {
+                gameListBody.innerHTML = `<tr><td colspan="6" class="text-center p-8 text-slate-400">Tidak ada game ditemukan.</td></tr>`;
+                return;
+            }
+
+            paginatedGames.forEach(game => {
+                const isChecked = selectedGameIds.has(game.id);
+                const row = document.createElement('tr');
+                row.className = `border-b border-slate-700 hover:bg-slate-700 transition-colors ${isChecked ? 'bg-slate-700' : ''}`;
+                row.innerHTML = `
+                    <td class="p-4"><input type="checkbox" data-game-id="${game.id}" class="game-checkbox rounded bg-slate-600 border-slate-500" ${isChecked ? 'checked' : ''}></td>
+                    <td class="p-4 font-medium">${game.title}</td>
+                    <td class="p-4 text-slate-400">${game.platform}</td>
+                    <td class="p-4 text-slate-400">${game.location}</td>
+                    <td class="p-4 text-slate-400">${game.status}</td>
+                    <td class="p-4">
+                        <div class="flex space-x-2">
+                            <button class="edit-game-button text-indigo-400 hover:text-indigo-300" data-game-id="${game.id}" title="Edit">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
+                            </button>
+                            <button class="delete-game-button text-red-400 hover:text-red-300" data-game-id="${game.id}" title="Hapus">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                gameListBody.appendChild(row);
+            });
+        };
+
+        const renderPagination = () => {
+            paginationContainer.innerHTML = '';
+            const totalPages = Math.ceil(filteredGames.length / pageSize);
+
+            if (totalPages <= 1) return;
+
+            const createButton = (text, page, isActive = false) => {
+                const button = document.createElement('button');
+                button.textContent = text;
+                button.className = `pagination-button bg-slate-700 text-slate-200 hover:bg-slate-600 rounded-lg py-2 px-3 transition-colors ${isActive ? 'active' : ''}`;
+                button.onclick = () => {
+                    currentPage = page;
+                    renderGameList();
+                    renderPagination();
+                };
+                return button;
+            };
+
+            const prevButton = document.createElement('button');
+            prevButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" /></svg>`;
+            prevButton.className = `pagination-button bg-slate-700 text-slate-200 hover:bg-slate-600 rounded-lg py-2 px-3 transition-colors`;
+            prevButton.disabled = currentPage === 1;
+            prevButton.onclick = () => {
+                currentPage--;
+                renderGameList();
+                renderPagination();
+            };
+            paginationContainer.appendChild(prevButton);
+
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            if (currentPage <= 3) {
+                endPage = Math.min(totalPages, 5);
+            } else if (currentPage > totalPages - 2) {
+                startPage = Math.max(1, totalPages - 4);
+            }
+
+            if (startPage > 1) {
+                paginationContainer.appendChild(createButton('1', 1));
+                if (startPage > 2) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    dots.className = 'text-slate-400 px-2';
+                    paginationContainer.appendChild(dots);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                paginationContainer.appendChild(createButton(i, i, i === currentPage));
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    dots.className = 'text-slate-400 px-2';
+                    paginationContainer.appendChild(dots);
+                }
+                paginationContainer.appendChild(createButton(totalPages, totalPages));
+            }
+
+            const nextButton = document.createElement('button');
+            nextButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>`;
+            nextButton.className = `pagination-button bg-slate-700 text-slate-200 hover:bg-slate-600 rounded-lg py-2 px-3 transition-colors`;
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.onclick = () => {
+                currentPage++;
+                renderGameList();
+                renderPagination();
+            };
+            paginationContainer.appendChild(nextButton);
+        };
+        
+        // Data and Logic
+        const setupRealtimeListener = () => {
+            const gameQuery = query(dbRef);
+            onSnapshot(gameQuery, (querySnapshot) => {
+                allGames = [];
+                querySnapshot.forEach((doc) => {
+                    allGames.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Get unique platforms and locations
+                platforms = [...new Set(allGames.map(game => game.platform))].sort();
+                locations = [...new Set(allGames.map(game => game.location))].sort();
+                
+                populateFilterOptions();
+                applyFilters();
+            }, (error) => {
+                console.error("Error fetching games:", error);
+                showToast("Gagal memuat data game.", true);
+            });
+        };
+
+        const populateFilterOptions = () => {
+             const filterPlatformSelect = document.getElementById('filter-platform');
+             filterPlatformSelect.innerHTML = '<option value="">Semua Platform</option>';
+             platforms.forEach(platform => {
+                const option = document.createElement('option');
+                option.value = platform;
+                option.textContent = platform;
+                filterPlatformSelect.appendChild(option);
+             });
+            
+            const filterLocationSelect = document.getElementById('filter-location');
+            filterLocationSelect.innerHTML = '<option value="">Semua Lokasi</option>';
+            locations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location;
+                filterLocationSelect.appendChild(option);
+            });
+
+            // Update bulk move select options as well
+            bulkMoveSelect.innerHTML = '';
+             locations.forEach(location => {
+                const option = document.createElement('option');
+                option.value = location;
+                option.textContent = location;
+                bulkMoveSelect.appendChild(option);
+            });
+        };
+
+        const applyFilters = () => {
+            const filterTitle = filterTitleInput.value.toLowerCase();
+            const filterPlatform = filterPlatformSelect.value;
+            const filterLocation = filterLocationSelect.value;
+            const filterStatus = filterStatusSelect.value;
+
+            filteredGames = allGames.filter(game => {
+                return (
+                    (filterTitle === '' || game.title.toLowerCase().includes(filterTitle)) &&
+                    (filterPlatform === '' || game.platform === filterPlatform) &&
+                    (filterLocation === '' || game.location === filterLocation) &&
+                    (filterStatus === '' || game.status === filterStatus)
+                );
+            });
+            currentPage = 1; // Reset to first page on filter
+            renderGameList();
+            renderPagination();
+        };
+        
+        const updateSelectionInfo = () => {
+            const count = selectedGameIds.size;
+            selectionInfo.textContent = count > 0 
+                ? `${count} game terpilih untuk aksi masal.`
+                : `Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.`;
+            bulkDeleteButton.disabled = count === 0;
+            bulkMoveButton.disabled = count === 0;
+        };
+        
+        const updateCharts = () => {
+            // Game per platform chart
+            const platformCounts = allGames.reduce((acc, game) => {
+                acc[game.platform] = (acc[game.platform] || 0) + 1;
+                return acc;
+            }, {});
+            if (platformChart) platformChart.destroy();
+            if(platformChartCtx) {
+                platformChart = new Chart(platformChartCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: Object.keys(platformCounts),
+                        datasets: [{
+                            data: Object.values(platformCounts),
+                            backgroundColor: ['#4f46e5', '#818cf8', '#a5b4fc', '#c7d2fe', '#e0e7ff'],
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#e2e8f0', // slate-200
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Game per location chart
+            const locationCounts = allGames.reduce((acc, game) => {
+                acc[game.location] = (acc[game.location] || 0) + 1;
+                return acc;
+            }, {});
+            if (locationChart) locationChart.destroy();
+            if(locationChartCtx) {
+                locationChart = new Chart(locationChartCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(locationCounts),
+                        datasets: [{
+                            data: Object.values(locationCounts),
+                            backgroundColor: ['#f97316', '#fdba74', '#fed7aa', '#ffedd5', '#fff7ed'],
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#e2e8f0', // slate-200
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Game per status chart
+            const statusCounts = allGames.reduce((acc, game) => {
+                acc[game.status] = (acc[game.status] || 0) + 1;
+                return acc;
+            }, {});
+            if (statusChart) statusChart.destroy();
+            if(statusChartCtx) {
+                statusChart = new Chart(statusChartCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(statusCounts),
+                        datasets: [{
+                            label: 'Jumlah Game',
+                            data: Object.values(statusCounts),
+                            backgroundColor: ['#22c55e', '#bef264', '#d9f99d'],
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#e2e8f0', // slate-200
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    color: '#94a3b8' // slate-400
+                                },
+                                grid: {
+                                     color: '#334155' // slate-700
+                                }
+                            },
+                             x: {
+                                ticks: {
+                                    color: '#94a3b8' // slate-400
+                                },
+                                grid: {
+                                     color: '#334155' // slate-700
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        };
+
+        const createGameModal = (game = {}) => {
+            const isEdit = !!game.id;
+            const title = isEdit ? 'Edit Game' : 'Tambah Game Baru';
+            const buttonText = isEdit ? 'Simpan Perubahan' : 'Tambah Game';
+            const formHtml = `
+                <form id="game-form" class="space-y-4">
+                    <div>
+                        <label for="game-title" class="block text-sm font-medium text-slate-300">Judul Game</label>
+                        <input type="text" id="game-title" value="${game.title || ''}" class="mt-1 block w-full rounded-md bg-slate-700 border-slate-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" required>
+                    </div>
+                    <div>
+                        <label for="game-platform" class="block text-sm font-medium text-slate-300">Platform</label>
+                        <input type="text" id="game-platform" value="${game.platform || ''}" list="platform-list" class="mt-1 block w-full rounded-md bg-slate-700 border-slate-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" required>
+                        <datalist id="platform-list">
+                           ${platforms.map(p => `<option value="${p}">`).join('')}
+                        </datalist>
+                    </div>
+                    <div>
+                        <label for="game-location" class="block text-sm font-medium text-slate-300">Lokasi</label>
+                        <input type="text" id="game-location" value="${game.location || ''}" list="location-list" class="mt-1 block w-full rounded-md bg-slate-700 border-slate-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" required>
+                        <datalist id="location-list">
+                            ${locations.map(l => `<option value="${l}">`).join('')}
+                        </datalist>
+                    </div>
+                    <div>
+                        <label for="game-status" class="block text-sm font-medium text-slate-300">Status</label>
+                        <select id="game-status" class="mt-1 block w-full rounded-md bg-slate-700 border-slate-600 text-white shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2" required>
+                            <option value="Dimainkan" ${game.status === 'Dimainkan' ? 'selected' : ''}>Dimainkan</option>
+                            <option value="Belum dimainkan" ${game.status === 'Belum dimainkan' ? 'selected' : ''}>Belum dimainkan</option>
+                            <option value="Selesai" ${game.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                        </select>
+                    </div>
+                </form>
+            `;
+            const actions = [
+                Object.assign(document.createElement('button'), {
+                    textContent: 'Batal',
+                    className: 'bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg',
+                    onclick: hideModal
+                }),
+                Object.assign(document.createElement('button'), {
+                    textContent: buttonText,
+                    className: 'bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg',
+                    onclick: async () => {
+                        const form = document.getElementById('game-form');
+                        if (!form.checkValidity()) {
+                            form.reportValidity();
+                            return;
+                        }
+                        const gameData = {
+                            title: document.getElementById('game-title').value,
+                            platform: document.getElementById('game-platform').value,
+                            location: document.getElementById('game-location').value,
+                            status: document.getElementById('game-status').value
+                        };
+                        try {
+                            if (isEdit) {
+                                await updateDoc(doc(dbRef, game.id), gameData);
+                                showToast("Game berhasil diperbarui!");
+                            } else {
+                                await addDoc(dbRef, gameData);
+                                showToast("Game berhasil ditambahkan!");
+                            }
+                            hideModal();
+                        } catch (e) {
+                            console.error("Error adding/updating document: ", e);
+                            showToast("Terjadi kesalahan saat menyimpan game.", true);
+                        }
+                    }
+                })
+            ];
+            showModal(title, formHtml, actions);
+        };
+        
+        const deleteGameModal = (gameId) => {
+            const actions = [
+                 Object.assign(document.createElement('button'), {
+                    textContent: 'Batal',
+                    className: 'bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg',
+                    onclick: hideModal
+                }),
+                Object.assign(document.createElement('button'), {
+                    textContent: 'Hapus',
+                    className: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg',
+                    onclick: async () => {
+                        try {
+                            await deleteDoc(doc(dbRef, gameId));
+                            showToast("Game berhasil dihapus.");
+                            hideModal();
+                        } catch (e) {
+                            console.error("Error removing document: ", e);
+                            showToast("Terjadi kesalahan saat menghapus game.", true);
+                        }
+                    }
+                })
+            ];
+            showModal('Konfirmasi Hapus', 'Apakah Anda yakin ingin menghapus game ini?', actions);
+        };
+        
+        const bulkDeleteModal = () => {
+            const count = selectedGameIds.size;
+             if (count === 0) {
+                 showToast("Tidak ada game yang dipilih.", true);
+                 return;
+            }
+            const actions = [
+                 Object.assign(document.createElement('button'), {
+                    textContent: 'Batal',
+                    className: 'bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg',
+                    onclick: hideModal
+                }),
+                Object.assign(document.createElement('button'), {
+                    textContent: `Hapus ${count} Game`,
+                    className: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg',
+                    onclick: async () => {
+                        try {
+                            const batch = writeBatch(db);
+                            selectedGameIds.forEach(id => {
+                                batch.delete(doc(dbRef, id));
+                            });
+                            await batch.commit();
+                            selectedGameIds.clear(); // Clear the set after successful deletion
+                            updateSelectionInfo();
+                            showToast(`${count} game berhasil dihapus.`);
+                            hideModal();
+                        } catch (e) {
+                            console.error("Error bulk deleting documents: ", e);
+                            showToast("Terjadi kesalahan saat menghapus game.", true);
+                        }
+                    }
+                })
+            ];
+            showModal('Hapus Game Terpilih', `Apakah Anda yakin ingin menghapus ${count} game yang telah dipilih? Aksi ini tidak dapat dibatalkan.`, actions);
+        };
+        
+         const bulkMoveModal = () => {
+            const count = selectedGameIds.size;
+            if (count === 0) {
+                showToast("Tidak ada game yang dipilih.", true);
+                return;
+            }
+
+            const targetLocation = bulkMoveSelect.value;
+            if (!targetLocation) {
+                showToast("Pilih lokasi tujuan terlebih dahulu.", true);
+                return;
+            }
+
+            const actions = [
+                Object.assign(document.createElement('button'), {
+                    textContent: 'Batal',
+                    className: 'bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg',
+                    onclick: hideModal
+                }),
+                Object.assign(document.createElement('button'), {
+                    textContent: `Pindahkan ${count} Game`,
+                    className: 'bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg',
+                    onclick: async () => {
+                        try {
+                            const batch = writeBatch(db);
+                            selectedGameIds.forEach(id => {
+                                batch.update(doc(dbRef, id), { location: targetLocation });
+                            });
+                            await batch.commit();
+                            selectedGameIds.clear(); // Clear the set after successful move
+                            updateSelectionInfo();
+                            showToast(`${count} game berhasil dipindahkan ke ${targetLocation}.`);
+                            hideModal();
+                        } catch (e) {
+                            console.error("Error bulk moving documents: ", e);
+                            showToast("Terjadi kesalahan saat memindahkan game.", true);
+                        }
+                    }
+                })
+            ];
+            showModal('Pindahkan Game Terpilih', `Apakah Anda yakin ingin memindahkan ${count} game ke lokasi "${targetLocation}"?`, actions);
+        };
+
+        // Event Listeners
+        window.addEventListener('load', async () => {
+             // Handle Firebase Authentication
+             const auth = getAuth(app);
+             onAuthStateChanged(auth, (user) => {
+                 if (user) {
+                     showApp(user);
+                 } else {
+                     showLogin();
+                 }
+             });
+
+             try {
+                 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+                 if (initialAuthToken) {
+                     await signInWithCustomToken(auth, initialAuthToken);
+                 } else {
+                     await signInAnonymously(auth);
+                 }
+             } catch (error) {
+                 console.error("Error during authentication:", error);
+                 showToast(`Error: ${error.message}`, true);
+             }
+         });
+
+
+        loginButton.addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Login failed:", error);
+                showToast("Login gagal. Silakan coba lagi.", true);
+            }
+        });
+
+        logoutButton.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                showToast("Berhasil keluar.");
+            } catch (error) {
+                console.error("Logout failed:", error);
+                showToast("Logout gagal. Silakan coba lagi.", true);
+            }
+        });
+        
+        openSidebarButton.addEventListener('click', openSidebar);
+        closeSidebarButton.addEventListener('click', closeSidebar);
+        mobileMenuBackdrop.addEventListener('click', closeSidebar);
+
+        tabsContainer.addEventListener('click', (e) => {
+            const button = e.target.closest('.tab-button');
+            if (button) {
+                switchTab(button.dataset.tab);
+                closeSidebar();
+            }
+        });
+
+        addGameButton.addEventListener('click', () => createGameModal());
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.edit-game-button')) {
+                const gameId = e.target.closest('.edit-game-button').dataset.gameId;
+                const gameToEdit = allGames.find(g => g.id === gameId);
+                if (gameToEdit) {
+                    createGameModal(gameToEdit);
+                }
+            } else if (e.target.closest('.delete-game-button')) {
+                const gameId = e.target.closest('.delete-game-button').dataset.gameId;
+                deleteGameModal(gameId);
+            }
+        });
+
+        filterTitleInput.addEventListener('input', applyFilters);
+        filterPlatformSelect.addEventListener('change', applyFilters);
+        filterLocationSelect.addEventListener('change', applyFilters);
+        filterStatusSelect.addEventListener('change', applyFilters);
+
+        selectAllCheckbox.addEventListener('change', (e) => {
+            const isChecked = e.target.checked;
+            const checkboxes = document.querySelectorAll('.game-checkbox');
+            checkboxes.forEach(cb => {
+                const gameId = cb.dataset.gameId;
+                cb.checked = isChecked;
+                if (isChecked) {
+                    selectedGameIds.add(gameId);
+                } else {
+                    selectedGameIds.delete(gameId);
+                }
+            });
+            updateSelectionInfo();
+        });
+
+        gameListBody.addEventListener('change', (e) => {
+            if (e.target.classList.contains('game-checkbox')) {
+                const gameId = e.target.dataset.gameId;
+                if (e.target.checked) {
+                    selectedGameIds.add(gameId);
+                } else {
+                    selectedGameIds.delete(gameId);
+                }
+                updateSelectionInfo();
+            }
+        });
+        
+        bulkDeleteButton.addEventListener('click', bulkDeleteModal);
+        bulkMoveButton.addEventListener('click', bulkMoveModal);
+
+        downloadJsonButton.addEventListener('click', () => {
+            const dataStr = JSON.stringify(allGames.map(({ id, ...rest }) => rest), null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'koleksi-game.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("Data game berhasil diekspor.");
+        });
+
+        importJsonButton.addEventListener('click', () => {
+            jsonFileInput.click();
+        });
+
+        jsonFileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const importedGames = JSON.parse(event.target.result);
+                    if (!Array.isArray(importedGames)) {
+                        showToast("File JSON harus berisi sebuah array.", true);
+                        return;
+                    }
+                    
+                    const actions = [
+                        Object.assign(document.createElement('button'), {
+                            textContent: 'Batal',
+                            className: 'bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg',
+                            onclick: hideModal
+                        }),
+                        Object.assign(document.createElement('button'), {
+                            textContent: 'Lanjutkan',
+                            className: 'bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg',
+                            onclick: async () => {
+                                hideModal();
+                                try {
+                                    const batch = writeBatch(db);
+                                    importedGames.forEach(game => {
+                                        if (game.title && game.platform && game.location && game.status) {
+                                            const newGameRef = doc(collection(db, 'artifacts', appId, 'users', currentUser.uid, 'userGames'));
+                                            batch.set(newGameRef, game);
+                                        }
+                                    });
+                                    await batch.commit();
+                                    showToast(`${importedGames.length} game berhasil diimpor.`);
+                                } catch (error) {
+                                    console.error("Error importing JSON: ", error);
+                                    showToast(`Gagal mengimpor: ${error.message}`, true);
+                                }
+                            }
+                        })
+                    ];
+                    showModal('Konfirmasi Impor', `Anda akan mengimpor ${importedGames.length} game. Lanjutkan?`, actions);
+                    
+                } catch (error) {
+                    console.error("Error importing JSON: ", error);
+                    showToast(`Gagal mengimpor: ${error.message}`, true);
+                } finally {
+                    jsonFileInput.value = '';
+                }
+            };
+            reader.readAsText(file);
+        });
+    </script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -59,6 +874,20 @@
 </head>
 <body class="antialiased">
 
+    <!-- Modal Container -->
+    <div id="modal-container" class="fixed inset-0 modal-backdrop flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md mx-auto transform scale-95 md:scale-100 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="modal-title" class="text-xl font-bold"></h3>
+                <button onclick="hideModal()" class="text-slate-400 hover:text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div id="modal-content" class="text-slate-300 mb-6"></div>
+            <div id="modal-actions" class="flex justify-end space-x-2"></div>
+        </div>
+    </div>
+    
     <!-- Login Screen -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md bg-slate-800 rounded-2xl shadow-2xl p-8 text-center">
@@ -112,6 +941,7 @@
                         <img id="user-photo" src="https://placehold.co/40x40/e2e8f0/e2e8f0" alt="User Photo" class="w-10 h-10 rounded-full">
                         <div>
                             <p id="user-name" class="font-semibold text-sm text-white">Guest User</p>
+                            <p id="user-id-display" class="text-xs text-slate-500 truncate">ID Pengguna: loading...</p>
                             <button id="logout-button" class="text-xs text-red-400 hover:text-red-300">Keluar</button>
                         </div>
                     </div>
@@ -148,11 +978,9 @@
                             <input id="filter-title" type="text" placeholder="Filter berdasarkan judul..." class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                             <select id="filter-platform" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                 <option value="">Semua Platform</option>
-                                <option>Steam</option><option>Epic</option><option>GOG</option><option>PCSX</option><option>Crack</option>
                             </select>
                             <select id="filter-location" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                 <option value="">Semua Lokasi</option>
-                                <option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option>
                             </select>
                             <select id="filter-status" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                 <option value="">Semua Status</option>
@@ -187,24 +1015,21 @@
                 <div id="tab-stats" class="tab-content hidden">
                      <h2 class="text-2xl sm:text-3xl font-bold mb-6">Statistik Game</h2>
                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <!-- Chart container for platforms -->
-                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                             <h3 class="font-bold text-xl text-center mb-4">Game per Platform</h3>
-                            <div class="relative h-64 w-64">
+                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
                                 <canvas id="platform-chart"></canvas>
                             </div>
                         </div>
-                        <!-- Chart container for locations -->
-                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg flex flex-col items-center justify-center">
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                             <h3 class="font-bold text-xl text-center mb-4">Game per Lokasi</h3>
-                            <div class="relative h-64 w-64">
+                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
                                 <canvas id="location-chart"></canvas>
                             </div>
                         </div>
-                        <!-- Chart container for status -->
-                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg col-span-1 lg:col-span-2 flex flex-col items-center justify-center">
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg col-span-1 lg:col-span-2">
                              <h3 class="font-bold mb-4 text-xl text-center">Status Permainan</h3>
-                            <div class="relative w-full max-w-4xl h-72">
+                            <div class="relative h-64 w-full mx-auto" style="max-width: 800px;">
                                 <canvas id="status-chart"></canvas>
                             </div>
                         </div>
@@ -214,864 +1039,56 @@
                 <!-- Tab: Aksi Masal -->
                 <div id="tab-bulk" class="tab-content hidden">
                      <h2 class="text-2xl sm:text-3xl font-bold mb-6">Aksi Masal</h2>
-                     <div class="bg-slate-800 p-6 rounded-xl shadow-lg mb-6">
+                     <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                         <h3 class="font-bold text-xl mb-4">Tindakan untuk Game Terpilih</h3>
                         <p id="selection-info" class="text-slate-400 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.</p>
-                        <div class="flex flex-col sm:flex-row gap-4">
-                           <button id="bulk-delete-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:bg-red-800 disabled:cursor-not-allowed" disabled>
-                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
-                               Hapus Game Terpilih
-                           </button>
-                           <!-- New button for bulk move location -->
-                           <button id="bulk-move-location-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:bg-blue-800 disabled:cursor-not-allowed" disabled>
-                               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.261l-2.48 2.052a1 1 0 01-1.298 0l-2.48-2.052H5a2 2 0 01-2-2V5zm10 2a1 1 0 11-2 0 1 1 0 012 0zm-4 0a1 1 0 11-2 0 1 1 0 012 0zm0 4a1 1 0 100 2h4a1 1 0 100-2h-4z" clip-rule="evenodd" /></svg>
-                               Pindah Lokasi Terpilih
-                           </button>
-                        </div>
-                     </div>
-                </div>
-
-                <!-- Tab: Manajemen Data -->
-                <div id="tab-manage" class="tab-content hidden">
-                    <h2 class="text-2xl sm:text-3xl font-bold mb-6">Manajemen Data</h2>
-                    <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 class="font-bold text-xl mb-2">Ekspor Data</h3>
-                                <p class="text-slate-400 mb-4">Unduh semua koleksi game Anda sebagai file JSON.</p>
-                                <button id="download-json-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                                    Unduh File JSON
+                        <div class="flex flex-col sm:flex-row gap-4 mb-4 items-center">
+                            <button id="bulk-delete-button" class="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:bg-red-800 disabled:cursor-not-allowed" disabled>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                                Hapus Game Terpilih
+                            </button>
+                            <div class="flex items-center w-full sm:w-auto space-x-2">
+                                <label for="bulk-move-select" class="text-sm font-medium whitespace-nowrap">Pindah ke:</label>
+                                <select id="bulk-move-select" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    <option value="">Pilih Lokasi</option>
+                                    <!-- Options populated by JS -->
+                                </select>
+                                <button id="bulk-move-button" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:bg-indigo-800 disabled:cursor-not-allowed" disabled>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
                                 </button>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-xl mb-2">Impor Data</h3>
-                                <p class="text-slate-400 mb-4">Unggah file JSON untuk menambahkan game ke koleksi Anda. (Perhatian: file harus dalam format yang benar)</p>
-                                <label for="json-file-input" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 cursor-pointer">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
-                                    Pilih File JSON
-                                </label>
-                                <input id="json-file-input" type="file" accept=".json" class="hidden">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Toast Notification Container -->
-                <div id="toast-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+                <!-- Tab: Manajemen Data -->
+                <div id="tab-manage" class="tab-content hidden">
+                     <h2 class="text-2xl sm:text-3xl font-bold mb-6">Manajemen Data</h2>
+                     <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 class="font-bold text-xl mb-2">Ekspor Data</h3>
+                                <p class="text-slate-400 mb-4">Unduh semua koleksi game Anda sebagai file JSON.</p>
+                                <button id="download-json-button" class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                    Ekspor JSON
+                                </button>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-xl mb-2">Impor Data</h3>
+                                <p class="text-slate-400 mb-4">Unggah file JSON untuk menambahkan game ke koleksi Anda.</p>
+                                <input type="file" id="json-file-input" class="hidden" accept=".json">
+                                <button id="import-json-button" class="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" transform="rotate(180 10 10)" /></svg>
+                                    Impor JSON
+                                </button>
+                            </div>
+                        </div>
+                     </div>
+                </div>
+
             </main>
         </div>
     </div>
-    
-    <!-- Modal for Add/Edit Game -->
-    <div id="game-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
-        <div class="bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-lg relative">
-            <h3 id="modal-title" class="text-2xl font-bold mb-4">Tambah Game Baru</h3>
-            <button id="close-modal-button" class="absolute top-4 right-4 text-slate-400 hover:text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-            <form id="game-form" class="space-y-4">
-                <div>
-                    <label for="game-title" class="block text-sm font-medium text-slate-400">Judul Game</label>
-                    <input type="text" id="game-title" class="mt-1 block w-full rounded-lg bg-slate-700 border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 p-2" required>
-                </div>
-                <div>
-                    <label for="game-platform" class="block text-sm font-medium text-slate-400">Platform</label>
-                    <input type="text" id="game-platform" class="mt-1 block w-full rounded-lg bg-slate-700 border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 p-2" required>
-                </div>
-                <div>
-                    <label for="game-location" class="block text-sm font-medium text-slate-400">Lokasi</label>
-                    <input type="text" id="game-location" class="mt-1 block w-full rounded-lg bg-slate-700 border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 p-2" required>
-                </div>
-                <div>
-                    <label for="game-status" class="block text-sm font-medium text-slate-400">Status</label>
-                    <select id="game-status" class="mt-1 block w-full rounded-lg bg-slate-700 border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 p-2" required>
-                        <option value="Dimainkan">Dimainkan</option>
-                        <option value="Belum dimainkan">Belum dimainkan</option>
-                        <option value="Selesai">Selesai</option>
-                    </select>
-                </div>
-                <div class="flex justify-end pt-4">
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Simpan Game</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Modal for Move Location -->
-    <div id="move-location-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
-        <div class="bg-slate-800 rounded-xl shadow-2xl p-6 w-full max-w-lg relative">
-            <h3 class="text-2xl font-bold mb-4">Pindahkan Lokasi Game Terpilih</h3>
-            <button id="close-move-location-modal-button" class="absolute top-4 right-4 text-slate-400 hover:text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-            <form id="move-location-form" class="space-y-4">
-                <div>
-                    <label for="new-game-location" class="block text-sm font-medium text-slate-400">Pilih Lokasi Baru</label>
-                    <select id="new-game-location" class="mt-1 block w-full rounded-lg bg-slate-700 border-slate-600 focus:border-indigo-500 focus:ring-indigo-500 p-2" required>
-                        <option value="HDD Eksternal 2TB">HDD Eksternal 2TB</option>
-                        <option value="HDD Eksternal 4TB">HDD Eksternal 4TB</option>
-                        <option value="Internal SSD">Internal SSD</option>
-                        <option value="Belum Install">Belum Install</option>
-                    </select>
-                </div>
-                <div class="flex justify-end pt-4">
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">Pindahkan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, collection, onSnapshot, getDoc, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Global variables provided by the Canvas environment
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-        // Initialize Firebase
-        let app, db, auth, currentUser;
-        
-        try {
-            app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-        } catch (error) {
-            console.error("Error initializing Firebase:", error);
-        }
-        
-        // UI Elements
-        const loginScreen = document.getElementById('login-screen');
-        const appScreen = document.getElementById('app-screen');
-        const loginButton = document.getElementById('login-button');
-        const logoutButton = document.getElementById('logout-button');
-        const userPhoto = document.getElementById('user-photo');
-        const userName = document.getElementById('user-name');
-        const toastContainer = document.getElementById('toast-container');
-        const tabButtons = document.querySelectorAll('.tab-button');
-        const tabContents = document.querySelectorAll('.tab-content');
-        const gameListBody = document.getElementById('game-list-body');
-        const addGameButton = document.getElementById('add-game-button');
-        const gameModal = document.getElementById('game-modal');
-        const closeModalButton = document.getElementById('close-modal-button');
-        const modalTitle = document.getElementById('modal-title');
-        const gameForm = document.getElementById('game-form');
-        const gameTitleInput = document.getElementById('game-title');
-        const gamePlatformInput = document.getElementById('game-platform');
-        const gameLocationInput = document.getElementById('game-location');
-        const gameStatusInput = document.getElementById('game-status');
-        const filterTitle = document.getElementById('filter-title');
-        const filterPlatform = document.getElementById('filter-platform');
-        const filterLocation = document.getElementById('filter-location');
-        const filterStatus = document.getElementById('filter-status');
-        const paginationContainer = document.getElementById('pagination-container');
-        const selectAllCheckbox = document.getElementById('select-all-checkbox');
-        const bulkDeleteButton = document.getElementById('bulk-delete-button');
-        const bulkMoveLocationButton = document.getElementById('bulk-move-location-button');
-        const selectionInfo = document.getElementById('selection-info');
-        const downloadJsonButton = document.getElementById('download-json-button');
-        const jsonFileInput = document.getElementById('json-file-input');
-        const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
-        const sidebar = document.getElementById('sidebar');
-        const openSidebarButton = document.getElementById('open-sidebar-button');
-        const closeSidebarButton = document.getElementById('close-sidebar-button');
-
-        // New modal and form elements for bulk move
-        const moveLocationModal = document.getElementById('move-location-modal');
-        const closeMoveLocationModalButton = document.getElementById('close-move-location-modal-button');
-        const moveLocationForm = document.getElementById('move-location-form');
-        const newGameLocationSelect = document.getElementById('new-game-location');
-        let selectedGameIds = new Set();
-        let currentEditingGameId = null;
-        let allGames = [];
-        let filteredGames = [];
-        let currentPage = 1;
-        const gamesPerPage = 10;
-        let platformChart, locationChart, statusChart;
-        let gameLocations = new Set(['HDD Eksternal 2TB', 'HDD Eksternal 4TB', 'Internal SSD', 'Belum Install']);
-        let gamePlatforms = new Set(['Steam', 'Epic', 'GOG', 'PCSX', 'Crack']);
-
-        // --- Utility Functions ---
-
-        function showToast(message, isError = false) {
-            const toast = document.createElement('div');
-            toast.className = `p-4 rounded-lg shadow-xl text-white ${isError ? 'bg-red-600' : 'bg-green-600'} transition-opacity duration-300 opacity-0`;
-            toast.textContent = message;
-            toastContainer.appendChild(toast);
-            
-            setTimeout(() => toast.classList.add('opacity-100'), 100);
-            setTimeout(() => {
-                toast.classList.remove('opacity-100');
-                toast.classList.add('opacity-0');
-                toast.addEventListener('transitionend', () => toast.remove());
-            }, 5000);
-        }
-
-        // Handle modal opening and closing
-        function openModal(modal) {
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal(modal) {
-            modal.classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-
-        // Function to render the game list
-        function renderGameList() {
-            gameListBody.innerHTML = '';
-            const startIndex = (currentPage - 1) * gamesPerPage;
-            const endIndex = startIndex + gamesPerPage;
-            const paginatedGames = filteredGames.slice(startIndex, endIndex);
-
-            if (paginatedGames.length === 0) {
-                gameListBody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-400">Tidak ada game yang ditemukan.</td></tr>';
-                return;
-            }
-
-            paginatedGames.forEach(game => {
-                const row = document.createElement('tr');
-                row.className = 'border-b border-slate-700 last:border-b-0 hover:bg-slate-700 transition-colors';
-                row.innerHTML = `
-                    <td class="p-4"><input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-slate-600 border-slate-500" ${selectedGameIds.has(game.id) ? 'checked' : ''}></td>
-                    <td class="p-4 font-medium">${game.title}</td>
-                    <td class="p-4 text-slate-400">${game.platform}</td>
-                    <td class="p-4 text-slate-400">${game.location}</td>
-                    <td class="p-4">
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold
-                            ${game.status === 'Dimainkan' ? 'bg-blue-800 text-blue-200' : ''}
-                            ${game.status === 'Belum dimainkan' ? 'bg-yellow-800 text-yellow-200' : ''}
-                            ${game.status === 'Selesai' ? 'bg-green-800 text-green-200' : ''}">
-                            ${game.status}
-                        </span>
-                    </td>
-                    <td class="p-4">
-                        <button class="edit-game-button text-blue-400 hover:text-blue-200 mr-2" data-id="${game.id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" viewBox="0 0 20 20" fill="currentColor"><path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" /></svg>
-                        </button>
-                        <button class="delete-game-button text-red-400 hover:text-red-200" data-id="${game.id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
-                        </button>
-                    </td>
-                `;
-                gameListBody.appendChild(row);
-            });
-            updateBulkButtons();
-        }
-        
-        // Function to render pagination
-        function renderPagination() {
-            paginationContainer.innerHTML = '';
-            const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
-
-            if (totalPages <= 1) return;
-
-            const createButton = (page, text, disabled) => {
-                const button = document.createElement('button');
-                button.className = `pagination-button bg-slate-700 text-slate-300 hover:bg-slate-600 font-medium py-2 px-4 rounded-lg transition-colors duration-200 ${page === currentPage ? 'active' : ''} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
-                button.textContent = text;
-                button.disabled = disabled;
-                button.addEventListener('click', () => {
-                    if (!disabled) {
-                        currentPage = page;
-                        renderGameList();
-                        renderPagination();
-                    }
-                });
-                return button;
-            };
-
-            // Previous button
-            paginationContainer.appendChild(createButton(currentPage - 1, '«', currentPage === 1));
-
-            // Page number buttons
-            const startPage = Math.max(1, currentPage - 2);
-            const endPage = Math.min(totalPages, currentPage + 2);
-
-            for (let i = startPage; i <= endPage; i++) {
-                paginationContainer.appendChild(createButton(i, i, false));
-            }
-
-            if (startPage > 1) {
-                if (startPage > 2) {
-                     const spacer = document.createElement('span');
-                     spacer.textContent = '...';
-                     spacer.className = 'mx-2';
-                     paginationContainer.insertBefore(spacer, paginationContainer.children[1]);
-                }
-                paginationContainer.insertBefore(createButton(1, 1, false), paginationContainer.children[1]);
-            }
-
-            if (endPage < totalPages) {
-                if (endPage < totalPages - 1) {
-                     const spacer = document.createElement('span');
-                     spacer.textContent = '...';
-                     spacer.className = 'mx-2';
-                     paginationContainer.insertBefore(spacer, paginationContainer.children[paginationContainer.children.length - 1]);
-                }
-                paginationContainer.insertBefore(createButton(totalPages, totalPages, false), paginationContainer.children[paginationContainer.children.length - 1]);
-            }
-
-            // Next button
-            paginationContainer.appendChild(createButton(currentPage + 1, '»', currentPage === totalPages));
-        }
-
-        // Function to handle filtering and sorting
-        function applyFilters() {
-            const title = filterTitle.value.toLowerCase();
-            const platform = filterPlatform.value;
-            const location = filterLocation.value;
-            const status = filterStatus.value;
-            
-            filteredGames = allGames.filter(game => {
-                const matchesTitle = game.title.toLowerCase().includes(title);
-                const matchesPlatform = platform ? game.platform === platform : true;
-                const matchesLocation = location ? game.location === location : true;
-                const matchesStatus = status ? game.status === status : true;
-                return matchesTitle && matchesPlatform && matchesLocation && matchesStatus;
-            });
-
-            // Sort filtered games alphabetically by title
-            filteredGames.sort((a, b) => a.title.localeCompare(b.title));
-
-            currentPage = 1;
-            renderGameList();
-            renderPagination();
-        }
-
-        // Function to create a pie chart
-        function createPieChart(canvasId, labels, data) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            return new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: [
-                            '#4f46e5', // indigo-600
-                            '#14b8a6', // teal-500
-                            '#eab308', // yellow-500
-                            '#f43f5e', // rose-500
-                            '#6366f1', // indigo-500
-                            '#0d9488', // teal-600
-                            '#ca8a04', // yellow-600
-                            '#e11d48' // rose-600
-                        ],
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right', // Place legend on the right
-                            labels: {
-                                color: '#e2e8f0', // slate-200
-                                font: {
-                                    family: 'Inter'
-                                }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: '#334155', // slate-700
-                            titleColor: '#f8fafc', // slate-50
-                            bodyColor: '#e2e8f0', // slate-200
-                            borderColor: '#475569', // slate-600
-                            borderWidth: 1,
-                            cornerRadius: 6,
-                            padding: 10
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Function to create a bar chart
-        function createBarChart(canvasId, labels, data) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            return new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Jumlah Game',
-                        data: data,
-                        backgroundColor: [
-                            '#4f46e5', // indigo-600
-                            '#14b8a6', // teal-500
-                            '#eab308', // yellow-500
-                        ],
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false // Hide legend
-                        },
-                        tooltip: {
-                            backgroundColor: '#334155', // slate-700
-                            titleColor: '#f8fafc', // slate-50
-                            bodyColor: '#e2e8f0', // slate-200
-                            borderColor: '#475569', // slate-600
-                            borderWidth: 1,
-                            cornerRadius: 6,
-                            padding: 10
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: {
-                                color: '#e2e8f0' // slate-200
-                            },
-                            grid: {
-                                color: 'rgba(71, 85, 105, 0.5)' // slate-600 with transparency
-                            }
-                        },
-                        y: {
-                            ticks: {
-                                color: '#e2e8f0', // slate-200
-                                precision: 0 // Show integer values
-                            },
-                            grid: {
-                                color: 'rgba(71, 85, 105, 0.5)' // slate-600 with transparency
-                            }
-                        }
-                    }
-                }
-            });
-        }
-        
-        // Function to update charts with new data
-        function updateCharts() {
-            if (platformChart) platformChart.destroy();
-            if (locationChart) locationChart.destroy();
-            if (statusChart) statusChart.destroy();
-
-            // Prepare data for charts
-            const platformCounts = allGames.reduce((acc, game) => {
-                acc[game.platform] = (acc[game.platform] || 0) + 1;
-                return acc;
-            }, {});
-            const locationCounts = allGames.reduce((acc, game) => {
-                acc[game.location] = (acc[game.location] || 0) + 1;
-                return acc;
-            }, {});
-            const statusCounts = allGames.reduce((acc, game) => {
-                acc[game.status] = (acc[game.status] || 0) + 1;
-                return acc;
-            }, {});
-
-            // Sort and get labels and data
-            const platforms = Object.keys(platformCounts).sort();
-            const platformData = platforms.map(p => platformCounts[p]);
-            
-            const locations = Object.keys(locationCounts).sort();
-            const locationData = locations.map(l => locationCounts[l]);
-
-            const statuses = Object.keys(statusCounts).sort();
-            const statusData = statuses.map(s => statusCounts[s]);
-
-            platformChart = createPieChart('platform-chart', platforms, platformData);
-            locationChart = createPieChart('location-chart', locations, locationData);
-            statusChart = createBarChart('status-chart', statuses, statusData);
-        }
-
-        // Update bulk action button states
-        function updateBulkButtons() {
-            const hasSelection = selectedGameIds.size > 0;
-            bulkDeleteButton.disabled = !hasSelection;
-            bulkMoveLocationButton.disabled = !hasSelection;
-            selectionInfo.textContent = hasSelection ? `${selectedGameIds.size} game terpilih.` : `Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.`;
-        }
-
-        // Populate filter dropdowns dynamically
-        function updateFilterOptions() {
-            const uniquePlatforms = new Set();
-            const uniqueLocations = new Set();
-
-            allGames.forEach(game => {
-                uniquePlatforms.add(game.platform);
-                uniqueLocations.add(game.location);
-            });
-
-            // Populate Platform filter
-            filterPlatform.innerHTML = '<option value="">Semua Platform</option>';
-            Array.from(uniquePlatforms).sort().forEach(platform => {
-                const option = document.createElement('option');
-                option.textContent = platform;
-                option.value = platform;
-                filterPlatform.appendChild(option);
-            });
-
-            // Populate Location filter and new location modal select
-            filterLocation.innerHTML = '<option value="">Semua Lokasi</option>';
-            newGameLocationSelect.innerHTML = '';
-            Array.from(uniqueLocations).sort().forEach(location => {
-                const optionFilter = document.createElement('option');
-                optionFilter.textContent = location;
-                optionFilter.value = location;
-                filterLocation.appendChild(optionFilter);
-
-                const optionModal = document.createElement('option');
-                optionModal.textContent = location;
-                optionModal.value = location;
-                newGameLocationSelect.appendChild(optionModal);
-            });
-        }
-        
-
-        // --- Event Listeners ---
-
-        // Login with Google
-        loginButton.addEventListener('click', async () => {
-            const provider = new GoogleAuthProvider();
-            try {
-                await signInWithPopup(auth, provider);
-                // Auth state change handler will take care of UI
-            } catch (error) {
-                showToast(`Gagal login: ${error.message}`, true);
-            }
-        });
-        
-        // Logout
-        logoutButton.addEventListener('click', async () => {
-            await signOut(auth);
-            // Auth state change handler will take care of UI
-        });
-
-        // Tab switching
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetTab = button.dataset.tab;
-                tabButtons.forEach(btn => btn.classList.replace('tab-active', 'tab-inactive'));
-                button.classList.replace('tab-inactive', 'tab-active');
-
-                tabContents.forEach(content => {
-                    content.classList.add('hidden');
-                    if (content.id === targetTab) {
-                        content.classList.remove('hidden');
-                        if (targetTab === 'tab-stats') {
-                            updateCharts();
-                        }
-                    }
-                });
-            });
-        });
-
-        // Add game button
-        addGameButton.addEventListener('click', () => {
-            modalTitle.textContent = 'Tambah Game Baru';
-            gameForm.reset();
-            currentEditingGameId = null;
-            openModal(gameModal);
-        });
-        
-        // Close modal button
-        closeModalButton.addEventListener('click', () => closeModal(gameModal));
-
-        // Game form submission
-        gameForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const gameData = {
-                title: gameTitleInput.value,
-                platform: gamePlatformInput.value,
-                location: gameLocationInput.value,
-                status: gameStatusInput.value,
-                timestamp: new Date().toISOString()
-            };
-
-            const gamesCollection = collection(db, `artifacts/${appId}/users/${currentUser.uid}/games`);
-            
-            try {
-                if (currentEditingGameId) {
-                    // Update existing game
-                    const gameRef = doc(gamesCollection, currentEditingGameId);
-                    await updateDoc(gameRef, gameData);
-                    showToast('Game berhasil diperbarui.');
-                } else {
-                    // Add new game
-                    await addDoc(gamesCollection, gameData);
-                    showToast('Game berhasil ditambahkan.');
-                }
-                closeModal(gameModal);
-            } catch (error) {
-                console.error("Error adding/updating document: ", error);
-                showToast(`Gagal menyimpan game: ${error.message}`, true);
-            }
-        });
-
-        // Event delegation for edit and delete buttons on the game list
-        gameListBody.addEventListener('click', async (e) => {
-            if (e.target.closest('.edit-game-button')) {
-                const gameId = e.target.closest('.edit-game-button').dataset.id;
-                const game = allGames.find(g => g.id === gameId);
-                if (game) {
-                    currentEditingGameId = gameId;
-                    modalTitle.textContent = `Edit Game: ${game.title}`;
-                    gameTitleInput.value = game.title;
-                    gamePlatformInput.value = game.platform;
-                    gameLocationInput.value = game.location;
-                    gameStatusInput.value = game.status;
-                    openModal(gameModal);
-                }
-            }
-            if (e.target.closest('.delete-game-button')) {
-                const gameId = e.target.closest('.delete-game-button').dataset.id;
-                try {
-                    // Use a custom modal instead of a browser confirm dialog
-                    if (window.confirm("Apakah Anda yakin ingin menghapus game ini?")) {
-                       const gamesCollection = collection(db, `artifacts/${appId}/users/${currentUser.uid}/games`);
-                       await deleteDoc(doc(gamesCollection, gameId));
-                       showToast('Game berhasil dihapus.');
-                    }
-                } catch (error) {
-                    console.error("Error deleting document: ", error);
-                    showToast(`Gagal menghapus game: ${error.message}`, true);
-                }
-            }
-        });
-
-        // Filter event listeners
-        filterTitle.addEventListener('input', applyFilters);
-        filterPlatform.addEventListener('change', applyFilters);
-        filterLocation.addEventListener('change', applyFilters);
-        filterStatus.addEventListener('change', applyFilters);
-
-        // Select All checkbox logic
-        selectAllCheckbox.addEventListener('change', (e) => {
-            const isChecked = e.target.checked;
-            const checkboxes = document.querySelectorAll('.game-checkbox');
-            const startIndex = (currentPage - 1) * gamesPerPage;
-            const endIndex = startIndex + gamesPerPage;
-            const paginatedGames = filteredGames.slice(startIndex, endIndex);
-
-            checkboxes.forEach(cb => {
-                const gameId = cb.dataset.id;
-                cb.checked = isChecked;
-                if (isChecked) {
-                     if (!selectedGameIds.has(gameId)) {
-                        selectedGameIds.add(gameId);
-                     }
-                } else {
-                     if (selectedGameIds.has(gameId)) {
-                        selectedGameIds.delete(gameId);
-                     }
-                }
-            });
-            updateBulkButtons();
-        });
-
-        // Individual checkbox change listener
-        gameListBody.addEventListener('change', (e) => {
-            if (e.target.classList.contains('game-checkbox')) {
-                const gameId = e.target.dataset.id;
-                if (e.target.checked) {
-                    selectedGameIds.add(gameId);
-                } else {
-                    selectedGameIds.delete(gameId);
-                }
-                updateBulkButtons();
-            }
-        });
-
-        // Bulk delete button action
-        bulkDeleteButton.addEventListener('click', async () => {
-            // Use a custom modal instead of a browser confirm dialog
-            if (window.confirm(`Apakah Anda yakin ingin menghapus ${selectedGameIds.size} game terpilih?`)) {
-                try {
-                    const gamesCollection = collection(db, `artifacts/${appId}/users/${currentUser.uid}/games`);
-                    const batch = writeBatch(db);
-                    selectedGameIds.forEach(id => {
-                        const gameRef = doc(gamesCollection, id);
-                        batch.delete(gameRef);
-                    });
-                    await batch.commit();
-                    showToast(`${selectedGameIds.size} game berhasil dihapus.`);
-                    selectedGameIds.clear();
-                    selectAllCheckbox.checked = false;
-                    updateBulkButtons();
-                } catch (error) {
-                    console.error("Error bulk deleting games: ", error);
-                    showToast(`Gagal menghapus game: ${error.message}`, true);
-                }
-            }
-        });
-
-        // New event listener for opening the bulk move location modal
-        bulkMoveLocationButton.addEventListener('click', () => {
-            if (selectedGameIds.size > 0) {
-                // Populate the new location dropdown with available locations
-                const uniqueLocations = new Set(allGames.map(game => game.location));
-                newGameLocationSelect.innerHTML = '';
-                Array.from(uniqueLocations).sort().forEach(location => {
-                    const option = document.createElement('option');
-                    option.textContent = location;
-                    option.value = location;
-                    newGameLocationSelect.appendChild(option);
-                });
-                openModal(moveLocationModal);
-            }
-        });
-
-        // Close move location modal
-        closeMoveLocationModalButton.addEventListener('click', () => closeModal(moveLocationModal));
-
-        // Handle bulk move location form submission
-        moveLocationForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const newLocation = newGameLocationSelect.value;
-            if (!newLocation) {
-                showToast("Pilih lokasi baru.", true);
-                return;
-            }
-
-            try {
-                const gamesCollection = collection(db, `artifacts/${appId}/users/${currentUser.uid}/games`);
-                const batch = writeBatch(db);
-                selectedGameIds.forEach(id => {
-                    const gameRef = doc(gamesCollection, id);
-                    batch.update(gameRef, { location: newLocation });
-                });
-                await batch.commit();
-                showToast(`${selectedGameIds.size} game berhasil dipindahkan ke ${newLocation}.`);
-                selectedGameIds.clear();
-                selectAllCheckbox.checked = false;
-                updateBulkButtons();
-                closeModal(moveLocationModal);
-            } catch (error) {
-                console.error("Error bulk moving games: ", error);
-                showToast(`Gagal memindahkan game: ${error.message}`, true);
-            }
-        });
-
-
-        // Download JSON file
-        downloadJsonButton.addEventListener('click', () => {
-            if (allGames.length === 0) {
-                showToast('Tidak ada data game untuk diekspor.', true);
-                return;
-            }
-            const dataStr = JSON.stringify(allGames.map(({id, ...rest}) => rest), null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'koleksi_game.json';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showToast('Data game berhasil diekspor.');
-        });
-        
-        // Upload JSON file
-        jsonFileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file) {
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = async (event) => {
-                try {
-                    const importedGames = JSON.parse(event.target.result);
-                    if (!Array.isArray(importedGames)) {
-                        // Use a custom modal instead of a browser confirm dialog
-                        throw new Error("File JSON harus berisi sebuah array.");
-                    }
-                    if (window.confirm(`Anda akan mengimpor ${importedGames.length} game. Lanjutkan?`)) {
-                        const batch = writeBatch(db);
-                        const gamesCollection = collection(db, `artifacts/${appId}/users/${currentUser.uid}/games`);
-                        importedGames.forEach(game => {
-                            // Ensure data integrity before adding
-                            if (game.title && game.platform && game.location && game.status) {
-                                const newGameRef = doc(gamesCollection);
-                                batch.set(newGameRef, game);
-                            }
-                        });
-                        await batch.commit();
-                        showToast(`${importedGames.length} game berhasil diimpor.`);
-                    }
-                } catch (error) {
-                    console.error("Error importing JSON: ", error);
-                    showToast(`Gagal mengimpor: ${error.message}`, true);
-                } finally {
-                    jsonFileInput.value = '';
-                }
-            };
-            reader.readAsText(file);
-        });
-
-        // Mobile sidebar functionality
-        openSidebarButton.addEventListener('click', () => {
-            sidebar.classList.remove('-translate-x-full');
-            mobileMenuBackdrop.classList.remove('hidden');
-        });
-
-        closeSidebarButton.addEventListener('click', () => {
-            sidebar.classList.add('-translate-x-full');
-            mobileMenuBackdrop.classList.add('hidden');
-        });
-
-        mobileMenuBackdrop.addEventListener('click', () => {
-             sidebar.classList.add('-translate-x-full');
-             mobileMenuBackdrop.classList.add('hidden');
-        });
-
-
-        // --- Firebase Auth & Firestore Logic ---
-        
-        // Auth state change listener
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                loginScreen.classList.add('hidden');
-                appScreen.classList.remove('hidden');
-                
-                // Set user profile info
-                userName.textContent = user.displayName || 'Pengguna';
-                userPhoto.src = user.photoURL || 'https://placehold.co/40x40/e2e8f0/e2e8f0';
-
-                // Listen to games collection for real-time updates
-                const gamesCollection = collection(db, `artifacts/${appId}/users/${currentUser.uid}/games`);
-                onSnapshot(gamesCollection, (snapshot) => {
-                    allGames = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    updateFilterOptions();
-                    applyFilters();
-                    if (document.querySelector('.tab-button.tab-active').dataset.tab === 'tab-stats') {
-                        updateCharts();
-                    }
-                });
-            } else {
-                currentUser = null;
-                loginScreen.classList.remove('hidden');
-                appScreen.classList.add('hidden');
-            }
-        });
-        
-        // Initial authentication with custom token if available
-        async function authenticate() {
-            try {
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (error) {
-                console.error("Authentication error:", error);
-                // Fallback to anonymous sign-in or handle as needed
-            }
-        }
-
-        authenticate();
-    </script>
 </body>
 </html>
