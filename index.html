@@ -55,6 +55,12 @@
             color: white;
             font-weight: bold;
         }
+        /* Style for disabled button in bulk actions */
+        .btn-disabled {
+            background-color: #374151; /* gray-700 */
+            color: #9ca3af; /* gray-400 */
+            cursor: not-allowed;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -214,10 +220,16 @@
                      <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                         <h3 class="font-bold text-xl mb-4">Tindakan untuk Game Terpilih</h3>
                         <p id="selection-info" class="text-slate-400 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.</p>
-                        <button id="bulk-delete-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:bg-red-800 disabled:cursor-not-allowed" disabled>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
-                            Hapus Game Terpilih
-                        </button>
+                        <div class="flex flex-wrap gap-4">
+                            <button id="bulk-edit-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:btn-disabled" disabled>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                                Edit Game Terpilih
+                            </button>
+                            <button id="bulk-delete-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:btn-disabled" disabled>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                                Hapus Game Terpilih
+                            </button>
+                        </div>
                      </div>
                 </div>
 
@@ -271,17 +283,57 @@
             </form>
         </div>
     </div>
+
+    <!-- Bulk Edit Modal -->
+    <div id="bulk-edit-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-slate-800 w-full max-w-lg rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="bulk-edit-modal-content">
+            <h3 id="bulk-edit-modal-title" class="text-2xl font-bold mb-6">Edit Game Secara Masal</h3>
+            <form id="bulk-edit-form">
+                <p id="bulk-edit-info" class="text-slate-400 mb-4"></p>
+                <div class="space-y-4">
+                    <!-- Platform -->
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg">
+                        <input type="checkbox" id="bulk-update-platform-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-indigo-600 focus:ring-indigo-500">
+                        <div class="flex-grow">
+                            <label for="bulk-platform" class="block text-slate-300 text-sm font-bold mb-1">Platform</label>
+                            <select id="bulk-platform" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option>Steam</option><option>Epic</option><option>GOG</option><option>PCSX</option><option>Crack</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Location -->
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg">
+                        <input type="checkbox" id="bulk-update-location-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-indigo-600 focus:ring-indigo-500">
+                        <div class="flex-grow">
+                            <label for="bulk-location" class="block text-slate-300 text-sm font-bold mb-1">Lokasi</label>
+                            <select id="bulk-location" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Status -->
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg">
+                        <input type="checkbox" id="bulk-update-status-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-indigo-600 focus:ring-indigo-500">
+                        <div class="flex-grow">
+                            <label for="bulk-status" class="block text-slate-300 text-sm font-bold mb-1">Status</label>
+                            <select id="bulk-status" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                <option>Belum dimainkan</option><option>Dimainkan</option><option>Selesai</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4 mt-6 pt-4 border-t border-slate-700">
+                    <button type="button" id="bulk-edit-cancel-button" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition">Batal</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
     
     <!-- Custom Alert/Toast -->
     <div id="toast" class="fixed bottom-5 right-1/2 translate-x-1/2 w-11/12 max-w-sm bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
         <p id="toast-message">Operasi berhasil!</p>
     </div>
-
-    <script type="module" src="/script.js"></script>
-	
+	<script type="module" src="/script.js"></script>
 </body>
 </html>
-
-
-
-
