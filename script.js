@@ -2,7 +2,7 @@
         import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, writeBatch, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Firebase config
+        // --- Firebase Config (DO NOT CHANGE) ---
         const firebaseConfig = {
             apiKey: "AIzaSyAzJTL179V9bT-DfefZq9gcG8Tz88VzLmQ",
             authDomain: "koleksi-game.firebaseapp.com",
@@ -13,7 +13,7 @@
             measurementId: "G-BYYCM7R4M8"
         };
         
-        // Initialize Firebase
+        // --- Initialize Firebase ---
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -24,11 +24,11 @@
         let filteredGames = [];
         let unsubscribe = null; 
 
-        // Pagination state
+        // --- Pagination state ---
         let currentPage = 1;
         const gamesPerPage = 10;
 
-        // UI Elements
+        // --- UI Elements ---
         const loginScreen = document.getElementById('login-screen');
         const appScreen = document.getElementById('app-screen');
         const loginButton = document.getElementById('login-button');
@@ -37,6 +37,9 @@
         const userName = document.getElementById('user-name');
         const gameListBody = document.getElementById('game-list-body');
         const addGameButton = document.getElementById('add-game-button');
+        const paginationContainer = document.getElementById('pagination-container');
+        
+        // --- Add/Edit Modal Elements ---
         const gameModal = document.getElementById('game-modal');
         const modalContent = document.getElementById('modal-content');
         const gameForm = document.getElementById('game-form');
@@ -44,15 +47,21 @@
         const modalTitle = document.getElementById('modal-title');
         const gameRowsContainer = document.getElementById('game-rows-container');
         const addRowButton = document.getElementById('add-row-button');
-        const paginationContainer = document.getElementById('pagination-container');
         
-        // Mobile Elements
+        // --- Bulk Edit Modal Elements ---
+        const bulkEditModal = document.getElementById('bulk-edit-modal');
+        const bulkEditModalContent = document.getElementById('bulk-edit-modal-content');
+        const bulkEditForm = document.getElementById('bulk-edit-form');
+        const bulkEditCancelButton = document.getElementById('bulk-edit-cancel-button');
+        const bulkEditInfo = document.getElementById('bulk-edit-info');
+
+        // --- Mobile Elements ---
         const sidebar = document.getElementById('sidebar');
         const openSidebarButton = document.getElementById('open-sidebar-button');
         const closeSidebarButton = document.getElementById('close-sidebar-button');
         const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
 
-        // Chart instances
+        // --- Chart instances ---
         let platformChart, locationChart, statusChart;
 
         // --- MOBILE SIDEBAR LOGIC ---
@@ -70,7 +79,7 @@
         closeSidebarButton.addEventListener('click', closeSidebar);
         mobileMenuBackdrop.addEventListener('click', closeSidebar);
 
-        // Toast/Alert function
+        // --- TOAST/ALERT FUNCTION ---
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toast-message');
@@ -81,7 +90,7 @@
             }, 3000);
         }
 
-        // Authentication
+        // --- AUTHENTICATION ---
         loginButton.addEventListener('click', () => {
             signInWithPopup(auth, provider)
                 .catch((error) => {
@@ -127,7 +136,7 @@
             return colors[platform] || colors['default'];
         }
 
-        // CRUD Functions
+        // --- CRUD FUNCTIONS ---
         function fetchGames() {
             if (!currentUser) return;
             const gamesCollectionRef = collection(db, 'games', currentUser.uid, 'userGames');
@@ -173,7 +182,7 @@
             document.querySelectorAll('.game-checkbox').forEach(cb => cb.addEventListener('change', updateBulkActionUI));
         }
 
-        // Modal Logic
+        // --- ADD/EDIT MODAL LOGIC ---
         function createGameRowHTML(game = {}) {
             const isEdit = !!game.id;
             return `
@@ -341,7 +350,7 @@
             }
         }
         
-        // Tab switching
+        // --- TAB SWITCHING ---
         const tabs = document.getElementById('tabs');
         const tabContents = document.querySelectorAll('.tab-content');
         tabs.addEventListener('click', (e) => {
@@ -368,7 +377,7 @@
             }
         });
 
-        // Chart Logic
+        // --- CHART LOGIC ---
         function initCharts() {
              const pieDoughnutOptions = {
                 responsive: true,
@@ -437,7 +446,7 @@
             statusChart.update();
         }
 
-        // Filtering and Pagination Logic
+        // --- FILTERING AND PAGINATION LOGIC ---
         const filterTitle = document.getElementById('filter-title');
         const filterPlatform = document.getElementById('filter-platform');
         const filterLocation = document.getElementById('filter-location');
@@ -530,9 +539,10 @@
             paginationContainer.appendChild(nextButton);
         }
         
-        // Bulk Actions
+        // --- BULK ACTIONS LOGIC ---
         const selectAllCheckbox = document.getElementById('select-all-checkbox');
         const bulkDeleteButton = document.getElementById('bulk-delete-button');
+        const bulkEditButton = document.getElementById('bulk-edit-button');
         const selectionInfo = document.getElementById('selection-info');
 
         selectAllCheckbox.addEventListener('change', (e) => {
@@ -542,11 +552,14 @@
 
         function updateBulkActionUI() {
             const selectedIds = getSelectedGameIds();
-            if (selectedIds.length > 0) {
-                bulkDeleteButton.disabled = false;
+            const hasSelection = selectedIds.length > 0;
+            
+            bulkDeleteButton.disabled = !hasSelection;
+            bulkEditButton.disabled = !hasSelection;
+            
+            if (hasSelection) {
                 selectionInfo.innerHTML = `<b>${selectedIds.length} game terpilih.</b> Aksi hanya berlaku untuk item yang terlihat di halaman ini.`;
             } else {
-                bulkDeleteButton.disabled = true;
                 selectionInfo.textContent = `Pilih game dari 'Daftar Game' untuk melakukan aksi masal.`;
             }
         }
@@ -575,7 +588,75 @@
             }
         });
 
-        // Data Management
+        // --- BULK EDIT MODAL LOGIC ---
+        function openBulkEditModal() {
+            const selectedIds = getSelectedGameIds();
+            if (selectedIds.length === 0) return;
+
+            bulkEditInfo.textContent = `Anda akan mengedit ${selectedIds.length} game. Centang properti yang ingin Anda ubah.`;
+            bulkEditForm.reset(); // Clear previous selections
+            
+            bulkEditModal.classList.remove('hidden');
+            bulkEditModal.classList.add('flex');
+            setTimeout(() => {
+                bulkEditModalContent.classList.remove('scale-95', 'opacity-0');
+            }, 10);
+        }
+
+        function closeBulkEditModal() {
+            bulkEditModalContent.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                bulkEditModal.classList.add('hidden');
+                bulkEditModal.classList.remove('flex');
+            }, 200);
+        }
+
+        bulkEditButton.addEventListener('click', openBulkEditModal);
+        bulkEditCancelButton.addEventListener('click', closeBulkEditModal);
+        bulkEditModal.addEventListener('click', (e) => {
+            if (e.target === bulkEditModal) closeBulkEditModal();
+        });
+
+        bulkEditForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const idsToUpdate = getSelectedGameIds();
+            if (idsToUpdate.length === 0) return;
+
+            const updateData = {};
+            if (document.getElementById('bulk-update-platform-check').checked) {
+                updateData.platform = document.getElementById('bulk-platform').value;
+            }
+            if (document.getElementById('bulk-update-location-check').checked) {
+                updateData.location = document.getElementById('bulk-location').value;
+            }
+            if (document.getElementById('bulk-update-status-check').checked) {
+                updateData.status = document.getElementById('bulk-status').value;
+            }
+
+            if (Object.keys(updateData).length === 0) {
+                showToast("Tidak ada perubahan yang dipilih. Centang properti yang ingin diubah.", true);
+                return;
+            }
+
+            if (confirm(`Apakah Anda yakin ingin memperbarui ${Object.keys(updateData).length} properti untuk ${idsToUpdate.length} game?`)) {
+                try {
+                    const batch = writeBatch(db);
+                    idsToUpdate.forEach(id => {
+                        const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
+                        batch.update(gameRef, updateData);
+                    });
+                    await batch.commit();
+                    showToast(`${idsToUpdate.length} game berhasil diperbarui.`);
+                    selectAllCheckbox.checked = false;
+                    closeBulkEditModal();
+                } catch (error) {
+                    console.error("Error bulk updating: ", error);
+                    showToast(`Gagal memperbarui game: ${error.message}`, true);
+                }
+            }
+        });
+
+        // --- DATA MANAGEMENT ---
         const downloadJsonButton = document.getElementById('download-json-button');
         const uploadJsonButton = document.getElementById('upload-json-button');
         const jsonFileInput = document.getElementById('json-file-input');
