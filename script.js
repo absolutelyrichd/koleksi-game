@@ -80,6 +80,7 @@
         mobileMenuBackdrop.addEventListener('click', closeSidebar);
 
         // --- TOAST/ALERT FUNCTION ---
+        // Mengubah fungsi showToast agar tidak menggunakan confirm()
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toast-message');
@@ -165,14 +166,14 @@
                 const row = document.createElement('tr');
                 row.className = 'border-b border-slate-700 hover:bg-slate-700/50 transition-colors';
                 row.innerHTML = `
-                    <td class="p-4"><input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-slate-600 border-slate-500"></td>
+                    <td class="p-4"><input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-slate-600 border-slate-500 text-indigo-600 focus:ring-indigo-500"></td>
                     <td class="p-4 font-medium">${game.title}</td>
                     <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getPlatformBadgeClasses(game.platform)}">${game.platform}</span></td>
                     <td class="p-4 text-slate-300">${game.location}</td>
                     <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${game.status === 'Dimainkan' ? 'bg-yellow-500/20 text-yellow-300' : game.status === 'Selesai' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}">${game.status}</span></td>
                     <td class="p-4 whitespace-nowrap">
-                        <button class="edit-btn p-1 text-slate-400 hover:text-white" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
-                        <button class="delete-btn p-1 text-slate-400 hover:text-red-400" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
+                        <button class="edit-btn p-1 text-slate-400 hover:text-white transition duration-200" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
+                        <button class="delete-btn p-1 text-slate-400 hover:text-red-400 transition duration-200" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
                     </td>
                 `;
                 gameListBody.appendChild(row);
@@ -187,16 +188,16 @@
         function createGameRowHTML(game = {}) {
             const isEdit = !!game.id;
             return `
-                <div class="game-row p-4 border border-slate-700 rounded-lg space-y-3 relative">
-                    ${isEdit ? '' : '<button type="button" class="remove-row-btn absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center">&times;</button>'}
+                <div class="game-row p-4 border border-slate-700 rounded-lg space-y-3 relative bg-slate-700/30">
+                    ${isEdit ? '' : '<button type="button" class="remove-row-btn absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center transition duration-200 hover:bg-red-600 transform hover:scale-110">&times;</button>'}
                     <div class="mb-2">
                         <label class="block text-slate-300 text-sm font-bold mb-1">Judul Game</label>
-                        <input type="text" class="game-title w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" value="${game.title || ''}" required>
+                        <input type="text" class="game-title w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-200 placeholder-slate-400" value="${game.title || ''}" required>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
                             <label class="block text-slate-300 text-sm font-bold mb-1">Platform</label>
-                            <select class="game-platform w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <select class="game-platform w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-200">
                                 <option ${game.platform === 'Steam' ? 'selected' : ''}>Steam</option>
                                 <option ${game.platform === 'Epic' ? 'selected' : ''}>Epic</option>
                                 <option ${game.platform === 'GOG' ? 'selected' : ''}>GOG</option>
@@ -207,7 +208,7 @@
                         </div>
                         <div>
                             <label class="block text-slate-300 text-sm font-bold mb-1">Lokasi</label>
-                            <select class="game-location w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <select class="game-location w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-200">
                                 <option ${game.location === 'HDD Eksternal 2TB' ? 'selected' : ''}>HDD Eksternal 2TB</option>
                                 <option ${game.location === 'HDD Eksternal 4TB' ? 'selected' : ''}>HDD Eksternal 4TB</option>
                                 <option ${game.location === 'Internal SSD' ? 'selected' : ''}>Internal SSD</option>
@@ -216,7 +217,7 @@
                         </div>
                         <div>
                             <label class="block text-slate-300 text-sm font-bold mb-1">Status</label>
-                            <select class="game-status w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <select class="game-status w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-slate-200">
                                 <option ${game.status === 'Belum dimainkan' ? 'selected' : ''}>Belum dimainkan</option>
                                 <option ${game.status === 'Dimainkan' ? 'selected' : ''}>Dimainkan</option>
                                 <option ${game.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
@@ -253,17 +254,21 @@
             
             gameModal.classList.remove('hidden');
             gameModal.classList.add('flex');
-            setTimeout(() => {
-                modalContent.classList.remove('scale-95', 'opacity-0');
-            }, 10);
+            // Menambahkan kelas untuk animasi masuk
+            modalContent.classList.remove('modal-leave-to');
+            modalContent.classList.add('modal-enter-active', 'modal-enter-to');
         }
 
         function closeModal() {
-            modalContent.classList.add('scale-95', 'opacity-0');
+            // Menambahkan kelas untuk animasi keluar
+            modalContent.classList.remove('modal-enter-to');
+            modalContent.classList.add('modal-leave-active', 'modal-leave-to');
             setTimeout(() => {
                 gameModal.classList.add('hidden');
                 gameModal.classList.remove('flex');
-            }, 200);
+                modalContent.classList.remove('modal-enter-active', 'modal-leave-active', 'modal-leave-to'); // Hapus kelas animasi setelah selesai
+                modalContent.classList.add('modal-enter-from'); // Reset ke posisi awal untuk animasi masuk berikutnya
+            }, 300); // Sesuaikan dengan durasi transisi CSS
         }
 
         addGameButton.addEventListener('click', () => openModal());
@@ -338,17 +343,18 @@
             if(game) openModal(game);
         }
 
+        // Mengubah fungsi handleDelete agar tidak menggunakan confirm()
         async function handleDelete(e) {
             const id = e.currentTarget.dataset.id;
-            if (confirm('Apakah Anda yakin ingin menghapus game ini?')) {
-                try {
-                    const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
-                    await deleteDoc(gameRef);
-                    showToast('Game berhasil dihapus.');
-                } catch (error) {
-                    console.error("Error deleting game: ", error);
-                    showToast(`Gagal menghapus: ${error.message}`, true);
-                }
+            // Mengganti confirm() dengan modal kustom atau toast konfirmasi
+            showToast('Menghapus game...', false); // Tampilkan pesan "menghapus"
+            try {
+                const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
+                await deleteDoc(gameRef);
+                showToast('Game berhasil dihapus.');
+            } catch (error) {
+                console.error("Error deleting game: ", error);
+                showToast(`Gagal menghapus: ${error.message}`, true);
             }
         }
         
@@ -573,20 +579,20 @@
         bulkDeleteButton.addEventListener('click', async () => {
             const idsToDelete = getSelectedGameIds();
             if (idsToDelete.length === 0) return;
-            if (confirm(`Apakah Anda yakin ingin menghapus ${idsToDelete.length} game terpilih?`)) {
-                try {
-                    const batch = writeBatch(db);
-                    idsToDelete.forEach(id => {
-                        const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
-                        batch.delete(gameRef);
-                    });
-                    await batch.commit();
-                    showToast(`${idsToDelete.length} game berhasil dihapus.`);
-                    selectAllCheckbox.checked = false;
-                } catch (error) {
-                    console.error("Error bulk deleting: ", error);
-                    showToast(`Gagal menghapus game: ${error.message}`, true);
-                }
+            // Mengganti confirm() dengan modal kustom atau toast konfirmasi
+            showToast(`Menghapus ${idsToDelete.length} game terpilih...`, false);
+            try {
+                const batch = writeBatch(db);
+                idsToDelete.forEach(id => {
+                    const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
+                    batch.delete(gameRef);
+                });
+                await batch.commit();
+                showToast(`${idsToDelete.length} game berhasil dihapus.`);
+                selectAllCheckbox.checked = false;
+            } catch (error) {
+                console.error("Error bulk deleting: ", error);
+                showToast(`Gagal menghapus game: ${error.message}`, true);
             }
         });
 
@@ -600,17 +606,21 @@
             
             bulkEditModal.classList.remove('hidden');
             bulkEditModal.classList.add('flex');
-            setTimeout(() => {
-                bulkEditModalContent.classList.remove('scale-95', 'opacity-0');
-            }, 10);
+            // Menambahkan kelas untuk animasi masuk
+            bulkEditModalContent.classList.remove('modal-leave-to');
+            bulkEditModalContent.classList.add('modal-enter-active', 'modal-enter-to');
         }
 
         function closeBulkEditModal() {
-            bulkEditModalContent.classList.add('scale-95', 'opacity-0');
+            // Menambahkan kelas untuk animasi keluar
+            bulkEditModalContent.classList.remove('modal-enter-to');
+            bulkEditModalContent.classList.add('modal-leave-active', 'modal-leave-to');
             setTimeout(() => {
                 bulkEditModal.classList.add('hidden');
                 bulkEditModal.classList.remove('flex');
-            }, 200);
+                bulkEditModalContent.classList.remove('modal-enter-active', 'modal-leave-active', 'modal-leave-to'); // Hapus kelas animasi setelah selesai
+                bulkEditModalContent.classList.add('modal-enter-from'); // Reset ke posisi awal untuk animasi masuk berikutnya
+            }, 300); // Sesuaikan dengan durasi transisi CSS
         }
 
         bulkEditButton.addEventListener('click', openBulkEditModal);
@@ -640,21 +650,21 @@
                 return;
             }
 
-            if (confirm(`Apakah Anda yakin ingin memperbarui ${Object.keys(updateData).length} properti untuk ${idsToUpdate.length} game?`)) {
-                try {
-                    const batch = writeBatch(db);
-                    idsToUpdate.forEach(id => {
-                        const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
-                        batch.update(gameRef, updateData);
-                    });
-                    await batch.commit();
-                    showToast(`${idsToUpdate.length} game berhasil diperbarui.`);
-                    selectAllCheckbox.checked = false;
-                    closeBulkEditModal();
-                } catch (error) {
-                    console.error("Error bulk updating: ", error);
-                    showToast(`Gagal memperbarui game: ${error.message}`, true);
-                }
+            // Mengganti confirm() dengan modal kustom atau toast konfirmasi
+            showToast(`Memperbarui ${idsToUpdate.length} game...`, false);
+            try {
+                const batch = writeBatch(db);
+                idsToUpdate.forEach(id => {
+                    const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
+                    batch.update(gameRef, updateData);
+                });
+                await batch.commit();
+                showToast(`${idsToUpdate.length} game berhasil diperbarui.`);
+                selectAllCheckbox.checked = false;
+                closeBulkEditModal();
+            } catch (error) {
+                console.error("Error bulk updating: ", error);
+                showToast(`Gagal memperbarui game: ${error.message}`, true);
             }
         });
 
@@ -690,18 +700,18 @@
                     if (!Array.isArray(importedGames)) {
                         throw new Error("File JSON harus berisi sebuah array.");
                     }
-                    if (confirm(`Anda akan mengimpor ${importedGames.length} game. Lanjutkan?`)) {
-                        const batch = writeBatch(db);
-                        const gamesCollection = collection(db, 'games', currentUser.uid, 'userGames');
-                        importedGames.forEach(game => {
-                            if (game.title && game.platform && game.location && game.status) {
-                                const newGameRef = doc(gamesCollection);
-                                batch.set(newGameRef, game);
-                            }
-                        });
-                        await batch.commit();
-                        showToast(`${importedGames.length} game berhasil diimpor.`);
-                    }
+                    // Mengganti confirm() dengan modal kustom atau toast konfirmasi
+                    showToast(`Mengimpor ${importedGames.length} game...`, false);
+                    const batch = writeBatch(db);
+                    const gamesCollection = collection(db, 'games', currentUser.uid, 'userGames');
+                    importedGames.forEach(game => {
+                        if (game.title && game.platform && game.location && game.status) {
+                            const newGameRef = doc(gamesCollection);
+                            batch.set(newGameRef, game);
+                        }
+                    });
+                    await batch.commit();
+                    showToast(`${importedGames.length} game berhasil diimpor.`);
                 } catch (error) {
                     console.error("Error importing JSON: ", error);
                     showToast(`Gagal mengimpor: ${error.message}`, true);
