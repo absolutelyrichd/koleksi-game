@@ -280,26 +280,37 @@
 
         gameForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!currentUser) return;
+            if (!currentUser) {
+                showToast("Anda harus masuk untuk menyimpan game.", true);
+                return;
+            }
             const id = document.getElementById('game-id').value;
             
             try {
-                if (id) {
+                if (id) { // Edit mode
                     const row = gameRowsContainer.querySelector('.game-row');
-                    const gameData = {
-                        title: row.querySelector('.game-title').value,
-                        platform: row.querySelector('.game-platform').value,
-                        location: row.querySelector('.game-location').value,
-                        status: row.querySelector('.game-status').value,
-                    };
-                    if (!gameData.title) {
-                        showToast("Judul game tidak boleh kosong.", true);
+                    const titleInput = row.querySelector('.game-title');
+                    const platformSelect = row.querySelector('.game-platform');
+                    const locationSelect = row.querySelector('.game-location');
+                    const statusSelect = row.querySelector('.game-status');
+
+                    // Validasi untuk mode edit
+                    if (!titleInput.value.trim() || !platformSelect.value || !locationSelect.value || !statusSelect.value) {
+                        showToast("Semua bidang harus diisi untuk mengedit game.", true);
                         return;
                     }
+
+                    const gameData = {
+                        title: titleInput.value.trim(),
+                        platform: platformSelect.value,
+                        location: locationSelect.value,
+                        status: statusSelect.value,
+                    };
+                    
                     const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
                     await updateDoc(gameRef, gameData);
                     showToast('Game berhasil diperbarui!');
-                } else {
+                } else { // Add mode
                     const rows = gameRowsContainer.querySelectorAll('.game-row');
                     if (rows.length === 0) {
                         showToast("Tidak ada game untuk ditambahkan.", true);
@@ -308,24 +319,41 @@
                     
                     const batch = writeBatch(db);
                     let gamesAdded = 0;
+                    let hasInvalidFields = false;
+
                     rows.forEach(row => {
-                        const gameData = {
-                            title: row.querySelector('.game-title').value,
-                            platform: row.querySelector('.game-platform').value,
-                            location: row.querySelector('.game-location').value,
-                            status: row.querySelector('.game-status').value,
-                        };
-                        if (gameData.title) {
-                            const newGameRef = doc(collection(db, 'games', currentUser.uid, 'userGames'));
-                            batch.set(newGameRef, gameData);
-                            gamesAdded++;
+                        const titleInput = row.querySelector('.game-title');
+                        const platformSelect = row.querySelector('.game-platform');
+                        const locationSelect = row.querySelector('.game-location');
+                        const statusSelect = row.querySelector('.game-status');
+
+                        // Validasi untuk setiap baris game baru
+                        if (!titleInput.value.trim() || !platformSelect.value || !locationSelect.value || !statusSelect.value) {
+                            hasInvalidFields = true;
+                            // Anda bisa menambahkan visual feedback di sini, misalnya border merah pada input
+                            return; // Lewati baris ini dari batch jika ada bidang yang kosong
                         }
+
+                        const gameData = {
+                            title: titleInput.value.trim(),
+                            platform: platformSelect.value,
+                            location: locationSelect.value,
+                            status: statusSelect.value,
+                        };
+                        
+                        const newGameRef = doc(collection(db, 'games', currentUser.uid, 'userGames'));
+                        batch.set(newGameRef, gameData);
+                        gamesAdded++;
                     });
                     
+                    if (hasInvalidFields) {
+                        showToast("Beberapa game tidak ditambahkan karena ada bidang yang kosong.", true);
+                    }
+
                     if (gamesAdded > 0) {
                         await batch.commit();
                         showToast(`${gamesAdded} game berhasil ditambahkan!`);
-                    } else {
+                    } else if (!hasInvalidFields) { // Hanya tampilkan ini jika tidak ada game yang ditambahkan DAN tidak ada bidang yang tidak valid
                         showToast("Tidak ada game untuk ditambahkan.", true);
                         return;
                     }
