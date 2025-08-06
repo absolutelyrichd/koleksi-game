@@ -61,6 +61,19 @@
             color: #9ca3af; /* gray-400 */
             cursor: not-allowed;
         }
+
+        /* Modal transition styles */
+        .modal-enter-active, .modal-leave-active {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .modal-enter-from, .modal-leave-to {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        .modal-enter-to, .modal-leave-from {
+            opacity: 1;
+            transform: scale(1);
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -264,7 +277,7 @@
 
     <!-- Add/Edit Game Modal -->
     <div id="game-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="modal-content">
+        <div class="bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all modal-enter-from" id="modal-content">
             <h3 id="modal-title" class="text-2xl font-bold mb-6">Tambah Game Baru</h3>
             <form id="game-form">
                 <div class="max-h-[70vh] overflow-y-auto pr-2">
@@ -286,7 +299,7 @@
 
     <!-- Bulk Edit Modal -->
     <div id="bulk-edit-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-slate-800 w-full max-w-lg rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="bulk-edit-modal-content">
+        <div class="bg-slate-800 w-full max-w-lg rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all modal-enter-from" id="bulk-edit-modal-content">
             <h3 id="bulk-edit-modal-title" class="text-2xl font-bold mb-6">Edit Game Secara Masal</h3>
             <form id="bulk-edit-form">
                 <p id="bulk-edit-info" class="text-slate-400 mb-4"></p>
@@ -334,6 +347,19 @@
     <div id="toast" class="fixed bottom-5 right-1/2 translate-x-1/2 w-11/12 max-w-sm bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
         <p id="toast-message">Operasi berhasil!</p>
     </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmation-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-slate-800 w-full max-w-sm rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all modal-enter-from" id="confirmation-modal-content">
+            <h3 id="confirmation-title" class="text-xl font-bold mb-4 text-white">Konfirmasi</h3>
+            <p id="confirmation-message" class="text-slate-300 mb-6">Apakah Anda yakin?</p>
+            <div class="flex justify-end space-x-4">
+                <button type="button" id="confirm-cancel-button" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition">Batal</button>
+                <button type="button" id="confirm-ok-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition">Ya</button>
+            </div>
+        </div>
+    </div>
+
 	<script type="module" src="/script.js"></script>
 </body>
 </html>
