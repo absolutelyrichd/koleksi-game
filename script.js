@@ -36,6 +36,7 @@
         const userPhoto = document.getElementById('user-photo');
         const userName = document.getElementById('user-name');
         const gameListBody = document.getElementById('game-list-body');
+        const gameCardsContainer = document.getElementById('game-cards-container'); // New element for mobile cards
         const addGameButton = document.getElementById('add-game-button');
         const paginationContainer = document.getElementById('pagination-container');
         
@@ -84,9 +85,16 @@
             const toast = document.getElementById('toast');
             const toastMessage = document.getElementById('toast-message');
             toastMessage.textContent = message;
-            toast.className = `fixed bottom-5 right-1/2 translate-x-1/2 w-11/12 max-w-sm text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 z-50 ${isError ? 'bg-red-500' : 'bg-green-500'} translate-y-0 opacity-100`;
+            // Set background color based on error status
+            toast.classList.remove('bg-[#238636]', 'bg-[#F85149]');
+            toast.classList.add(isError ? 'bg-[#F85149]' : 'bg-[#238636]');
+            
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
             setTimeout(() => {
-                toast.className = toast.className.replace('translate-y-0 opacity-100', 'translate-y-20 opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
             }, 3000);
         }
 
@@ -126,15 +134,24 @@
         // --- HELPER FUNCTION FOR PLATFORM COLORS ---
         function getPlatformBadgeClasses(platform) {
             const colors = {
-                'Steam': 'bg-blue-600/30 text-blue-300',
-                'Epic': 'bg-gray-400/30 text-gray-200',
-                'GOG': 'bg-purple-500/30 text-purple-300',
-				'EA App': 'bg-red-500/30 text-red-300',
-                'PCSX': 'bg-yellow-500/30 text-yellow-300',
-                'Crack': 'bg-red-500/30 text-red-300',
-                'default': 'bg-slate-500/30 text-slate-300'
+                'Steam': 'bg-[#58A6FF]/20 text-[#58A6FF]', // Blue
+                'Epic': 'bg-[#8B949E]/20 text-[#8B949E]', // Gray
+                'GOG': 'bg-[#8957E5]/20 text-[#8957E5]', // Purple
+				'EA App': 'bg-[#F85149]/20 text-[#F85149]', // Red
+                'PCSX': 'bg-[#FACC15]/20 text-[#FACC15]', // Yellow
+                'Crack': 'bg-[#F85149]/20 text-[#F85149]', // Red
+                'default': 'bg-[#444C56]/20 text-[#8B949E]' // Muted gray
             };
             return colors[platform] || colors['default'];
+        }
+
+        function getStatusBadgeClasses(status) {
+            const colors = {
+                'Belum dimainkan': 'bg-[#444C56]/20 text-[#8B949E]', // Gray
+                'Dimainkan': 'bg-[#FACC15]/20 text-[#FACC15]', // Yellow
+                'Selesai': 'bg-[#238636]/20 text-[#238636]' // Green
+            };
+            return colors[status] || colors['default'];
         }
 
         // --- CRUD FUNCTIONS ---
@@ -156,26 +173,51 @@
         
         function renderGames(gamesToRender) {
             gameListBody.innerHTML = '';
+            gameCardsContainer.innerHTML = ''; // Clear mobile cards container
+
             if (!gamesToRender || gamesToRender.length === 0) {
-                gameListBody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-400">Tidak ada game yang cocok dengan filter atau belum ada game ditambahkan.</td></tr>';
+                const noGameMessage = '<tr><td colspan="6" class="text-center p-8 text-[#8B949E]">Tidak ada game yang cocok dengan filter atau belum ada game ditambahkan.</td></tr>';
+                gameListBody.innerHTML = noGameMessage;
+                gameCardsContainer.innerHTML = `<p class="text-center p-8 text-[#8B949E]">Tidak ada game yang cocok dengan filter atau belum ada game ditambahkan.</p>`;
                 return;
             }
 
             gamesToRender.forEach(game => {
+                // Render for Desktop Table
                 const row = document.createElement('tr');
-                row.className = 'border-b border-slate-700 hover:bg-slate-700/50 transition-colors';
+                row.className = 'border-b border-[#30363D] hover:bg-[#21262D] transition-colors';
                 row.innerHTML = `
-                    <td class="p-4"><input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-slate-600 border-slate-500"></td>
-                    <td class="p-4 font-medium">${game.title}</td>
+                    <td class="p-4"><input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-[#30363D] border-[#444C56] text-[#58A6FF] focus:ring-[#58A6FF]"></td>
+                    <td class="p-4 font-medium text-[#E6EDF3]">${game.title}</td>
                     <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getPlatformBadgeClasses(game.platform)}">${game.platform}</span></td>
-                    <td class="p-4 text-slate-300">${game.location}</td>
-                    <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${game.status === 'Dimainkan' ? 'bg-yellow-500/20 text-yellow-300' : game.status === 'Selesai' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}">${game.status}</span></td>
+                    <td class="p-4 text-[#8B949E]">${game.location}</td>
+                    <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClasses(game.status)}">${game.status}</span></td>
                     <td class="p-4 whitespace-nowrap">
-                        <button class="edit-btn p-1 text-slate-400 hover:text-white" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
-                        <button class="delete-btn p-1 text-slate-400 hover:text-red-400" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
+                        <button class="edit-btn p-1 text-[#8B949E] hover:text-[#58A6FF] transition" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
+                        <button class="delete-btn p-1 text-[#8B949E] hover:text-[#F85149] transition" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
                     </td>
                 `;
                 gameListBody.appendChild(row);
+
+                // Render for Mobile Cards
+                const card = document.createElement('div');
+                card.className = 'game-row-card';
+                card.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-lg text-white">${game.title}</h4>
+                        <input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-[#30363D] border-[#444C56] text-[#58A6FF] focus:ring-[#58A6FF]">
+                    </div>
+                    <div class="flex flex-wrap gap-2 text-sm">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${getPlatformBadgeClasses(game.platform)}">${game.platform}</span>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-[#444C56]/20 text-[#8B949E]">${game.location}</span>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClasses(game.status)}">${game.status}</span>
+                    </div>
+                    <div class="flex justify-end space-x-2 mt-2">
+                        <button class="edit-btn p-1 text-[#8B949E] hover:text-[#58A6FF] transition" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
+                        <button class="delete-btn p-1 text-[#8B949E] hover:text-[#F85149] transition" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
+                    </div>
+                `;
+                gameCardsContainer.appendChild(card);
             });
             
             document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEdit));
@@ -187,16 +229,16 @@
         function createGameRowHTML(game = {}) {
             const isEdit = !!game.id;
             return `
-                <div class="game-row p-4 border border-slate-700 rounded-lg space-y-3 relative">
-                    ${isEdit ? '' : '<button type="button" class="remove-row-btn absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center">&times;</button>'}
+                <div class="game-row p-4 border border-[#30363D] rounded-lg space-y-3 relative bg-[#21262D]">
+                    ${isEdit ? '' : '<button type="button" class="remove-row-btn absolute -top-3 -right-3 bg-[#F85149] text-white rounded-full h-7 w-7 flex items-center justify-center text-lg font-bold border-2 border-[#161B22] hover:bg-[#FF7B72] transition">&times;</button>'}
                     <div class="mb-2">
-                        <label class="block text-slate-300 text-sm font-bold mb-1">Judul Game</label>
-                        <input type="text" class="game-title w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" value="${game.title || ''}" required>
+                        <label class="block text-[#E6EDF3] text-sm font-bold mb-1">Judul Game</label>
+                        <input type="text" class="game-title w-full bg-[#0D1117] border border-[#30363D] rounded-lg p-2.5 text-[#E6EDF3]" value="${game.title || ''}" required>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-slate-300 text-sm font-bold mb-1">Platform</label>
-                            <select class="game-platform w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <label class="block text-[#E6EDF3] text-sm font-bold mb-1">Platform</label>
+                            <select class="game-platform w-full bg-[#0D1117] border border-[#30363D] rounded-lg p-2.5 text-[#E6EDF3]">
                                 <option ${game.platform === 'Steam' ? 'selected' : ''}>Steam</option>
                                 <option ${game.platform === 'Epic' ? 'selected' : ''}>Epic</option>
                                 <option ${game.platform === 'GOG' ? 'selected' : ''}>GOG</option>
@@ -206,8 +248,8 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-slate-300 text-sm font-bold mb-1">Lokasi</label>
-                            <select class="game-location w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <label class="block text-[#E6EDF3] text-sm font-bold mb-1">Lokasi</label>
+                            <select class="game-location w-full bg-[#0D1117] border border-[#30363D] rounded-lg p-2.5 text-[#E6EDF3]">
                                 <option ${game.location === 'HDD Eksternal 2TB' ? 'selected' : ''}>HDD Eksternal 2TB</option>
                                 <option ${game.location === 'HDD Eksternal 4TB' ? 'selected' : ''}>HDD Eksternal 4TB</option>
                                 <option ${game.location === 'Internal SSD' ? 'selected' : ''}>Internal SSD</option>
@@ -215,8 +257,8 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-slate-300 text-sm font-bold mb-1">Status</label>
-                            <select class="game-status w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <label class="block text-[#E6EDF3] text-sm font-bold mb-1">Status</label>
+                            <select class="game-status w-full bg-[#0D1117] border border-[#30363D] rounded-lg p-2.5 text-[#E6EDF3]">
                                 <option ${game.status === 'Belum dimainkan' ? 'selected' : ''}>Belum dimainkan</option>
                                 <option ${game.status === 'Dimainkan' ? 'selected' : ''}>Dimainkan</option>
                                 <option ${game.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
@@ -340,7 +382,14 @@
 
         async function handleDelete(e) {
             const id = e.currentTarget.dataset.id;
-            if (confirm('Apakah Anda yakin ingin menghapus game ini?')) {
+            // Replace confirm() with custom modal/toast if needed based on project guidelines
+            const userConfirmed = await new Promise(resolve => {
+                // For now, using a simple confirm. In a real app, this would be a custom modal.
+                // showCustomConfirmModal("Apakah Anda yakin ingin menghapus game ini?", resolve);
+                resolve(confirm('Apakah Anda yakin ingin menghapus game ini?'));
+            });
+
+            if (userConfirmed) {
                 try {
                     const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
                     await deleteDoc(gameRef);
@@ -387,7 +436,7 @@
                 plugins: {
                     legend: { 
                         position: 'bottom',
-                        labels: { color: '#cbd5e1', padding: 15, font: { size: 12 } }
+                        labels: { color: '#8B949E', padding: 15, font: { size: 12 } } // Text color for legend
                     }
                 },
                 onHover: (event, chartElement) => {
@@ -403,8 +452,14 @@
                     event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default';
                 },
                 scales: {
-                    y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
-                    x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
+                    y: { 
+                        ticks: { color: '#8B949E' }, // Y-axis tick color
+                        grid: { color: '#30363D' } // Y-axis grid color
+                    },
+                    x: { 
+                        ticks: { color: '#8B949E' }, // X-axis tick color
+                        grid: { color: '#161B22' } // X-axis grid color (matching card background)
+                    }
                 }
             };
 
@@ -419,30 +474,56 @@
             const platformData = games.reduce((acc, game) => { acc[game.platform] = (acc[game.platform] || 0) + 1; return acc; }, {});
             platformChart.data = {
                 labels: Object.keys(platformData),
-                datasets: [{ data: Object.values(platformData), backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#ef4444', '#facc15'] }]
+                datasets: [{ 
+                    data: Object.values(platformData), 
+                    backgroundColor: [
+                        '#58A6FF', // Blue
+                        '#F85149', // Red
+                        '#238636', // Green
+                        '#8957E5', // Purple
+                        '#FACC15', // Yellow
+                        '#E6EDF3'  // Light Gray
+                    ] 
+                }]
             };
             platformChart.update();
 
             const locationData = games.reduce((acc, game) => { acc[game.location] = (acc[game.location] || 0) + 1; return acc; }, {});
             locationChart.data = {
                 labels: Object.keys(locationData),
-                datasets: [{ data: Object.values(locationData), backgroundColor: ['#10b981', '#06b6d4', '#6366f1', '#f59e0b'] }]
+                datasets: [{ 
+                    data: Object.values(locationData), 
+                    backgroundColor: [
+                        '#1F6FEB', // Darker Blue
+                        '#3FB950', // Darker Green
+                        '#A371F7', // Darker Purple
+                        '#FACC15'  // Yellow
+                    ] 
+                }]
             };
             locationChart.update();
             
             const statusData = games.reduce((acc, game) => { acc[game.status] = (acc[game.status] || 0) + 1; return acc; }, {});
             const statusLabels = Object.keys(statusData);
             const statusValues = Object.values(statusData);
-            const statusColors = { 'Belum dimainkan': '#64748b', 'Dimainkan': '#eab308', 'Selesai': '#22c55e' };
-            const hoverStatusColors = { 'Belum dimainkan': '#94a3b8', 'Dimainkan': '#facc15', 'Selesai': '#4ade80' };
+            const statusColors = { 
+                'Belum dimainkan': '#444C56', // Gray
+                'Dimainkan': '#FACC15', // Yellow
+                'Selesai': '#238636' // Green
+            };
+            const hoverStatusColors = { 
+                'Belum dimainkan': '#586069', 
+                'Dimainkan': '#FFD33D', 
+                'Selesai': '#2EA043' 
+            };
             statusChart.data = {
                 labels: statusLabels,
                 datasets: [{ 
                     label: 'Jumlah Game', 
                     data: statusValues, 
-                    backgroundColor: statusLabels.map(label => statusColors[label] || '#64748b'),
-                    hoverBackgroundColor: statusLabels.map(label => hoverStatusColors[label] || '#94a3b8'),
-                    borderRadius: 4, borderWidth: 2, borderColor: 'transparent', hoverBorderColor: '#6366f1'
+                    backgroundColor: statusLabels.map(label => statusColors[label] || '#444C56'),
+                    hoverBackgroundColor: statusLabels.map(label => hoverStatusColors[label] || '#586069'),
+                    borderRadius: 4, borderWidth: 2, borderColor: 'transparent', hoverBorderColor: '#58A6FF' // Accent border on hover
                 }]
             };
             statusChart.update();
@@ -494,7 +575,7 @@
 
             const prevButton = document.createElement('button');
             prevButton.innerHTML = '&laquo;';
-            prevButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
+            prevButton.className = 'px-3 py-1 rounded-md bg-[#161B22] text-[#E6EDF3] hover:bg-[#21262D] pagination-button transition';
             prevButton.disabled = currentPage === 1;
             prevButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; displayPage(); } });
             paginationContainer.appendChild(prevButton);
@@ -509,33 +590,33 @@
             if (startPage > 1) {
                 const firstButton = document.createElement('button');
                 firstButton.textContent = '1';
-                firstButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
+                firstButton.className = 'px-3 py-1 rounded-md bg-[#161B22] text-[#E6EDF3] hover:bg-[#21262D] pagination-button transition';
                 firstButton.addEventListener('click', () => { currentPage = 1; displayPage(); });
                 paginationContainer.appendChild(firstButton);
-                if (startPage > 2) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-slate-400">...</span>`);
+                if (startPage > 2) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-[#8B949E]">...</span>`);
             }
             
             for (let i = startPage; i <= endPage; i++) {
                 const pageButton = document.createElement('button');
                 pageButton.textContent = i;
-                pageButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
+                pageButton.className = 'px-3 py-1 rounded-md bg-[#161B22] text-[#E6EDF3] hover:bg-[#21262D] pagination-button transition';
                 if (i === currentPage) pageButton.classList.add('active');
                 pageButton.addEventListener('click', () => { currentPage = i; displayPage(); });
                 paginationContainer.appendChild(pageButton);
             }
 
             if (endPage < totalPages) {
-                if (endPage < totalPages - 1) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-slate-400">...</span>`);
+                if (endPage < totalPages - 1) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-[#8B949E]">...</span>`);
                 const lastButton = document.createElement('button');
                 lastButton.textContent = totalPages;
-                lastButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
+                lastButton.className = 'px-3 py-1 rounded-md bg-[#161B22] text-[#E6EDF3] hover:bg-[#21262D] pagination-button transition';
                 lastButton.addEventListener('click', () => { currentPage = totalPages; displayPage(); });
                 paginationContainer.appendChild(lastButton);
             }
 
             const nextButton = document.createElement('button');
             nextButton.innerHTML = '&raquo;';
-            nextButton.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
+            nextButton.className = 'px-3 py-1 rounded-md bg-[#161B22] text-[#E6EDF3] hover:bg-[#21262D] pagination-button transition';
             nextButton.disabled = currentPage === totalPages;
             nextButton.addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; displayPage(); } });
             paginationContainer.appendChild(nextButton);
@@ -573,7 +654,14 @@
         bulkDeleteButton.addEventListener('click', async () => {
             const idsToDelete = getSelectedGameIds();
             if (idsToDelete.length === 0) return;
-            if (confirm(`Apakah Anda yakin ingin menghapus ${idsToDelete.length} game terpilih?`)) {
+            // Replace confirm() with custom modal/toast if needed based on project guidelines
+            const userConfirmed = await new Promise(resolve => {
+                // For now, using a simple confirm. In a real app, this would be a custom modal.
+                // showCustomConfirmModal("Apakah Anda yakin ingin menghapus game ini?", resolve);
+                resolve(confirm(`Apakah Anda yakin ingin menghapus ${idsToDelete.length} game terpilih?`));
+            });
+
+            if (userConfirmed) {
                 try {
                     const batch = writeBatch(db);
                     idsToDelete.forEach(id => {
@@ -640,7 +728,14 @@
                 return;
             }
 
-            if (confirm(`Apakah Anda yakin ingin memperbarui ${Object.keys(updateData).length} properti untuk ${idsToUpdate.length} game?`)) {
+            // Replace confirm() with custom modal/toast if needed based on project guidelines
+            const userConfirmed = await new Promise(resolve => {
+                // For now, using a simple confirm. In a real app, this would be a custom modal.
+                // showCustomConfirmModal("Apakah Anda yakin ingin memperbarui game ini?", resolve);
+                resolve(confirm(`Apakah Anda yakin ingin memperbarui ${Object.keys(updateData).length} properti untuk ${idsToUpdate.length} game?`));
+            });
+
+            if (userConfirmed) {
                 try {
                     const batch = writeBatch(db);
                     idsToUpdate.forEach(id => {
@@ -690,7 +785,14 @@
                     if (!Array.isArray(importedGames)) {
                         throw new Error("File JSON harus berisi sebuah array.");
                     }
-                    if (confirm(`Anda akan mengimpor ${importedGames.length} game. Lanjutkan?`)) {
+                    // Replace confirm() with custom modal/toast if needed based on project guidelines
+                    const userConfirmed = await new Promise(resolve => {
+                        // For now, using a simple confirm. In a real app, this would be a custom modal.
+                        // showCustomConfirmModal(`Anda akan mengimpor ${importedGames.length} game. Lanjutkan?`, resolve);
+                        resolve(confirm(`Anda akan mengimpor ${importedGames.length} game. Lanjutkan?`));
+                    });
+
+                    if (userConfirmed) {
                         const batch = writeBatch(db);
                         const gamesCollection = collection(db, 'games', currentUser.uid, 'userGames');
                         importedGames.forEach(game => {
