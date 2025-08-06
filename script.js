@@ -55,15 +55,6 @@
         const bulkEditCancelButton = document.getElementById('bulk-edit-cancel-button');
         const bulkEditInfo = document.getElementById('bulk-edit-info');
 
-        // --- Custom Confirmation Modal Elements ---
-        const confirmationModal = document.getElementById('confirmation-modal');
-        const confirmationModalContent = document.getElementById('confirmation-modal-content');
-        const confirmationTitle = document.getElementById('confirmation-title');
-        const confirmationMessage = document.getElementById('confirmation-message');
-        const confirmOkButton = document.getElementById('confirm-ok-button');
-        const confirmCancelButton = document.getElementById('confirm-cancel-button');
-        let confirmResolver; // To resolve the promise for custom confirmation
-
         // --- Mobile Elements ---
         const sidebar = document.getElementById('sidebar');
         const openSidebarButton = document.getElementById('open-sidebar-button');
@@ -98,49 +89,6 @@
                 toast.className = toast.className.replace('translate-y-0 opacity-100', 'translate-y-20 opacity-0');
             }, 3000);
         }
-
-        // --- CUSTOM CONFIRMATION MODAL ---
-        function showConfirmation(message, title = 'Konfirmasi') {
-            return new Promise((resolve) => {
-                confirmationTitle.textContent = title;
-                confirmationMessage.textContent = message;
-                confirmationModal.classList.remove('hidden');
-                confirmationModal.classList.add('flex');
-                setTimeout(() => {
-                    confirmationModalContent.classList.remove('modal-enter-from');
-                    confirmationModalContent.classList.add('modal-enter-to');
-                }, 10);
-                confirmResolver = resolve;
-            });
-        }
-
-        function closeConfirmation() {
-            confirmationModalContent.classList.remove('modal-enter-to');
-            confirmationModalContent.classList.add('modal-leave-to');
-            setTimeout(() => {
-                confirmationModal.classList.add('hidden');
-                confirmationModal.classList.remove('flex');
-                confirmationModalContent.classList.remove('modal-leave-to');
-                confirmationModalContent.classList.add('modal-enter-from');
-            }, 300); // Match CSS transition duration
-        }
-
-        confirmOkButton.addEventListener('click', () => {
-            confirmResolver(true);
-            closeConfirmation();
-        });
-
-        confirmCancelButton.addEventListener('click', () => {
-            confirmResolver(false);
-            closeConfirmation();
-        });
-
-        confirmationModal.addEventListener('click', (e) => {
-            if (e.target === confirmationModal) {
-                confirmResolver(false); // If clicked outside, treat as cancel
-                closeConfirmation();
-            }
-        });
 
         // --- AUTHENTICATION ---
         loginButton.addEventListener('click', () => {
@@ -240,7 +188,7 @@
             const isEdit = !!game.id;
             return `
                 <div class="game-row p-4 border border-slate-700 rounded-lg space-y-3 relative">
-                    ${isEdit ? '' : '<button type="button" class="remove-row-btn absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center font-bold text-lg leading-none transition-colors hover:bg-red-600">&times;</button>'}
+                    ${isEdit ? '' : '<button type="button" class="remove-row-btn absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center">&times;</button>'}
                     <div class="mb-2">
                         <label class="block text-slate-300 text-sm font-bold mb-1">Judul Game</label>
                         <input type="text" class="game-title w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" value="${game.title || ''}" required>
@@ -305,23 +253,17 @@
             
             gameModal.classList.remove('hidden');
             gameModal.classList.add('flex');
-            // Add transition classes
             setTimeout(() => {
-                modalContent.classList.remove('modal-enter-from');
-                modalContent.classList.add('modal-enter-to');
+                modalContent.classList.remove('scale-95', 'opacity-0');
             }, 10);
         }
 
         function closeModal() {
-            // Add transition classes
-            modalContent.classList.remove('modal-enter-to');
-            modalContent.classList.add('modal-leave-to');
+            modalContent.classList.add('scale-95', 'opacity-0');
             setTimeout(() => {
                 gameModal.classList.add('hidden');
                 gameModal.classList.remove('flex');
-                modalContent.classList.remove('modal-leave-to');
-                modalContent.classList.add('modal-enter-from'); // Reset for next open
-            }, 300); // Match CSS transition duration
+            }, 200);
         }
 
         addGameButton.addEventListener('click', () => openModal());
@@ -398,8 +340,7 @@
 
         async function handleDelete(e) {
             const id = e.currentTarget.dataset.id;
-            const confirmed = await showConfirmation('Apakah Anda yakin ingin menghapus game ini?');
-            if (confirmed) {
+            if (confirm('Apakah Anda yakin ingin menghapus game ini?')) {
                 try {
                     const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
                     await deleteDoc(gameRef);
@@ -632,8 +573,7 @@
         bulkDeleteButton.addEventListener('click', async () => {
             const idsToDelete = getSelectedGameIds();
             if (idsToDelete.length === 0) return;
-            const confirmed = await showConfirmation(`Apakah Anda yakin ingin menghapus ${idsToDelete.length} game terpilih?`);
-            if (confirmed) {
+            if (confirm(`Apakah Anda yakin ingin menghapus ${idsToDelete.length} game terpilih?`)) {
                 try {
                     const batch = writeBatch(db);
                     idsToDelete.forEach(id => {
@@ -660,23 +600,17 @@
             
             bulkEditModal.classList.remove('hidden');
             bulkEditModal.classList.add('flex');
-            // Add transition classes
             setTimeout(() => {
-                bulkEditModalContent.classList.remove('modal-enter-from');
-                bulkEditModalContent.classList.add('modal-enter-to');
+                bulkEditModalContent.classList.remove('scale-95', 'opacity-0');
             }, 10);
         }
 
         function closeBulkEditModal() {
-            // Add transition classes
-            bulkEditModalContent.classList.remove('modal-enter-to');
-            bulkEditModalContent.classList.add('modal-leave-to');
+            bulkEditModalContent.classList.add('scale-95', 'opacity-0');
             setTimeout(() => {
                 bulkEditModal.classList.add('hidden');
                 bulkEditModal.classList.remove('flex');
-                bulkEditModalContent.classList.remove('modal-leave-to');
-                bulkEditModalContent.classList.add('modal-enter-from'); // Reset for next open
-            }, 300); // Match CSS transition duration
+            }, 200);
         }
 
         bulkEditButton.addEventListener('click', openBulkEditModal);
@@ -706,8 +640,7 @@
                 return;
             }
 
-            const confirmed = await showConfirmation(`Apakah Anda yakin ingin memperbarui ${Object.keys(updateData).length} properti untuk ${idsToUpdate.length} game?`);
-            if (confirmed) {
+            if (confirm(`Apakah Anda yakin ingin memperbarui ${Object.keys(updateData).length} properti untuk ${idsToUpdate.length} game?`)) {
                 try {
                     const batch = writeBatch(db);
                     idsToUpdate.forEach(id => {
@@ -746,7 +679,7 @@
 
         uploadJsonButton.addEventListener('click', () => jsonFileInput.click());
 
-        jsonFileInput.addEventListener('change', async (e) => {
+        jsonFileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
@@ -757,8 +690,7 @@
                     if (!Array.isArray(importedGames)) {
                         throw new Error("File JSON harus berisi sebuah array.");
                     }
-                    const confirmed = await showConfirmation(`Anda akan mengimpor ${importedGames.length} game. Lanjutkan?`);
-                    if (confirmed) {
+                    if (confirm(`Anda akan mengimpor ${importedGames.length} game. Lanjutkan?`)) {
                         const batch = writeBatch(db);
                         const gamesCollection = collection(db, 'games', currentUser.uid, 'userGames');
                         importedGames.forEach(game => {
