@@ -3,368 +3,303 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dasbor Koleksi Game</title>
-
-    <!-- Tailwind CSS -->
+    <title>Koleksi Game Saya</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Chart.js for Statistics -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Feather Icons -->
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
-
+    <!-- Font Awesome untuk ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa; /* Light gray background */
-            color: #212529; /* Dark text */
+            background-color: #f0f2f5; /* Warna latar belakang yang lembut */
         }
-        .modal-backdrop {
-            background-color: rgba(0, 0, 0, 0.5);
+        .sidebar {
+            background-color: #1a202c; /* Warna gelap untuk sidebar */
+            color: #e2e8f0; /* Warna teks terang */
+            width: 250px;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding: 1.5rem;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
         }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.2s ease;
         }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #2d3748; /* Warna hover/aktif yang sedikit lebih terang */
         }
-        ::-webkit-scrollbar-thumb {
-            background: #d1d5db; /* gray-300 */
-            border-radius: 10px;
+        .sidebar a i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #9ca3af; /* gray-400 */
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            flex-grow: 1;
         }
-        .pagination-button {
-            min-width: 40px;
+        .card {
+            background-color: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 1.5rem;
         }
-        .pagination-button.active {
-            background-color: #10b981; /* emerald-500 */
-            color: white;
+        .table-header {
+            background-color: #f7fafc; /* Warna header tabel */
+        }
+        .modal {
+            display: none; /* Sembunyikan secara default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 0.75rem;
+            width: 80%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
             font-weight: bold;
         }
-        /* Style for disabled button */
-        .btn-disabled {
-            background-color: #e5e7eb; /* gray-200 */
-            color: #9ca3af; /* gray-400 */
-            cursor: not-allowed;
-        }
-        
-        /* Sidebar active tab style */
-        .tab-button.tab-active {
-            background-color: #ecfdf5; /* green-50 */
-            color: #065f46; /* green-800 */
-            font-weight: 600;
-            position: relative;
-        }
-        .tab-button.tab-active::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            width: 4px;
-            height: 70%;
-            background-color: #10b981; /* emerald-500 */
-            border-radius: 0 4px 4px 0;
-        }
-        .tab-button.tab-inactive {
-            color: #6b7280; /* gray-500 */
-        }
-        .tab-button:not(.tab-active):hover {
-            background-color: #f3f4f6; /* gray-100 */
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
         }
     </style>
 </head>
-<body class="antialiased">
-
-    <!-- Login Screen -->
-    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-        <div class="w-full max-w-md bg-white rounded-2xl border border-gray-200 shadow-lg p-8 text-center">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Dasbor Koleksi Game</h1>
-            <p class="text-gray-500 mb-8">Kelola dan lacak semua game favorit Anda di satu tempat.</p>
-            <button id="login-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition duration-300">
-                <svg class="w-6 h-6 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.021,35.591,44,30.138,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
-                Masuk dengan Google
+<body class="flex">
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="text-2xl font-bold mb-8 text-center">Koleksi Game</div>
+        <nav>
+            <a href="#" id="nav-dashboard" class="active">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="#" id="nav-game-list">
+                <i class="fas fa-gamepad"></i> Daftar Game
+            </a>
+            <a href="#" id="nav-statistics">
+                <i class="fas fa-chart-bar"></i> Statistik Game
+            </a>
+            <a href="#" id="nav-bulk-actions">
+                <i class="fas fa-tasks"></i> Aksi Massal
+            </a>
+            <a href="#" id="nav-data-management">
+                <i class="fas fa-database"></i> Manajemen Data
+            </a>
+        </nav>
+        <div class="absolute bottom-6 left-0 w-full px-6">
+            <button id="auth-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200">
+                Login dengan Google
             </button>
+            <p id="user-info" class="text-sm text-gray-400 mt-2 text-center hidden"></p>
         </div>
     </div>
 
-    <!-- Main App Screen -->
-    <div id="app-screen" class="hidden">
-        <div class="relative min-h-screen md:flex">
-            <!-- Mobile Menu Backdrop -->
-            <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/30 z-20 md:hidden hidden"></div>
-            
-            <!-- Sidebar -->
-            <aside id="sidebar" class="fixed inset-y-0 left-0 bg-white w-64 p-6 flex flex-col z-30 transform transition-transform duration-300 md:relative md:translate-x-0 -translate-x-full border-r border-gray-200">
-                <div class="flex-grow">
-                    <div class="flex items-center justify-between mb-10">
-                        <h1 class="text-2xl font-bold text-emerald-600">Koleksi Game</h1>
-                        <button id="close-sidebar-button" class="md:hidden text-gray-500 hover:text-gray-800">
-                            <i data-feather="x"></i>
-                        </button>
-                    </div>
-                    <nav id="tabs" class="flex flex-col space-y-2">
-                         <button data-tab="tab-list" class="tab-button tab-active flex items-center py-2.5 px-4 rounded-lg transition duration-200">
-                            <i data-feather="list" class="h-5 w-5 mr-3"></i>
-                            Daftar Game
-                        </button>
-                        <button data-tab="tab-stats" class="tab-button tab-inactive flex items-center py-2.5 px-4 rounded-lg transition duration-200">
-                            <i data-feather="bar-chart-2" class="h-5 w-5 mr-3"></i>
-                            Statistik
-                        </button>
-                        <button data-tab="tab-bulk" class="tab-button tab-inactive flex items-center py-2.5 px-4 rounded-lg transition duration-200">
-                             <i data-feather="edit" class="h-5 w-5 mr-3"></i>
-                            Aksi Masal
-                        </button>
-                        <button data-tab="tab-manage" class="tab-button tab-inactive flex items-center py-2.5 px-4 rounded-lg transition duration-200">
-                            <i data-feather="database" class="h-5 w-5 mr-3"></i>
-                            Manajemen Data
-                        </button>
-                    </nav>
-                </div>
-                <div>
-                    <div id="user-profile" class="flex items-center space-x-3 border-t border-gray-200 pt-4 mb-4">
-                        <img id="user-photo" src="https://placehold.co/40x40/e2e8f0/e2e8f0" alt="User Photo" class="w-10 h-10 rounded-full">
-                        <div>
-                            <p id="user-name" class="font-semibold text-sm text-gray-800">Guest User</p>
-                            <button id="logout-button" class="text-xs text-red-500 hover:text-red-700 font-semibold">Keluar</button>
-                        </div>
-                    </div>
-                    <p class="text-xs text-gray-400 text-center">© 2024 RichD</p>
-                </div>
-            </aside>
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Dashboard</h1>
 
-            <!-- Main Content -->
-            <main class="flex-1 p-4 md:p-8 overflow-y-auto">
-                <!-- Header Mobile -->
-                 <header class="md:hidden flex items-center justify-between mb-6">
-                    <button id="open-sidebar-button" class="text-gray-600 hover:text-gray-900">
-                         <i data-feather="menu" class="h-6 w-6"></i>
+        <!-- Konten Halaman Dinamis -->
+        <div id="page-content">
+            <!-- Konten akan dimuat di sini oleh JavaScript -->
+            <div id="dashboard-page" class="card">
+                <h2 class="text-2xl font-semibold mb-4">Selamat Datang!</h2>
+                <p class="text-gray-700">Gunakan sidebar untuk menavigasi aplikasi Anda. Silakan login untuk mulai mengelola koleksi game Anda.</p>
+            </div>
+
+            <div id="game-list-page" class="hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-semibold text-gray-800">Daftar Game</h2>
+                    <button id="add-game-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200">
+                        <i class="fas fa-plus"></i> Tambah Game
                     </button>
-                    <h1 class="text-xl font-bold text-emerald-600">Koleksi Game</h1>
-                    <div></div> <!-- Spacer -->
-                </header>
+                </div>
+                <div class="card mb-6">
+                    <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                        <thead class="table-header">
+                            <tr>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul Game</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Platform</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lokasi</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="game-list-body" class="divide-y divide-gray-200">
+                            <!-- Data game akan dimuat di sini -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="pagination-controls" class="flex justify-center items-center space-x-2">
+                    <!-- Kontrol paginasi akan dimuat di sini -->
+                </div>
+            </div>
 
-                <!-- Tab: Daftar Game -->
-                <div id="tab-list" class="tab-content">
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                        <h2 class="text-2xl sm:text-3xl font-bold text-gray-800">Daftar Game</h2>
-                        <button id="add-game-button" class="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 shadow-sm">
-                            <i data-feather="plus" class="h-5 w-5 mr-2"></i>
-                            Tambah Game
-                        </button>
+            <div id="statistics-page" class="hidden card">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Statistik Game</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-blue-100 p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-medium text-blue-800">Total Game</h3>
+                        <p id="stat-total-games" class="text-3xl font-bold text-blue-900 mt-2">0</p>
                     </div>
-                    <!-- Filter Section -->
-                    <div class="bg-white p-4 md:p-6 rounded-xl border border-gray-200 shadow-sm mb-6">
-                        <h3 class="font-bold text-xl mb-4 text-gray-700">Filter Game</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <input id="filter-title" type="text" placeholder="Filter berdasarkan judul..." class="bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                            <select id="filter-platform" class="bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                                <option value="">Semua Platform</option>
-                                <option>Steam</option><option>Epic</option><option>GOG</option><option>EA App</option><option>PCSX</option><option>Crack</option>
-                            </select>
-                            <select id="filter-location" class="bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                                <option value="">Semua Lokasi</option>
-                                <option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option>
-                            </select>
-                            <select id="filter-status" class="bg-gray-50 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                                <option value="">Semua Status</option>
-                                <option>Dimainkan</option><option>Belum dimainkan</option><option>Selesai</option>
-                            </select>
-                        </div>
-                     </div>
-                    <!-- Game Table -->
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-x-auto">
-                        <table class="w-full text-left min-w-[640px]">
-                            <thead class="bg-gray-50 border-b border-gray-200">
-                                <tr>
-                                    <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="rounded bg-gray-200 border-gray-300 text-emerald-500 focus:ring-emerald-500"></th>
-                                    <th class="p-4 font-semibold text-gray-600">Judul Game</th>
-                                    <th class="p-4 font-semibold text-gray-600">Platform</th>
-                                    <th class="p-4 font-semibold text-gray-600">Lokasi</th>
-                                    <th class="p-4 font-semibold text-gray-600">Status</th>
-                                    <th class="p-4 font-semibold text-gray-600">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="game-list-body">
-                                <!-- Game items will be injected here by JS -->
-                                <tr><td colspan="6" class="text-center p-8 text-gray-500">Memuat data game...</td></tr>
-                            </tbody>
-                        </table>
+                    <div class="bg-green-100 p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-medium text-green-800">Belum Dimainkan</h3>
+                        <p id="stat-not-played" class="text-3xl font-bold text-green-900 mt-2">0</p>
                     </div>
-                     <!-- Pagination -->
-                    <div id="pagination-container" class="flex justify-center items-center mt-6 space-x-1 sm:space-x-2"></div>
+                    <div class="bg-yellow-100 p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-medium text-yellow-800">Sedang Dimainkan</h3>
+                        <p id="stat-playing" class="text-3xl font-bold text-yellow-900 mt-2">0</p>
+                    </div>
+                    <div class="bg-purple-100 p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-medium text-purple-800">Tamat</h3>
+                        <p id="stat-completed" class="text-3xl font-bold text-purple-900 mt-2">0</p>
+                    </div>
+                    <div class="bg-red-100 p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-medium text-red-800">Game di HDD Eksternal 2TB</h3>
+                        <p id="stat-hdd2tb" class="text-3xl font-bold text-red-900 mt-2">0</p>
+                    </div>
+                    <div class="bg-indigo-100 p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-medium text-indigo-800">Game di Steam</h3>
+                        <p id="stat-steam" class="text-3xl font-bold text-indigo-900 mt-2">0</p>
+                    </div>
                 </div>
+            </div>
 
-                <!-- Tab: Statistik -->
-                <div id="tab-stats" class="tab-content hidden">
-                     <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Statistik Game</h2>
-                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                            <h3 class="font-bold text-xl text-center mb-4 text-gray-700">Game per Platform</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
-                                <canvas id="platform-chart"></canvas>
-                            </div>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                            <h3 class="font-bold text-xl text-center mb-4 text-gray-700">Game per Lokasi</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
-                                <canvas id="location-chart"></canvas>
-                            </div>
-                        </div>
-                        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 col-span-1 lg:col-span-2">
-                             <h3 class="font-bold mb-4 text-xl text-center text-gray-700">Status Permainan</h3>
-                            <div class="relative h-72 w-full mx-auto" style="max-width: 800px;">
-                                <canvas id="status-chart"></canvas>
-                            </div>
-                        </div>
-                     </div>
+            <div id="bulk-actions-page" class="hidden card">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Aksi Massal</h2>
+                <div class="mb-4">
+                    <label for="bulk-action-status" class="block text-gray-700 text-sm font-bold mb-2">Ubah Status Massal:</label>
+                    <select id="bulk-action-status" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">Pilih Status Baru</option>
+                        <option value="Belum dimainkan">Belum dimainkan</option>
+                        <option value="Dimainkan">Dimainkan</option>
+                        <option value="Tamat">Tamat</option>
+                    </select>
                 </div>
+                <button id="apply-bulk-status-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 mb-4">
+                    Terapkan Status Massal
+                </button>
 
-                <!-- Tab: Aksi Masal -->
-                <div id="tab-bulk" class="tab-content hidden">
-                     <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Aksi Masal</h2>
-                     <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                        <h3 class="font-bold text-xl mb-4 text-gray-700">Tindakan untuk Game Terpilih</h3>
-                        <p id="selection-info" class="text-gray-500 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.</p>
-                        <div class="flex flex-wrap gap-4">
-                            <button id="bulk-edit-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:btn-disabled" disabled>
-                                <i data-feather="edit" class="h-5 w-5 mr-2"></i>
-                                Edit Game Terpilih
-                            </button>
-                            <button id="bulk-delete-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:btn-disabled" disabled>
-                                <i data-feather="trash-2" class="h-5 w-5 mr-2"></i>
-                                Hapus Game Terpilih
-                            </button>
-                        </div>
-                     </div>
+                <div class="mb-4">
+                    <label for="bulk-action-platform" class="block text-gray-700 text-sm font-bold mb-2">Ubah Platform Massal:</label>
+                    <select id="bulk-action-platform" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">Pilih Platform Baru</option>
+                        <option value="Steam">Steam</option>
+                        <option value="Epic">Epic</option>
+                        <option value="GOG">GOG</option>
+                        <option value="EA App">EA App</option>
+                        <option value="PCSX2">PCSX2</option>
+                        <option value="Crack">Crack</option>
+                    </select>
                 </div>
+                <button id="apply-bulk-platform-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 mb-4">
+                    Terapkan Platform Massal
+                </button>
 
-                <!-- Tab: Manajemen Data -->
-                <div id="tab-manage" class="tab-content hidden">
-                    <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-gray-800">Manajemen Data</h2>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 class="font-bold text-xl mb-2 text-gray-700">Ekspor Data</h3>
-                                <p class="text-gray-500 mb-4">Unduh semua koleksi game Anda sebagai file JSON.</p>
-                                <button id="download-json-button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300">
-                                    <i data-feather="download" class="h-5 w-5 mr-2"></i>
-                                    Unduh JSON
-                                </button>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-xl mb-2 text-gray-700">Impor Data</h3>
-                                <p class="text-gray-500 mb-4">Muat koleksi game dari file JSON. Game yang ada akan ditambahkan, bukan diganti.</p>
-                                <button id="upload-json-button" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300">
-                                    <i data-feather="upload" class="h-5 w-5 mr-2"></i>
-                                    Muat JSON
-                                </button>
-                                <input type="file" id="json-file-input" class="hidden" accept=".json">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
+                <button id="bulk-delete-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200">
+                    Hapus Semua Game
+                </button>
+            </div>
 
-    <!-- Add/Edit Game Modal -->
-    <div id="game-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="modal-content">
-            <h3 id="modal-title" class="text-2xl font-bold mb-6 text-gray-800">Tambah Game Baru</h3>
-            <form id="game-form">
-                <div class="max-h-[70vh] overflow-y-auto pr-2">
-                    <input type="hidden" id="game-id">
-                    <div id="game-rows-container" class="space-y-4">
-                        <!-- Game entry rows will be injected here -->
-                    </div>
+            <div id="data-management-page" class="hidden card">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">Manajemen Data</h2>
+                <div class="flex flex-col md:flex-row gap-4">
+                    <button id="download-json-btn" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 flex-1">
+                        <i class="fas fa-download"></i> Unduh Data (JSON)
+                    </button>
+                    <label for="upload-json-input" class="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 flex-1 text-center cursor-pointer">
+                        <i class="fas fa-upload"></i> Muat Data (JSON)
+                        <input type="file" id="upload-json-input" accept=".json" class="hidden">
+                    </label>
                 </div>
-                <div class="flex flex-col sm:flex-row justify-between items-center mt-6 pt-4 border-t border-gray-200 gap-4">
-                    <button type="button" id="add-row-button" class="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition">Tambah Baris</button>
-                    <div class="w-full sm:w-auto flex justify-end space-x-4">
-                        <button type="button" id="cancel-button" class="flex-1 sm:flex-none bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition">Batal</button>
-                        <button type="submit" id="save-form-button" class="flex-1 sm:flex-none bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg transition">Simpan</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Bulk Edit Modal -->
-    <div id="bulk-edit-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="bulk-edit-modal-content">
-            <h3 id="bulk-edit-modal-title" class="text-2xl font-bold mb-6 text-gray-800">Edit Game Secara Masal</h3>
-            <form id="bulk-edit-form">
-                <p id="bulk-edit-info" class="text-gray-600 mb-4"></p>
-                <div class="space-y-4">
-                    <!-- Platform -->
-                    <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <input type="checkbox" id="bulk-update-platform-check" class="h-5 w-5 rounded text-emerald-500 border-gray-300 focus:ring-emerald-500">
-                        <div class="flex-grow">
-                            <label for="bulk-platform" class="block text-gray-700 text-sm font-bold mb-1">Platform</label>
-                            <select id="bulk-platform" class="w-full bg-white border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                                <option>Steam</option><option>Epic</option><option>GOG</option><option>EA App</option><option>PCSX</option><option>Crack</option>
-                            </select>
-                        </div>
-                    </div>
-                    <!-- Location -->
-                    <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <input type="checkbox" id="bulk-update-location-check" class="h-5 w-5 rounded text-emerald-500 border-gray-300 focus:ring-emerald-500">
-                        <div class="flex-grow">
-                            <label for="bulk-location" class="block text-gray-700 text-sm font-bold mb-1">Lokasi</label>
-                            <select id="bulk-location" class="w-full bg-white border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                                <option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option>
-                            </select>
-                        </div>
-                    </div>
-                    <!-- Status -->
-                    <div class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <input type="checkbox" id="bulk-update-status-check" class="h-5 w-5 rounded text-emerald-500 border-gray-300 focus:ring-emerald-500">
-                        <div class="flex-grow">
-                            <label for="bulk-status" class="block text-gray-700 text-sm font-bold mb-1">Status</label>
-                            <select id="bulk-status" class="w-full bg-white border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-                                <option>Belum dimainkan</option><option>Dimainkan</option><option>Selesai</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex justify-end space-x-4 mt-6 pt-4 border-t border-gray-200">
-                    <button type="button" id="bulk-edit-cancel-button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition">Batal</button>
-                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg transition">Simpan Perubahan</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Delete Confirmation Modal -->
-    <div id="delete-confirm-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="delete-confirm-modal-content">
-            <h3 class="text-2xl font-bold mb-4 text-gray-800">Konfirmasi Penghapusan</h3>
-            <p id="delete-confirm-message" class="text-gray-600 mb-6">Apakah Anda yakin ingin menghapus game ini?</p>
-            <div class="flex justify-end space-x-4">
-                <button type="button" id="cancel-delete-button" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition">Batal</button>
-                <button type="button" id="confirm-delete-button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition">Hapus</button>
+                <p class="text-sm text-gray-600 mt-4">Catatan: Mengunggah data JSON akan menimpa data game yang ada.</p>
             </div>
         </div>
     </div>
 
-    <!-- Custom Alert/Toast -->
-    <div id="toast" class="fixed bottom-5 right-1/2 translate-x-1/2 w-11/12 max-w-sm bg-green-500 text-white py-3 px-5 rounded-lg shadow-lg transform translate-y-24 opacity-0 transition-all duration-300 z-50">
-        <p id="toast-message">Operasi berhasil!</p>
+    <!-- Modal Tambah/Edit Game -->
+    <div id="game-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modal-title" class="text-2xl font-semibold mb-4">Tambah Game Baru</h2>
+            <form id="game-form">
+                <input type="hidden" id="game-id">
+                <div class="mb-4">
+                    <label for="game-title" class="block text-gray-700 text-sm font-bold mb-2">Judul Game:</label>
+                    <input type="text" id="game-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="mb-4">
+                    <label for="game-platform" class="block text-gray-700 text-sm font-bold mb-2">Platform:</label>
+                    <select id="game-platform" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        <option value="Steam">Steam</option>
+                        <option value="Epic">Epic</option>
+                        <option value="GOG">GOG</option>
+                        <option value="EA App">EA App</option>
+                        <option value="PCSX2">PCSX2</option>
+                        <option value="Crack">Crack</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="game-location" class="block text-gray-700 text-sm font-bold mb-2">Lokasi:</label>
+                    <select id="game-location" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        <option value="HDD Eksternal 2TB">HDD Eksternal 2TB</option>
+                        <option value="HDD Eksternal 4TB">HDD Eksternal 4TB</option>
+                        <option value="Belum Install">Belum Install</option>
+                        <option value="Internal PC">Internal PC</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label for="game-status" class="block text-gray-700 text-sm font-bold mb-2">Status:</label>
+                    <select id="game-status" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                        <option value="Belum dimainkan">Belum dimainkan</option>
+                        <option value="Dimainkan">Dimainkan</option>
+                        <option value="Tamat">Tamat</option>
+                    </select>
+                </div>
+                <div class="flex items-center justify-between">
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline">
+                        Simpan Game
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-	<script type="module" src="/script.js"></script>
-    <script>
-      feather.replace()
-    </script>
+
+    <!-- Modal Konfirmasi -->
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-xl font-semibold mb-4">Konfirmasi</h2>
+            <p id="confirm-message" class="mb-6">Apakah Anda yakin ingin melakukan tindakan ini?</p>
+            <div class="flex justify-end space-x-4">
+                <button id="cancel-confirm-btn" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-lg">Batal</button>
+                <button id="execute-confirm-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/script.js"></script>
 </body>
 </html>
