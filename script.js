@@ -129,6 +129,7 @@
                 'Steam': 'bg-blue-600/30 text-blue-300',
                 'Epic': 'bg-gray-400/30 text-gray-200',
                 'GOG': 'bg-purple-500/30 text-purple-300',
+				'EA App': 'bg-red-500/30 text-red-300',
                 'PCSX': 'bg-yellow-500/30 text-yellow-300',
                 'Crack': 'bg-red-500/30 text-red-300',
                 'default': 'bg-slate-500/30 text-slate-300'
@@ -199,6 +200,7 @@
                                 <option ${game.platform === 'Steam' ? 'selected' : ''}>Steam</option>
                                 <option ${game.platform === 'Epic' ? 'selected' : ''}>Epic</option>
                                 <option ${game.platform === 'GOG' ? 'selected' : ''}>GOG</option>
+								<option ${game.platform === 'EA App' ? 'selected' : ''}>EA App</option>
                                 <option ${game.platform === 'PCSX' ? 'selected' : ''}>PCSX</option>
                                 <option ${game.platform === 'Crack' ? 'selected' : ''}>Crack</option>
                             </select>
