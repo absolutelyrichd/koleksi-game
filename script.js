@@ -692,23 +692,21 @@
                 return;
             }
 
-            openDeleteConfirmModal(null, `Apakah Anda yakin ingin memperbarui ${Object.keys(updateData).length} properti untuk ${idsToUpdate.length} game?`, async () => {
-                try {
-                    const batch = writeBatch(db);
-                    idsToUpdate.forEach(id => {
-                        const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
-                        batch.update(gameRef, updateData);
-                    });
-                    await batch.commit();
-                    showToast(`${idsToUpdate.length} game berhasil diperbarui.`);
-                    selectAllCheckbox.checked = false;
-                    closeBulkEditModal();
-                    closeDeleteConfirmModal();
-                } catch (error) {
-                    console.error("Error bulk updating: ", error);
-                    showToast(`Gagal memperbarui game: ${error.message}`, true);
-                }
-            });
+            // Directly perform the bulk update without showing the delete confirmation modal
+            try {
+                const batch = writeBatch(db);
+                idsToUpdate.forEach(id => {
+                    const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
+                    batch.update(gameRef, updateData);
+                });
+                await batch.commit();
+                showToast(`${idsToUpdate.length} game berhasil diperbarui.`);
+                selectAllCheckbox.checked = false;
+                closeBulkEditModal(); // Close the bulk edit modal after successful update
+            } catch (error) {
+                console.error("Error bulk updating: ", error);
+                showToast(`Gagal memperbarui game: ${error.message}`, true);
+            }
         });
 
         // --- DATA MANAGEMENT ---
