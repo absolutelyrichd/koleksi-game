@@ -61,7 +61,8 @@
         const deleteConfirmMessage = document.getElementById('delete-confirm-message');
         const cancelDeleteButton = document.getElementById('cancel-delete-button');
         const confirmDeleteButton = document.getElementById('confirm-delete-button');
-        let gameIdToDelete = null; // To store the ID of the game to be deleted
+        let gameIdToDelete = null; // To store the ID of the game to be deleted for single delete
+        let currentConfirmCallback = null; // To store the callback function for modal confirmation
 
         // --- Mobile Elements ---
         const sidebar = document.getElementById('sidebar');
@@ -149,10 +150,13 @@
         function fetchGames() {
             if (!currentUser) return;
             const gamesCollectionRef = collection(db, 'games', currentUser.uid, 'userGames');
-            const q = query(gamesCollectionRef, orderBy("title"));
+            // Keep orderBy for initial fetch, but client-side sort will override for display
+            const q = query(gamesCollectionRef, orderBy("title")); 
 
             unsubscribe = onSnapshot(q, (snapshot) => {
                 games = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // Add client-side case-insensitive sorting here for consistent display
+                games.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
                 applyFilters();
                 updateCharts();
                 updateBulkActionUI();
@@ -347,9 +351,11 @@
         }
 
         // --- DELETE CONFIRMATION MODAL LOGIC ---
-        function openDeleteConfirmModal(id) {
-            gameIdToDelete = id;
-            deleteConfirmMessage.textContent = 'Apakah Anda yakin ingin menghapus game ini?';
+        // New function to open the delete confirmation modal with a custom message and callback
+        function openDeleteConfirmModal(id, message, onConfirmCallback) {
+            gameIdToDelete = id; // Store ID for single delete context, null for bulk
+            deleteConfirmMessage.textContent = message;
+            currentConfirmCallback = onConfirmCallback; // Store the callback to be executed on confirm
             deleteConfirmModal.classList.remove('hidden');
             deleteConfirmModal.classList.add('flex');
             setTimeout(() => {
@@ -363,6 +369,7 @@
                 deleteConfirmModal.classList.add('hidden');
                 deleteConfirmModal.classList.remove('flex');
                 gameIdToDelete = null; // Clear the stored ID
+                currentConfirmCallback = null; // Clear the callback
             }, 200);
         }
 
@@ -371,22 +378,28 @@
             if (e.target === deleteConfirmModal) closeDeleteConfirmModal();
         });
 
+        // Event listener for the confirm delete button, now executes the stored callback
         confirmDeleteButton.addEventListener('click', async () => {
-            if (!gameIdToDelete || !currentUser) return;
-            try {
-                const gameRef = doc(db, 'games', currentUser.uid, 'userGames', gameIdToDelete);
-                await deleteDoc(gameRef);
-                showToast('Game berhasil dihapus.');
-                closeDeleteConfirmModal();
-            } catch (error) {
-                console.error("Error deleting game: ", error);
-                showToast(`Gagal menghapus: ${error.message}`, true);
+            if (currentConfirmCallback) {
+                await currentConfirmCallback();
+                // The callback should handle closing the modal and showing toast
             }
         });
 
         function handleDelete(e) {
             const id = e.currentTarget.dataset.id;
-            openDeleteConfirmModal(id);
+            const gameTitle = games.find(g => g.id === id)?.title || 'game ini'; // Get title for specific message
+            openDeleteConfirmModal(id, `Apakah Anda yakin ingin menghapus ${gameTitle}?`, async () => {
+                try {
+                    const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
+                    await deleteDoc(gameRef);
+                    showToast('Game berhasil dihapus.');
+                    closeDeleteConfirmModal();
+                } catch (error) {
+                    console.error("Error deleting game: ", error);
+                    showToast(`Gagal menghapus: ${error.message}`, true);
+                }
+            });
         }
         
         // --- TAB SWITCHING ---
@@ -610,13 +623,8 @@
         bulkDeleteButton.addEventListener('click', async () => {
             const idsToDelete = getSelectedGameIds();
             if (idsToDelete.length === 0) return;
-            // Use the custom modal for bulk delete confirmation
-            deleteConfirmMessage.textContent = `Apakah Anda yakin ingin menghapus ${idsToDelete.length} game terpilih?`;
-            openDeleteConfirmModal(null); // Pass null for single game delete, handle array in confirmDeleteButton
             
-            // Temporarily override the confirmDeleteButton action for bulk delete
-            const originalConfirmDeleteHandler = confirmDeleteButton.onclick; // Store original handler if any
-            confirmDeleteButton.onclick = async () => {
+            openDeleteConfirmModal(null, `Apakah Anda yakin ingin menghapus ${idsToDelete.length} game terpilih?`, async () => {
                 try {
                     const batch = writeBatch(db);
                     idsToDelete.forEach(id => {
@@ -630,10 +638,8 @@
                 } catch (error) {
                     console.error("Error bulk deleting: ", error);
                     showToast(`Gagal menghapus game: ${error.message}`, true);
-                } finally {
-                    confirmDeleteButton.onclick = originalConfirmDeleteHandler; // Restore original handler
                 }
-            };
+            });
         });
 
         // --- BULK EDIT MODAL LOGIC ---
@@ -686,12 +692,7 @@
                 return;
             }
 
-            // Use the custom modal for bulk update confirmation
-            deleteConfirmMessage.textContent = `Apakah Anda yakin ingin memperbarui ${Object.keys(updateData).length} properti untuk ${idsToUpdate.length} game?`;
-            openDeleteConfirmModal(null); // Use the same modal, but handle the action differently
-
-            const originalConfirmDeleteHandler = confirmDeleteButton.onclick;
-            confirmDeleteButton.onclick = async () => {
+            openDeleteConfirmModal(null, `Apakah Anda yakin ingin memperbarui ${Object.keys(updateData).length} properti untuk ${idsToUpdate.length} game?`, async () => {
                 try {
                     const batch = writeBatch(db);
                     idsToUpdate.forEach(id => {
@@ -706,10 +707,8 @@
                 } catch (error) {
                     console.error("Error bulk updating: ", error);
                     showToast(`Gagal memperbarui game: ${error.message}`, true);
-                } finally {
-                    confirmDeleteButton.onclick = originalConfirmDeleteHandler;
                 }
-            };
+            });
         });
 
         // --- DATA MANAGEMENT ---
@@ -744,12 +743,8 @@
                     if (!Array.isArray(importedGames)) {
                         throw new Error("File JSON harus berisi sebuah array.");
                     }
-                    // Use the custom modal for import confirmation
-                    deleteConfirmMessage.textContent = `Anda akan mengimpor ${importedGames.length} game. Lanjutkan?`;
-                    openDeleteConfirmModal(null); // Use the same modal for confirmation
-
-                    const originalConfirmDeleteHandler = confirmDeleteButton.onclick;
-                    confirmDeleteButton.onclick = async () => {
+                    
+                    openDeleteConfirmModal(null, `Anda akan mengimpor ${importedGames.length} game. Lanjutkan?`, async () => {
                         try {
                             const batch = writeBatch(db);
                             const gamesCollection = collection(db, 'games', currentUser.uid, 'userGames');
@@ -767,9 +762,9 @@
                             showToast(`Gagal mengimpor: ${error.message}`, true);
                         } finally {
                             jsonFileInput.value = '';
-                            confirmDeleteButton.onclick = originalConfirmDeleteHandler;
                         }
-                    };
+                    });
+
                 } catch (error) {
                     console.error("Error parsing JSON: ", error);
                     showToast(`Gagal mengimpor: ${error.message}`, true);
