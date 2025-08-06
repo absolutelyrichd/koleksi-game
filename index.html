@@ -19,46 +19,46 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #1a1a2e; /* Warna latar belakang yang lebih gelap dan elegan */
-            color: #e0e0e0; /* Warna teks yang lebih terang */
+            background-color: #0f172a; /* slate-900 */
+            color: #f8fafc; /* slate-50 */
         }
         .tab-active {
-            background-color: #3b3b57; /* Latar belakang tab aktif */
-            color: white;
+            background-color: #334155; /* slate-700 */
+            color: #f8fafc; /* slate-50 */
         }
         .tab-inactive {
             background-color: transparent;
-            color: #a0a0c0; /* Warna teks tab tidak aktif */
+            color: #94a3b8; /* slate-400 */
         }
         .modal-backdrop {
-            background-color: rgba(0, 0, 0, 0.8); /* Latar belakang modal yang lebih gelap */
+            background-color: rgba(0, 0, 0, 0.7);
         }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #2a2a44; /* Warna track scrollbar */
+            background: #1e293b; /* slate-800 */
         }
         ::-webkit-scrollbar-thumb {
-            background: #5c5c7d; /* Warna thumb scrollbar */
+            background: #475569; /* slate-600 */
             border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #7d7db3; /* Warna hover thumb scrollbar */
+            background: #64748b; /* slate-500 */
         }
         .pagination-button {
             min-width: 40px;
         }
         .pagination-button.active {
-            background-color: #7d5fff; /* Warna aksen yang cerah untuk pagination aktif */
+            background-color: #4f46e5; /* indigo-600 */
             color: white;
             font-weight: bold;
         }
         /* Style for disabled button in bulk actions */
         .btn-disabled {
-            background-color: #3b3b57; /* Warna tombol disabled */
-            color: #7d7db3; /* Warna teks tombol disabled */
+            background-color: #374151; /* gray-700 */
+            color: #9ca3af; /* gray-400 */
             cursor: not-allowed;
         }
     </style>
@@ -67,9 +67,9 @@
 
     <!-- Login Screen -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-md bg-[#2a2a44] rounded-2xl shadow-2xl p-8 text-center">
+        <div class="w-full max-w-md bg-slate-800 rounded-2xl shadow-2xl p-8 text-center">
             <h1 class="text-3xl font-bold text-white mb-2">Dasbor Koleksi Game</h1>
-            <p class="text-gray-400 mb-8">Kelola dan lacak semua game favorit Anda di satu tempat.</p>
+            <p class="text-slate-400 mb-8">Kelola dan lacak semua game favorit Anda di satu tempat.</p>
             <button id="login-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition duration-300">
                 <svg class="w-6 h-6 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.021,35.591,44,30.138,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
                 Masuk dengan Google
@@ -84,11 +84,11 @@
             <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/50 z-20 md:hidden hidden"></div>
             
             <!-- Sidebar -->
-            <aside id="sidebar" class="fixed inset-y-0 left-0 bg-[#2a2a44] w-64 p-6 flex flex-col z-30 transform transition-transform duration-300 md:relative md:translate-x-0 -translate-x-full">
+            <aside id="sidebar" class="fixed inset-y-0 left-0 bg-slate-800 w-64 p-6 flex flex-col z-30 transform transition-transform duration-300 md:relative md:translate-x-0 -translate-x-full">
                 <div class="flex-grow">
                     <div class="flex items-center justify-between mb-8">
                         <h1 class="text-2xl font-bold text-white">Koleksi Game</h1>
-                        <button id="close-sidebar-button" class="md:hidden text-gray-400 hover:text-white">
+                        <button id="close-sidebar-button" class="md:hidden text-slate-400 hover:text-white">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -114,14 +114,14 @@
                     </nav>
                 </div>
                 <div>
-                    <div id="user-profile" class="flex items-center space-x-3 border-t border-[#3b3b57] pt-4 mb-4">
+                    <div id="user-profile" class="flex items-center space-x-3 border-t border-slate-700 pt-4 mb-4">
                         <img id="user-photo" src="https://placehold.co/40x40/e2e8f0/e2e8f0" alt="User Photo" class="w-10 h-10 rounded-full">
                         <div>
                             <p id="user-name" class="font-semibold text-sm text-white">Guest User</p>
                             <button id="logout-button" class="text-xs text-red-400 hover:text-red-300">Keluar</button>
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 text-center">© 2024 RichD</p>
+                    <p class="text-xs text-slate-500 text-center">© 2024 RichD</p>
                 </div>
             </aside>
 
@@ -129,7 +129,7 @@
             <main class="flex-1 p-4 md:p-8 overflow-y-auto">
                 <!-- Header Mobile -->
                  <header class="md:hidden flex items-center justify-between mb-6">
-                    <button id="open-sidebar-button" class="text-gray-200 hover:text-white">
+                    <button id="open-sidebar-button" class="text-slate-200 hover:text-white">
                          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
                         </svg>
@@ -142,36 +142,36 @@
                 <div id="tab-list" class="tab-content">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
                         <h2 class="text-2xl sm:text-3xl font-bold">Daftar Game</h2>
-                        <button id="add-game-button" class="w-full sm:w-auto bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300">
+                        <button id="add-game-button" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
                             Tambah Game
                         </button>
                     </div>
                     <!-- Filter Section -->
-                    <div class="bg-[#2a2a44] p-4 md:p-6 rounded-xl shadow-lg mb-6">
+                    <div class="bg-slate-800 p-4 md:p-6 rounded-xl shadow-lg mb-6">
                         <h3 class="font-bold text-xl mb-4">Filter Game</h3>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <input id="filter-title" type="text" placeholder="Filter berdasarkan judul..." class="bg-[#3b3b57] border border-[#5c5c7d] rounded-lg p-2 focus:ring-2 focus:ring-fuchsia-500 focus:outline-none">
-                            <select id="filter-platform" class="bg-[#3b3b57] border border-[#5c5c7d] rounded-lg p-2 focus:ring-2 focus:ring-fuchsia-500 focus:outline-none">
+                            <input id="filter-title" type="text" placeholder="Filter berdasarkan judul..." class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <select id="filter-platform" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                 <option value="">Semua Platform</option>
                                 <option>Steam</option><option>Epic</option><option>GOG</option><option>EA App</option><option>PCSX</option><option>Crack</option>
                             </select>
-                            <select id="filter-location" class="bg-[#3b3b57] border border-[#5c5c7d] rounded-lg p-2 focus:ring-2 focus:ring-fuchsia-500 focus:outline-none">
+                            <select id="filter-location" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                 <option value="">Semua Lokasi</option>
                                 <option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option>
                             </select>
-                            <select id="filter-status" class="bg-[#3b3b57] border border-[#5c5c7d] rounded-lg p-2 focus:ring-2 focus:ring-fuchsia-500 focus:outline-none">
+                            <select id="filter-status" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                 <option value="">Semua Status</option>
                                 <option>Dimainkan</option><option>Belum dimainkan</option><option>Selesai</option>
                             </select>
                         </div>
                      </div>
                     <!-- Game Table -->
-                    <div class="bg-[#2a2a44] rounded-xl shadow-lg overflow-x-auto">
+                    <div class="bg-slate-800 rounded-xl shadow-lg overflow-x-auto">
                         <table class="w-full text-left min-w-[640px]">
-                            <thead class="bg-[#3b3b57]">
+                            <thead class="bg-slate-700">
                                 <tr>
-                                    <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="rounded bg-[#5c5c7d] border-[#7d7db3]"></th>
+                                    <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="rounded bg-slate-600 border-slate-500"></th>
                                     <th class="p-4 font-semibold">Judul Game</th>
                                     <th class="p-4 font-semibold">Platform</th>
                                     <th class="p-4 font-semibold">Lokasi</th>
@@ -181,7 +181,7 @@
                             </thead>
                             <tbody id="game-list-body">
                                 <!-- Game items will be injected here by JS -->
-                                <tr><td colspan="6" class="text-center p-8 text-gray-400">Memuat data game...</td></tr>
+                                <tr><td colspan="6" class="text-center p-8 text-slate-400">Memuat data game...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -193,19 +193,19 @@
                 <div id="tab-stats" class="tab-content hidden">
                      <h2 class="text-2xl sm:text-3xl font-bold mb-6">Statistik Game</h2>
                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-[#2a2a44] p-6 rounded-xl shadow-lg">
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                             <h3 class="font-bold text-xl text-center mb-4">Game per Platform</h3>
                             <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
                                 <canvas id="platform-chart"></canvas>
                             </div>
                         </div>
-                        <div class="bg-[#2a2a44] p-6 rounded-xl shadow-lg">
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                             <h3 class="font-bold text-xl text-center mb-4">Game per Lokasi</h3>
                             <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
                                 <canvas id="location-chart"></canvas>
                             </div>
                         </div>
-                        <div class="bg-[#2a2a44] p-6 rounded-xl shadow-lg col-span-1 lg:col-span-2">
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg col-span-1 lg:col-span-2">
                              <h3 class="font-bold mb-4 text-xl text-center">Status Permainan</h3>
                             <div class="relative h-64 w-full mx-auto" style="max-width: 800px;">
                                 <canvas id="status-chart"></canvas>
@@ -217,9 +217,9 @@
                 <!-- Tab: Aksi Masal -->
                 <div id="tab-bulk" class="tab-content hidden">
                      <h2 class="text-2xl sm:text-3xl font-bold mb-6">Aksi Masal</h2>
-                     <div class="bg-[#2a2a44] p-6 rounded-xl shadow-lg">
+                     <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                         <h3 class="font-bold text-xl mb-4">Tindakan untuk Game Terpilih</h3>
-                        <p id="selection-info" class="text-gray-400 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.</p>
+                        <p id="selection-info" class="text-slate-400 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.</p>
                         <div class="flex flex-wrap gap-4">
                             <button id="bulk-edit-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:btn-disabled" disabled>
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
@@ -236,11 +236,11 @@
                 <!-- Tab: Manajemen Data -->
                 <div id="tab-manage" class="tab-content hidden">
                     <h2 class="text-2xl sm:text-3xl font-bold mb-6">Manajemen Data</h2>
-                    <div class="bg-[#2a2a44] p-6 rounded-xl shadow-lg">
+                    <div class="bg-slate-800 p-6 rounded-xl shadow-lg">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <h3 class="font-bold text-xl mb-2">Ekspor Data</h3>
-                                <p class="text-gray-400 mb-4">Unduh semua koleksi game Anda sebagai file JSON.</p>
+                                <p class="text-slate-400 mb-4">Unduh semua koleksi game Anda sebagai file JSON.</p>
                                 <button id="download-json-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                                     Unduh JSON
@@ -248,7 +248,7 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-xl mb-2">Impor Data</h3>
-                                <p class="text-gray-400 mb-4">Muat koleksi game dari file JSON. Game yang ada akan ditambahkan, bukan diganti.</p>
+                                <p class="text-slate-400 mb-4">Muat koleksi game dari file JSON. Game yang ada akan ditambahkan, bukan diganti.</p>
                                 <button id="upload-json-button" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
                                     Muat JSON
@@ -264,7 +264,7 @@
 
     <!-- Add/Edit Game Modal -->
     <div id="game-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-[#2a2a44] w-full max-w-2xl rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="modal-content">
+        <div class="bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="modal-content">
             <h3 id="modal-title" class="text-2xl font-bold mb-6">Tambah Game Baru</h3>
             <form id="game-form">
                 <div class="max-h-[70vh] overflow-y-auto pr-2">
@@ -273,11 +273,11 @@
                         <!-- Game entry rows will be injected here -->
                     </div>
                 </div>
-                <div class="flex flex-col sm:flex-row justify-between items-center mt-6 pt-4 border-t border-[#3b3b57] gap-4">
+                <div class="flex flex-col sm:flex-row justify-between items-center mt-6 pt-4 border-t border-slate-700 gap-4">
                     <button type="button" id="add-row-button" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition">Tambah Baris</button>
                     <div class="w-full sm:w-auto flex justify-end space-x-4">
-                        <button type="button" id="cancel-button" class="flex-1 sm:flex-none bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition">Batal</button>
-                        <button type="submit" id="save-form-button" class="flex-1 sm:flex-none bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-2 px-4 rounded-lg transition">Simpan</button>
+                        <button type="button" id="cancel-button" class="flex-1 sm:flex-none bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition">Batal</button>
+                        <button type="submit" id="save-form-button" class="flex-1 sm:flex-none bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Simpan</button>
                     </div>
                 </div>
             </form>
@@ -286,45 +286,45 @@
 
     <!-- Bulk Edit Modal -->
     <div id="bulk-edit-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-[#2a2a44] w-full max-w-lg rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="bulk-edit-modal-content">
+        <div class="bg-slate-800 w-full max-w-lg rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0" id="bulk-edit-modal-content">
             <h3 id="bulk-edit-modal-title" class="text-2xl font-bold mb-6">Edit Game Secara Masal</h3>
             <form id="bulk-edit-form">
-                <p id="bulk-edit-info" class="text-gray-400 mb-4"></p>
+                <p id="bulk-edit-info" class="text-slate-400 mb-4"></p>
                 <div class="space-y-4">
                     <!-- Platform -->
-                    <div class="flex items-center gap-4 p-3 bg-[#3b3b57]/50 rounded-lg">
-                        <input type="checkbox" id="bulk-update-platform-check" class="h-5 w-5 rounded bg-[#5c5c7d] border-[#7d7db3] text-fuchsia-600 focus:ring-fuchsia-500">
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg">
+                        <input type="checkbox" id="bulk-update-platform-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-indigo-600 focus:ring-indigo-500">
                         <div class="flex-grow">
-                            <label for="bulk-platform" class="block text-gray-300 text-sm font-bold mb-1">Platform</label>
-                            <select id="bulk-platform" class="w-full bg-[#3b3b57] border border-[#5c5c7d] rounded-lg p-2 focus:ring-2 focus:ring-fuchsia-500 focus:outline-none">
+                            <label for="bulk-platform" class="block text-slate-300 text-sm font-bold mb-1">Platform</label>
+                            <select id="bulk-platform" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                 <option>Steam</option><option>Epic</option><option>GOG</option><option>EA App</option><option>PCSX</option><option>Crack</option>
                             </select>
                         </div>
                     </div>
                     <!-- Location -->
-                    <div class="flex items-center gap-4 p-3 bg-[#3b3b57]/50 rounded-lg">
-                        <input type="checkbox" id="bulk-update-location-check" class="h-5 w-5 rounded bg-[#5c5c7d] border-[#7d7db3] text-fuchsia-600 focus:ring-fuchsia-500">
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg">
+                        <input type="checkbox" id="bulk-update-location-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-indigo-600 focus:ring-indigo-500">
                         <div class="flex-grow">
-                            <label for="bulk-location" class="block text-gray-300 text-sm font-bold mb-1">Lokasi</label>
-                            <select id="bulk-location" class="w-full bg-[#3b3b57] border border-[#5c5c7d] rounded-lg p-2 focus:ring-2 focus:ring-fuchsia-500 focus:outline-none">
+                            <label for="bulk-location" class="block text-slate-300 text-sm font-bold mb-1">Lokasi</label>
+                            <select id="bulk-location" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                 <option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option>
                             </select>
                         </div>
                     </div>
                     <!-- Status -->
-                    <div class="flex items-center gap-4 p-3 bg-[#3b3b57]/50 rounded-lg">
-                        <input type="checkbox" id="bulk-update-status-check" class="h-5 w-5 rounded bg-[#5c5c7d] border-[#7d7db3] text-fuchsia-600 focus:ring-fuchsia-500">
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg">
+                        <input type="checkbox" id="bulk-update-status-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-indigo-600 focus:ring-indigo-500">
                         <div class="flex-grow">
-                            <label for="bulk-status" class="block text-gray-300 text-sm font-bold mb-1">Status</label>
-                            <select id="bulk-status" class="w-full bg-[#3b3b57] border border-[#5c5c7d] rounded-lg p-2 focus:ring-2 focus:ring-fuchsia-500 focus:outline-none">
+                            <label for="bulk-status" class="block text-slate-300 text-sm font-bold mb-1">Status</label>
+                            <select id="bulk-status" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                                 <option>Belum dimainkan</option><option>Dimainkan</option><option>Selesai</option>
                             </select>
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-end space-x-4 mt-6 pt-4 border-t border-[#3b3b57]">
-                    <button type="button" id="bulk-edit-cancel-button" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition">Batal</button>
-                    <button type="submit" class="bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-2 px-4 rounded-lg transition">Simpan Perubahan</button>
+                <div class="flex justify-end space-x-4 mt-6 pt-4 border-t border-slate-700">
+                    <button type="button" id="bulk-edit-cancel-button" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition">Batal</button>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
