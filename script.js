@@ -86,8 +86,14 @@
             const toastMessage = document.getElementById('toast-message');
             toastMessage.textContent = message;
             // Set background color based on error status
-            toast.classList.remove('bg-[#238636]', 'bg-[#F85149]');
-            toast.classList.add(isError ? 'bg-[#F85149]' : 'bg-[#238636]');
+            toast.classList.remove('bg-[#C1E1C1]', 'bg-[#FF9AA2]'); // Remove old colors
+            toast.classList.add(isError ? 'bg-[#FF9AA2]' : 'bg-[#C1E1C1]'); // Add new colors
+            toast.classList.remove('text-white'); // Remove old text color
+            toast.classList.add('text-[#4A6572]'); // Add new text color
+            
+            // Update border color for toast
+            toast.classList.remove('border-[#30363D]'); // Remove old border
+            toast.classList.add(isError ? 'border-[#FFB3BA]' : 'border-[#B0C4DE]'); // Add new border color
             
             toast.classList.remove('translate-y-20', 'opacity-0');
             toast.classList.add('translate-y-0', 'opacity-100');
@@ -134,22 +140,22 @@
         // --- HELPER FUNCTION FOR PLATFORM COLORS ---
         function getPlatformBadgeClasses(platform) {
             const colors = {
-                'Steam': 'bg-[#58A6FF]/20 text-[#58A6FF]', // Blue
-                'Epic': 'bg-[#8B949E]/20 text-[#8B949E]', // Gray
-                'GOG': 'bg-[#8957E5]/20 text-[#8957E5]', // Purple
-				'EA App': 'bg-[#F85149]/20 text-[#F85149]', // Red
-                'PCSX': 'bg-[#FACC15]/20 text-[#FACC15]', // Yellow
-                'Crack': 'bg-[#F85149]/20 text-[#F85149]', // Red
-                'default': 'bg-[#444C56]/20 text-[#8B949E]' // Muted gray
+                'Steam': 'bg-[#A2D2FF]/30 text-[#4A6572]', // Soft Blue
+                'Epic': 'bg-[#D3D3D3]/30 text-[#78909C]', // Light Gray
+                'GOG': 'bg-[#D8BFD8]/30 text-[#725E7B]', // Soft Purple
+				'EA App': 'bg-[#FF9AA2]/30 text-[#7B4A4E]', // Soft Red
+                'PCSX': 'bg-[#FFDAB9]/30 text-[#7B6A5C]', // Peach
+                'Crack': 'bg-[#FF9AA2]/30 text-[#7B4A4E]', // Soft Red
+                'default': 'bg-[#D3D3D3]/30 text-[#78909C]' // Muted light gray
             };
             return colors[platform] || colors['default'];
         }
 
         function getStatusBadgeClasses(status) {
             const colors = {
-                'Belum dimainkan': 'bg-[#444C56]/20 text-[#8B949E]', // Gray
-                'Dimainkan': 'bg-[#FACC15]/20 text-[#FACC15]', // Yellow
-                'Selesai': 'bg-[#238636]/20 text-[#238636]' // Green
+                'Belum dimainkan': 'bg-[#D3D3D3]/30 text-[#78909C]', // Light Gray
+                'Dimainkan': 'bg-[#FFDAB9]/30 text-[#7B6A5C]', // Peach
+                'Selesai': 'bg-[#C1E1C1]/30 text-[#4A6572]' // Soft Green
             };
             return colors[status] || colors['default'];
         }
@@ -176,25 +182,25 @@
             gameCardsContainer.innerHTML = ''; // Clear mobile cards container
 
             if (!gamesToRender || gamesToRender.length === 0) {
-                const noGameMessage = '<tr><td colspan="6" class="text-center p-8 text-[#8B949E]">Tidak ada game yang cocok dengan filter atau belum ada game ditambahkan.</td></tr>';
+                const noGameMessage = '<tr><td colspan="6" class="text-center p-8 text-[#78909C]">Tidak ada game yang cocok dengan filter atau belum ada game ditambahkan.</td></tr>';
                 gameListBody.innerHTML = noGameMessage;
-                gameCardsContainer.innerHTML = `<p class="text-center p-8 text-[#8B949E]">Tidak ada game yang cocok dengan filter atau belum ada game ditambahkan.</p>`;
+                gameCardsContainer.innerHTML = `<p class="text-center p-8 text-[#78909C]">Tidak ada game yang cocok dengan filter atau belum ada game ditambahkan.</p>`;
                 return;
             }
 
             gamesToRender.forEach(game => {
                 // Render for Desktop Table
                 const row = document.createElement('tr');
-                row.className = 'border-b border-[#30363D] hover:bg-[#21262D] transition-colors';
+                row.className = 'border-b border-[#E0E0E0] hover:bg-[#F5F5F5] transition-colors';
                 row.innerHTML = `
-                    <td class="p-4"><input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-[#30363D] border-[#444C56] text-[#58A6FF] focus:ring-[#58A6FF]"></td>
-                    <td class="p-4 font-medium text-[#E6EDF3]">${game.title}</td>
+                    <td class="p-4"><input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-[#E0E0E0] border-[#B0C4DE] text-[#A2D2FF] focus:ring-[#A2D2FF]"></td>
+                    <td class="p-4 font-medium text-[#4A6572]">${game.title}</td>
                     <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getPlatformBadgeClasses(game.platform)}">${game.platform}</span></td>
-                    <td class="p-4 text-[#8B949E]">${game.location}</td>
+                    <td class="p-4 text-[#78909C]">${game.location}</td>
                     <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClasses(game.status)}">${game.status}</span></td>
                     <td class="p-4 whitespace-nowrap">
-                        <button class="edit-btn p-1 text-[#8B949E] hover:text-[#58A6FF] transition" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
-                        <button class="delete-btn p-1 text-[#8B949E] hover:text-[#F85149] transition" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
+                        <button class="edit-btn p-1 text-[#78909C] hover:text-[#A2D2FF] transition" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
+                        <button class="delete-btn p-1 text-[#78909C] hover:text-[#FF9AA2] transition" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
                     </td>
                 `;
                 gameListBody.appendChild(row);
@@ -204,17 +210,17 @@
                 card.className = 'game-row-card';
                 card.innerHTML = `
                     <div class="flex items-center justify-between">
-                        <h4 class="font-bold text-lg text-white">${game.title}</h4>
-                        <input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-[#30363D] border-[#444C56] text-[#58A6FF] focus:ring-[#58A6FF]">
+                        <h4 class="font-bold text-lg text-[#4A6572]">${game.title}</h4>
+                        <input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-[#E0E0E0] border-[#B0C4DE] text-[#A2D2FF] focus:ring-[#A2D2FF]">
                     </div>
                     <div class="flex flex-wrap gap-2 text-sm">
                         <span class="px-2 py-1 text-xs font-semibold rounded-full ${getPlatformBadgeClasses(game.platform)}">${game.platform}</span>
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-[#444C56]/20 text-[#8B949E]">${game.location}</span>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-[#D3D3D3]/30 text-[#78909C]">${game.location}</span>
                         <span class="px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClasses(game.status)}">${game.status}</span>
                     </div>
                     <div class="flex justify-end space-x-2 mt-2">
-                        <button class="edit-btn p-1 text-[#8B949E] hover:text-[#58A6FF] transition" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
-                        <button class="delete-btn p-1 text-[#8B949E] hover:text-[#F85149] transition" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
+                        <button class="edit-btn p-1 text-[#78909C] hover:text-[#A2D2FF] transition" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
+                        <button class="delete-btn p-1 text-[#78909C] hover:text-[#FF9AA2] transition" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
                     </div>
                 `;
                 gameCardsContainer.appendChild(card);
@@ -229,16 +235,16 @@
         function createGameRowHTML(game = {}) {
             const isEdit = !!game.id;
             return `
-                <div class="game-row p-4 border border-[#30363D] rounded-lg space-y-3 relative bg-[#21262D]">
-                    ${isEdit ? '' : '<button type="button" class="remove-row-btn absolute -top-3 -right-3 bg-[#F85149] text-white rounded-full h-7 w-7 flex items-center justify-center text-lg font-bold border-2 border-[#161B22] hover:bg-[#FF7B72] transition">&times;</button>'}
+                <div class="game-row p-4 border border-[#E0E0E0] rounded-lg space-y-3 relative bg-[#F5F5F5]">
+                    ${isEdit ? '' : '<button type="button" class="remove-row-btn absolute -top-3 -right-3 bg-[#FF9AA2] text-white rounded-full h-7 w-7 flex items-center justify-center text-lg font-bold border-2 border-[#FFFFFF] hover:bg-[#FFB3BA] transition">&times;</button>'}
                     <div class="mb-2">
-                        <label class="block text-[#E6EDF3] text-sm font-bold mb-1">Judul Game</label>
-                        <input type="text" class="game-title w-full bg-[#0D1117] border border-[#30363D] rounded-lg p-2.5 text-[#E6EDF3]" value="${game.title || ''}" required>
+                        <label class="block text-[#4A6572] text-sm font-bold mb-1">Judul Game</label>
+                        <input type="text" class="game-title w-full bg-[#F0F8FF] border border-[#E0E0E0] rounded-lg p-2.5 text-[#4A6572]" value="${game.title || ''}" required>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div>
-                            <label class="block text-[#E6EDF3] text-sm font-bold mb-1">Platform</label>
-                            <select class="game-platform w-full bg-[#0D1117] border border-[#30363D] rounded-lg p-2.5 text-[#E6EDF3]">
+                            <label class="block text-[#4A6572] text-sm font-bold mb-1">Platform</label>
+                            <select class="game-platform w-full bg-[#F0F8FF] border border-[#E0E0E0] rounded-lg p-2.5 text-[#4A6572]">
                                 <option ${game.platform === 'Steam' ? 'selected' : ''}>Steam</option>
                                 <option ${game.platform === 'Epic' ? 'selected' : ''}>Epic</option>
                                 <option ${game.platform === 'GOG' ? 'selected' : ''}>GOG</option>
@@ -248,8 +254,8 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[#E6EDF3] text-sm font-bold mb-1">Lokasi</label>
-                            <select class="game-location w-full bg-[#0D1117] border border-[#30363D] rounded-lg p-2.5 text-[#E6EDF3]">
+                            <label class="block text-[#4A6572] text-sm font-bold mb-1">Lokasi</label>
+                            <select class="game-location w-full bg-[#F0F8FF] border border-[#E0E0E0] rounded-lg p-2.5 text-[#4A6572]">
                                 <option ${game.location === 'HDD Eksternal 2TB' ? 'selected' : ''}>HDD Eksternal 2TB</option>
                                 <option ${game.location === 'HDD Eksternal 4TB' ? 'selected' : ''}>HDD Eksternal 4TB</option>
                                 <option ${game.location === 'Internal SSD' ? 'selected' : ''}>Internal SSD</option>
@@ -257,8 +263,8 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-[#E6EDF3] text-sm font-bold mb-1">Status</label>
-                            <select class="game-status w-full bg-[#0D1117] border border-[#30363D] rounded-lg p-2.5 text-[#E6EDF3]">
+                            <label class="block text-[#4A6572] text-sm font-bold mb-1">Status</label>
+                            <select class="game-status w-full bg-[#F0F8FF] border border-[#E0E0E0] rounded-lg p-2.5 text-[#4A6572]">
                                 <option ${game.status === 'Belum dimainkan' ? 'selected' : ''}>Belum dimainkan</option>
                                 <option ${game.status === 'Dimainkan' ? 'selected' : ''}>Dimainkan</option>
                                 <option ${game.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
@@ -436,7 +442,7 @@
                 plugins: {
                     legend: { 
                         position: 'bottom',
-                        labels: { color: '#8B949E', padding: 15, font: { size: 12 } } // Text color for legend
+                        labels: { color: '#78909C', padding: 15, font: { size: 12 } } // Text color for legend
                     }
                 },
                 onHover: (event, chartElement) => {
@@ -453,12 +459,12 @@
                 },
                 scales: {
                     y: { 
-                        ticks: { color: '#8B949E' }, // Y-axis tick color
-                        grid: { color: '#30363D' } // Y-axis grid color
+                        ticks: { color: '#78909C' }, // Y-axis tick color
+                        grid: { color: '#E0E0E0' } // Y-axis grid color
                     },
                     x: { 
-                        ticks: { color: '#8B949E' }, // X-axis tick color
-                        grid: { color: '#161B22' } // X-axis grid color (matching card background)
+                        ticks: { color: '#78909C' }, // X-axis tick color
+                        grid: { color: '#F5F5F5' } // X-axis grid color (matching input background)
                     }
                 }
             };
@@ -477,12 +483,12 @@
                 datasets: [{ 
                     data: Object.values(platformData), 
                     backgroundColor: [
-                        '#58A6FF', // Blue
-                        '#F85149', // Red
-                        '#238636', // Green
-                        '#8957E5', // Purple
-                        '#FACC15', // Yellow
-                        '#E6EDF3'  // Light Gray
+                        '#A2D2FF', // Pastel Blue
+                        '#FF9AA2', // Pastel Red
+                        '#C1E1C1', // Pastel Green
+                        '#D8BFD8', // Pastel Purple
+                        '#FFDAB9', // Peach
+                        '#B0C4DE'  // Light Steel Blue
                     ] 
                 }]
             };
@@ -494,10 +500,10 @@
                 datasets: [{ 
                     data: Object.values(locationData), 
                     backgroundColor: [
-                        '#1F6FEB', // Darker Blue
-                        '#3FB950', // Darker Green
-                        '#A371F7', // Darker Purple
-                        '#FACC15'  // Yellow
+                        '#B0E0E6', // Powder Blue
+                        '#98FB98', // Pale Green
+                        '#DDA0DD', // Plum
+                        '#F0E68C'  // Khaki
                     ] 
                 }]
             };
@@ -507,23 +513,23 @@
             const statusLabels = Object.keys(statusData);
             const statusValues = Object.values(statusData);
             const statusColors = { 
-                'Belum dimainkan': '#444C56', // Gray
-                'Dimainkan': '#FACC15', // Yellow
-                'Selesai': '#238636' // Green
+                'Belum dimainkan': '#B0C4DE', // Light Steel Blue
+                'Dimainkan': '#FFDAB9', // Peach
+                'Selesai': '#C1E1C1' // Pastel Green
             };
             const hoverStatusColors = { 
-                'Belum dimainkan': '#586069', 
-                'Dimainkan': '#FFD33D', 
-                'Selesai': '#2EA043' 
+                'Belum dimainkan': '#C0D4EE', // Lighter Steel Blue
+                'Dimainkan': '#FFC0CB', // Pink
+                'Selesai': '#D1F1D1' // Lighter Pastel Green
             };
             statusChart.data = {
                 labels: statusLabels,
                 datasets: [{ 
                     label: 'Jumlah Game', 
                     data: statusValues, 
-                    backgroundColor: statusLabels.map(label => statusColors[label] || '#444C56'),
-                    hoverBackgroundColor: statusLabels.map(label => hoverStatusColors[label] || '#586069'),
-                    borderRadius: 4, borderWidth: 2, borderColor: 'transparent', hoverBorderColor: '#58A6FF' // Accent border on hover
+                    backgroundColor: statusLabels.map(label => statusColors[label] || '#B0C4DE'),
+                    hoverBackgroundColor: statusLabels.map(label => hoverStatusColors[label] || '#C0D4EE'),
+                    borderRadius: 4, borderWidth: 2, borderColor: 'transparent', hoverBorderColor: '#A2D2FF' // Soft blue accent border on hover
                 }]
             };
             statusChart.update();
@@ -575,7 +581,7 @@
 
             const prevButton = document.createElement('button');
             prevButton.innerHTML = '&laquo;';
-            prevButton.className = 'px-3 py-1 rounded-md bg-[#161B22] text-[#E6EDF3] hover:bg-[#21262D] pagination-button transition';
+            prevButton.className = 'px-3 py-1 rounded-md bg-[#E0F2F7] text-[#4A6572] hover:bg-[#F5F5F5] pagination-button transition';
             prevButton.disabled = currentPage === 1;
             prevButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; displayPage(); } });
             paginationContainer.appendChild(prevButton);
@@ -590,33 +596,33 @@
             if (startPage > 1) {
                 const firstButton = document.createElement('button');
                 firstButton.textContent = '1';
-                firstButton.className = 'px-3 py-1 rounded-md bg-[#161B22] text-[#E6EDF3] hover:bg-[#21262D] pagination-button transition';
+                firstButton.className = 'px-3 py-1 rounded-md bg-[#E0F2F7] text-[#4A6572] hover:bg-[#F5F5F5] pagination-button transition';
                 firstButton.addEventListener('click', () => { currentPage = 1; displayPage(); });
                 paginationContainer.appendChild(firstButton);
-                if (startPage > 2) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-[#8B949E]">...</span>`);
+                if (startPage > 2) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-[#78909C]">...</span>`);
             }
             
             for (let i = startPage; i <= endPage; i++) {
                 const pageButton = document.createElement('button');
                 pageButton.textContent = i;
-                pageButton.className = 'px-3 py-1 rounded-md bg-[#161B22] text-[#E6EDF3] hover:bg-[#21262D] pagination-button transition';
+                pageButton.className = 'px-3 py-1 rounded-md bg-[#E0F2F7] text-[#4A6572] hover:bg-[#F5F5F5] pagination-button transition';
                 if (i === currentPage) pageButton.classList.add('active');
                 pageButton.addEventListener('click', () => { currentPage = i; displayPage(); });
                 paginationContainer.appendChild(pageButton);
             }
 
             if (endPage < totalPages) {
-                if (endPage < totalPages - 1) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-[#8B949E]">...</span>`);
+                if (endPage < totalPages - 1) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-[#78909C]">...</span>`);
                 const lastButton = document.createElement('button');
                 lastButton.textContent = totalPages;
-                lastButton.className = 'px-3 py-1 rounded-md bg-[#161B22] text-[#E6EDF3] hover:bg-[#21262D] pagination-button transition';
+                lastButton.className = 'px-3 py-1 rounded-md bg-[#E0F2F7] text-[#4A6572] hover:bg-[#F5F5F5] pagination-button transition';
                 lastButton.addEventListener('click', () => { currentPage = totalPages; displayPage(); });
                 paginationContainer.appendChild(lastButton);
             }
 
             const nextButton = document.createElement('button');
             nextButton.innerHTML = '&raquo;';
-            nextButton.className = 'px-3 py-1 rounded-md bg-[#161B22] text-[#E6EDF3] hover:bg-[#21262D] pagination-button transition';
+            nextButton.className = 'px-3 py-1 rounded-md bg-[#E0F2F7] text-[#4A6572] hover:bg-[#F5F5F5] pagination-button transition';
             nextButton.disabled = currentPage === totalPages;
             nextButton.addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; displayPage(); } });
             paginationContainer.appendChild(nextButton);
