@@ -28,6 +28,12 @@
         let currentPage = 1;
         const gamesPerPage = 10;
 
+        // --- Sort state ---
+        let sortState = {
+            column: 'title', // Default sort column
+            direction: 'asc' // Default sort direction
+        };
+
         // --- UI Elements ---
         const loginScreen = document.getElementById('login-screen');
         const appScreen = document.getElementById('app-screen');
@@ -166,7 +172,7 @@
                 games = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 // Add client-side case-insensitive sorting here for consistent display
                 games.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
-                applyFilters();
+                applyFiltersAndSort();
                 updateCharts();
                 updateBulkActionUI();
             }, (error) => {
@@ -179,7 +185,7 @@
             gameListBody.innerHTML = '';
             if (!gamesToRender || gamesToRender.length === 0) {
                 // Perbarui colspan menjadi 7 karena ada kolom baru
-                gameListBody.innerHTML = '<tr><td colspan="7" class="text-center p-8 text-slate-400">Tidak ada game yang cocok dengan filter atau belum ada game ditambahkan.</td></tr>';
+                gameListBody.innerHTML = '<tr><td colspan="7" class="text-center p-8 text-blue-300">Tidak ada game yang cocok dengan filter atau belum ada game ditambahkan.</td></tr>';
                 return;
             }
 
@@ -204,6 +210,7 @@
             document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEdit));
             document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', handleDelete));
             document.querySelectorAll('.game-checkbox').forEach(cb => cb.addEventListener('change', updateBulkActionUI));
+            updateSortIcons();
         }
 
         // --- ADD/EDIT MODAL LOGIC ---
@@ -524,11 +531,42 @@
         [filterTitle, filterPlatform, filterLocation, filterStatus].forEach(el => {
             el.addEventListener('input', () => {
                 currentPage = 1;
-                applyFilters();
+                applyFiltersAndSort();
             });
         });
 
-        function applyFilters() {
+        // Function to update sort icons on headers
+        function updateSortIcons() {
+            document.querySelectorAll('.sort-icon').forEach(icon => icon.textContent = '');
+            if (sortState.column) {
+                const currentHeader = document.querySelector(`th[data-sort="${sortState.column}"] .sort-icon`);
+                if (currentHeader) {
+                    currentHeader.textContent = sortState.direction === 'asc' ? '▲' : '▼';
+                }
+            }
+        }
+        
+        // Add click listener for sortable columns
+        document.addEventListener('DOMContentLoaded', () => {
+             // ... other DOMContentLoaded logic
+            const sortableHeaders = document.querySelectorAll('.sortable');
+            sortableHeaders.forEach(header => {
+                header.addEventListener('click', (e) => {
+                    const column = e.currentTarget.dataset.sort;
+                    if (sortState.column === column) {
+                        sortState.direction = sortState.direction === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        sortState.column = column;
+                        sortState.direction = 'asc';
+                    }
+                    currentPage = 1;
+                    applyFiltersAndSort();
+                });
+            });
+            updateSortIcons();
+        });
+
+        function applyFiltersAndSort() {
             const title = filterTitle.value.toLowerCase();
             const platform = filterPlatform.value;
             const location = filterLocation.value;
@@ -540,6 +578,26 @@
                        (location === '' || game.location === location) &&
                        (status === '' || game.status === status);
             });
+            
+            // Apply sorting after filtering
+            if (sortState.column) {
+                filteredGames.sort((a, b) => {
+                    let aValue = a[sortState.column];
+                    let bValue = b[sortState.column];
+                    
+                    // Handle undefined or null values
+                    if (aValue === undefined || aValue === null) aValue = '';
+                    if (bValue === undefined || bValue === null) bValue = '';
+                    
+                    if (typeof aValue === 'string' && typeof bValue === 'string') {
+                        return sortState.direction === 'asc' ? aValue.localeCompare(bValue, undefined, { sensitivity: 'base' }) : bValue.localeCompare(aValue, undefined, { sensitivity: 'base' });
+                    } else {
+                        // Numeric comparison for numbers
+                        return sortState.direction === 'asc' ? aValue - bValue : bValue - aValue;
+                    }
+                });
+            }
+
             displayPage();
         }
         
