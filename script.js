@@ -146,6 +146,15 @@
             return colors[platform] || colors['default'];
         }
 
+        // Helper function to format price as currency
+        function formatPrice(price) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(price);
+        }
+
         // --- CRUD FUNCTIONS ---
         function fetchGames() {
             if (!currentUser) return;
@@ -169,7 +178,8 @@
         function renderGames(gamesToRender) {
             gameListBody.innerHTML = '';
             if (!gamesToRender || gamesToRender.length === 0) {
-                gameListBody.innerHTML = '<tr><td colspan="6" class="text-center p-8 text-slate-400">Tidak ada game yang cocok dengan filter atau belum ada game ditambahkan.</td></tr>';
+                // Perbarui colspan menjadi 7 karena ada kolom baru
+                gameListBody.innerHTML = '<tr><td colspan="7" class="text-center p-8 text-slate-400">Tidak ada game yang cocok dengan filter atau belum ada game ditambahkan.</td></tr>';
                 return;
             }
 
@@ -181,6 +191,7 @@
                     <td class="p-4 font-medium">${game.title}</td>
                     <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getPlatformBadgeClasses(game.platform)}">${game.platform}</span></td>
                     <td class="p-4 text-slate-300">${game.location}</td>
+                    <td class="p-4 text-yellow-300">${game.price ? formatPrice(game.price) : 'Gratis'}</td>
                     <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${game.status === 'Dimainkan' ? 'bg-yellow-500/20 text-yellow-300' : game.status === 'Selesai' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}">${game.status}</span></td>
                     <td class="p-4 whitespace-nowrap">
                         <button class="edit-btn p-1 text-slate-400 hover:text-white" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
@@ -205,7 +216,7 @@
                         <label class="block text-slate-300 text-sm font-bold mb-1">Judul Game</label>
                         <input type="text" class="game-title w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" value="${game.title || ''}" required>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                         <div>
                             <label class="block text-slate-300 text-sm font-bold mb-1">Platform</label>
                             <select class="game-platform w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
@@ -225,6 +236,10 @@
                                 <option ${game.location === 'Internal SSD' ? 'selected' : ''}>Internal SSD</option>
                                 <option ${game.location === 'Belum Install' ? 'selected' : ''}>Belum Install</option>
                             </select>
+                        </div>
+                        <div>
+                            <label class="block text-slate-300 text-sm font-bold mb-1">Harga (IDR)</label>
+                            <input type="number" class="game-price w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none" value="${game.price || '0'}" min="0">
                         </div>
                         <div>
                             <label class="block text-slate-300 text-sm font-bold mb-1">Status</label>
@@ -297,6 +312,7 @@
                         title: row.querySelector('.game-title').value,
                         platform: row.querySelector('.game-platform').value,
                         location: row.querySelector('.game-location').value,
+                        price: parseInt(row.querySelector('.game-price').value, 10),
                         status: row.querySelector('.game-status').value,
                     };
                     if (!gameData.title) {
@@ -320,6 +336,7 @@
                             title: row.querySelector('.game-title').value,
                             platform: row.querySelector('.game-platform').value,
                             location: row.querySelector('.game-location').value,
+                            price: parseInt(row.querySelector('.game-price').value, 10),
                             status: row.querySelector('.game-status').value,
                         };
                         if (gameData.title) {
@@ -682,6 +699,9 @@
             }
             if (document.getElementById('bulk-update-location-check').checked) {
                 updateData.location = document.getElementById('bulk-location').value;
+            }
+            if (document.getElementById('bulk-update-price-check').checked) {
+                updateData.price = parseInt(document.getElementById('bulk-price').value, 10);
             }
             if (document.getElementById('bulk-update-status-check').checked) {
                 updateData.status = document.getElementById('bulk-status').value;
