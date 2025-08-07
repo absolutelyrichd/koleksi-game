@@ -81,6 +81,16 @@
             background: linear-gradient(to bottom, #fde047, #facc15); /* Gradien kuning cerah */
             border-radius: 2px;
         }
+        /* Additional style for sortable headers */
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+        .sortable .sort-icon {
+            display: inline-block;
+            margin-left: 0.5rem;
+            width: 1em; /* Ensures consistent spacing */
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -188,15 +198,15 @@
                      </div>
                     <!-- Game Table -->
                     <div class="bg-blue-900 rounded-xl shadow-lg overflow-x-auto border border-blue-700">
-                        <table class="w-full text-left min-w-[640px]">
+                        <table id="game-table" class="w-full text-left min-w-[640px]">
                             <thead class="bg-blue-800">
                                 <tr>
                                     <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="rounded bg-blue-700 border-blue-500 text-yellow-500 focus:ring-yellow-400"></th>
-                                    <th class="p-4 font-semibold text-white">Judul Game</th>
-                                    <th class="p-4 font-semibold text-white">Platform</th>
-                                    <th class="p-4 font-semibold text-white">Lokasi</th>
-                                    <th class="p-4 font-semibold text-white">Harga</th> <!-- Kolom Harga baru -->
-                                    <th class="p-4 font-semibold text-white">Status</th>
+                                    <th id="title-header" class="p-4 font-semibold text-white sortable" data-sort="title">Judul Game <span class="sort-icon"></span></th>
+                                    <th id="platform-header" class="p-4 font-semibold text-white sortable" data-sort="platform">Platform <span class="sort-icon"></span></th>
+                                    <th id="location-header" class="p-4 font-semibold text-white sortable" data-sort="location">Lokasi <span class="sort-icon"></span></th>
+                                    <th id="price-header" class="p-4 font-semibold text-white sortable" data-sort="price">Harga <span class="sort-icon"></span></th>
+                                    <th id="status-header" class="p-4 font-semibold text-white sortable" data-sort="status">Status <span class="sort-icon"></span></th>
                                     <th class="p-4 font-semibold text-white">Aksi</th>
                                 </tr>
                             </thead>
