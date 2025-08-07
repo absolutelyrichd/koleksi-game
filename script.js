@@ -45,6 +45,10 @@
         const addGameButton = document.getElementById('add-game-button');
         const paginationContainer = document.getElementById('pagination-container');
         
+        // --- Statistik UI Elements ---
+        const totalPriceElement = document.getElementById('total-price');
+        const mostExpensiveGameElement = document.getElementById('most-expensive-game');
+
         // --- Add/Edit Modal Elements ---
         const gameModal = document.getElementById('game-modal');
         const modalContent = document.getElementById('modal-content');
@@ -489,6 +493,16 @@
 
         function updateCharts() {
             if (!platformChart) initCharts();
+
+            // Calculate new statistics
+            const totalPrice = games.reduce((sum, game) => sum + (game.price || 0), 0);
+            let mostExpensiveGameTitle = "Belum ada game";
+            if (games.length > 0) {
+                const mostExpensiveGame = games.reduce((maxGame, currentGame) => (currentGame.price > (maxGame.price || 0) ? currentGame : maxGame), games[0]);
+                mostExpensiveGameTitle = `${mostExpensiveGame.title} (${formatPrice(mostExpensiveGame.price || 0)})`;
+            }
+            totalPriceElement.textContent = formatPrice(totalPrice);
+            mostExpensiveGameElement.textContent = mostExpensiveGameTitle;
 
             const platformData = games.reduce((acc, game) => { acc[game.platform] = (acc[game.platform] || 0) + 1; return acc; }, {});
             platformChart.data = {
