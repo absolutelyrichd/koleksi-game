@@ -195,13 +195,14 @@
                                     <th class="p-4 font-semibold text-white">Judul Game</th>
                                     <th class="p-4 font-semibold text-white">Platform</th>
                                     <th class="p-4 font-semibold text-white">Lokasi</th>
+                                    <th class="p-4 font-semibold text-white">Harga</th> <!-- Kolom Harga baru -->
                                     <th class="p-4 font-semibold text-white">Status</th>
                                     <th class="p-4 font-semibold text-white">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="game-list-body">
                                 <!-- Game items will be injected here by JS -->
-                                <tr><td colspan="6" class="text-center p-8 text-blue-300">Memuat data game...</td></tr>
+                                <tr><td colspan="7" class="text-center p-8 text-blue-300">Memuat data game...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -331,13 +332,23 @@
                             </select>
                         </div>
                     </div>
+                    <!-- Harga -->
+                    <div class="flex items-center gap-4 p-3 bg-blue-800/50 rounded-lg border border-blue-700">
+                        <input type="checkbox" id="bulk-update-price-check" class="h-5 w-5 rounded bg-blue-700 border-blue-500 text-yellow-500 focus:ring-yellow-400">
+                        <div class="flex-grow">
+                            <label for="bulk-price" class="block text-blue-300 text-sm font-bold mb-1">Harga</label>
+                            <input type="number" id="bulk-price" class="w-full bg-blue-700 border border-blue-600 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white" value="0" min="0">
+                        </div>
+                    </div>
                     <!-- Status -->
                     <div class="flex items-center gap-4 p-3 bg-blue-800/50 rounded-lg border border-blue-700">
                         <input type="checkbox" id="bulk-update-status-check" class="h-5 w-5 rounded bg-blue-700 border-blue-500 text-yellow-500 focus:ring-yellow-400">
                         <div class="flex-grow">
                             <label for="bulk-status" class="block text-blue-300 text-sm font-bold mb-1">Status</label>
                             <select id="bulk-status" class="w-full bg-blue-700 border border-blue-600 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white">
-                                <option>Belum dimainkan</option><option>Dimainkan</option><option>Selesai</option>
+                                <option>Belum dimainkan</option>
+                                <option>Dimainkan</option>
+                                <option>Selesai</option>
                             </select>
                         </div>
                     </div>
