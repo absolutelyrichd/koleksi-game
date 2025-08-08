@@ -19,20 +19,18 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(to top right, #60a5fa, #1e3a8a); /* Gradien biru yang lebih kuat */
-            color: #f8fafc; /* putih cerah */
+            background: linear-gradient(to top right, #60a5fa, #1e3a8a);
+            color: #f8fafc;
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
         }
         .tab-active {
-            background-color: #1d4ed8; /* biru cerah */
-            color: #f8fafc; /* putih cerah */
+            background-color: #1d4ed8;
+            color: #f8fafc;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         .tab-inactive {
             background-color: transparent;
-            color: #d1d5db; /* abu-abu terang */
+            color: #d1d5db;
         }
         .modal-backdrop {
             background-color: rgba(0, 0, 0, 0.6);
@@ -42,28 +40,28 @@
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #1e3a8a; /* biru gelap */
+            background: #1e3a8a;
         }
         ::-webkit-scrollbar-thumb {
-            background: #3b82f6; /* biru terang */
+            background: #3b82f6;
             border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #60a5fa; /* biru lebih terang */
+            background: #60a5fa;
         }
         .pagination-button {
             min-width: 40px;
         }
         .pagination-button.active {
-            background-color: #1e40af; /* biru tua */
+            background-color: #1e40af;
             color: white;
             font-weight: bold;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
         /* Style for disabled button in bulk actions */
         .btn-disabled {
-            background-color: #93c5fd; /* biru sangat muda */
-            color: #bfdbfe; /* biru pucat */
+            background-color: #93c5fd;
+            color: #bfdbfe;
             cursor: not-allowed;
         }
         /* Sidebar active tab indicator */
@@ -78,7 +76,7 @@
             left: 0;
             width: 4px;
             height: 100%;
-            background: linear-gradient(to bottom, #fde047, #facc15); /* Gradien kuning cerah */
+            background: linear-gradient(to bottom, #fde047, #facc15);
             border-radius: 2px;
         }
         /* Additional style for sortable headers */
@@ -89,7 +87,7 @@
         .sortable .sort-icon {
             display: inline-block;
             margin-left: 0.5rem;
-            width: 1em; /* Ensures consistent spacing */
+            width: 1em;
         }
     </style>
 </head>
@@ -108,14 +106,14 @@
     </div>
 
     <!-- Main App Screen -->
-    <div id="app-screen" class="hidden flex-1">
-        <div class="relative min-h-screen md:flex">
+    <div id="app-screen" class="hidden flex h-screen">
+        <div class="relative flex flex-grow">
             <!-- Mobile Menu Backdrop -->
             <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/50 z-20 md:hidden hidden"></div>
-            
+
             <!-- Sidebar -->
             <aside id="sidebar" class="fixed inset-y-0 left-0 bg-blue-900 w-64 p-6 flex flex-col z-30 transform transition-transform duration-300 md:relative md:translate-x-0 -translate-x-full border-r border-blue-700 shadow-xl">
-                <div class="flex-grow">
+                <div class="flex-grow flex flex-col">
                     <div class="flex items-center justify-between mb-8">
                         <h1 class="text-2xl font-bold text-white">Koleksi Game</h1>
                         <button id="close-sidebar-button" class="md:hidden text-blue-300 hover:text-white">
@@ -381,7 +379,7 @@
             </form>
         </div>
     </div>
-    
+
     <!-- Delete Confirmation Modal -->
     <div id="delete-confirm-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
         <div class="bg-blue-900 w-full max-w-sm rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-blue-700" id="delete-confirm-modal-content">
