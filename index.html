@@ -15,6 +15,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Heroicons SVG Icons -->
+    <script src="https://cdn.jsdelivr.net/npm/@heroicons/react@1.0.6/dist/index.js"></script>
 
     <style>
         body {
@@ -64,59 +67,55 @@
             color: #bfdbfe;
             cursor: not-allowed;
         }
-        /* Sidebar active tab indicator */
-        .tab-button.tab-active {
-            position: relative;
-            overflow: hidden;
-        }
-        .tab-button.tab-active::before {
-            content: '';
-            position: absolute;
+        /* Style for the new collapsible sidebar */
+        #sidebar-wrapper {
+            position: fixed;
             top: 0;
             left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(to bottom, #fde047, #facc15);
-            border-radius: 2px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #0b1a2d;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 50;
+            transition: width 0.3s ease-in-out;
         }
-        /* Additional style for sortable headers */
-        .sortable {
-            cursor: pointer;
-            user-select: none;
+        #sidebar-wrapper.collapsed {
+            width: 80px;
         }
-        .sortable .sort-icon {
-            display: inline-block;
-            margin-left: 0.5rem;
-            width: 1em;
+        #sidebar-wrapper.expanded {
+            width: 256px; /* 64 * 4px = 256px */
         }
-        /* Custom styles from the reference image */
-        #sidebar {
-            background-color: #0b1a2d; /* Warna latar belakang lebih gelap */
+        #sidebar-wrapper #sidebar-logo,
+        #sidebar-wrapper #user-profile {
+            transition: opacity 0.3s ease-in-out;
         }
-        #tabs .tab-button {
-            padding: 12px 20px; /* Padding lebih besar */
-            border-radius: 12px; /* Sudut lebih membulat */
-            font-size: 1rem;
-            font-weight: 500;
+        #sidebar-wrapper.collapsed #sidebar-logo,
+        #sidebar-wrapper.collapsed #user-profile {
+            opacity: 0;
+            pointer-events: none;
         }
-        #tabs .tab-button.tab-active {
-            background-color: #1e293b; /* Latar belakang tab aktif */
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3); /* Bayangan dalam */
-            color: #fff;
+        #sidebar-wrapper.expanded #sidebar-logo,
+        #sidebar-wrapper.expanded #user-profile {
+            opacity: 1;
+            pointer-events: auto;
         }
-        #tabs .tab-button.tab-inactive {
-            color: #94a3b8; /* Warna teks tab tidak aktif */
+        .tab-button .tab-label {
+            transition: opacity 0.2s ease-in-out, margin-left 0.2s ease-in-out;
         }
-        #tabs .tab-button:hover {
-            background-color: #1e293b; /* Efek hover yang konsisten */
-            color: #e2e8f0;
+        .tab-button.active .tab-label {
+            font-weight: 700;
         }
-        #user-profile {
-            border-top: 1px solid #1e293b; /* Warna pemisah yang lebih gelap */
-            padding-top: 16px;
+        #sidebar-wrapper.collapsed .tab-label {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+            margin-left: 0;
         }
-        #sidebar h1 {
-            color: #fde047; /* Warna judul kuning */
+        #sidebar-wrapper.expanded .tab-label {
+            opacity: 1;
+            width: auto;
+            margin-left: 1rem;
         }
     </style>
 </head>
@@ -136,211 +135,200 @@
 
     <!-- Main App Screen -->
     <div id="app-screen" class="hidden flex h-screen">
-        <div class="relative flex flex-grow">
-            <!-- Mobile Menu Backdrop -->
-            <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/50 z-20 md:hidden hidden"></div>
+        <!-- New Collapsible Sidebar -->
+        <aside id="sidebar-wrapper" class="collapsed">
+            <!-- Sidebar Header / Logo -->
+            <div id="sidebar-logo" class="p-6 flex items-center justify-center">
+                <h1 class="text-2xl font-bold text-yellow-500 hidden">Koleksi Game</h1>
+            </div>
 
-            <!-- Sidebar -->
-            <aside id="sidebar" class="fixed inset-y-0 left-0 bg-blue-900 w-64 p-6 flex flex-col z-30 transform transition-transform duration-300 md:relative md:translate-x-0 -translate-x-full border-r border-blue-700 shadow-xl">
-                <div class="flex-grow flex flex-col">
-                    <div class="flex items-center justify-between mb-8">
-                        <h1 class="text-2xl font-bold text-white">Koleksi Game</h1>
-                        <button id="close-sidebar-button" class="md:hidden text-blue-300 hover:text-white">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                    <nav id="tabs" class="flex flex-col space-y-2">
-                         <!-- Menggunakan ikon SVG yang lebih modern dan konsisten dari heroicons.com -->
-                         <button data-tab="tab-list" class="tab-button tab-active flex items-center py-2 px-4 rounded-lg transition duration-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 mr-3">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.007 5.25H3.75v.008h.007V12zm-.007 5.25H3.75v.008h.007v-.008z" />
-                            </svg>
-                            Daftar Game
-                        </button>
-                        <button data-tab="tab-stats" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 mr-3">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.5l4.5-4.5m0 0l4.5 4.5m-4.5-4.5v9m9 0l4.5-4.5m0 0l4.5 4.5m-4.5-4.5v9" />
-                            </svg>
-                            Statistik
-                        </button>
-                        <button data-tab="tab-bulk" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200">
-                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 mr-3">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9.75v6.75m0 0l-3-3m3 3l3-3m-8.25 6h12a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25h-12a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                            </svg>
-                            Aksi Masal
-                        </button>
-                        <button data-tab="tab-manage" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200">
-                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 mr-3">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 16.5m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm12 0m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm-12-6m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm12 0m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm-12-6m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm12 0m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0z" />
-                            </svg>
-                            Manajemen Data
-                        </button>
-                    </nav>
+            <!-- User Profile Section -->
+            <div id="user-profile" class="p-6 pb-2 text-center border-b border-blue-950">
+                <div class="relative w-12 h-12 mx-auto">
+                    <img id="user-photo" src="https://placehold.co/48x48/e2e8f0/e2e8f0" alt="User Photo" class="w-full h-full rounded-full border-2 border-yellow-400 object-cover">
+                    <svg id="default-user-icon" class="hidden absolute top-0 left-0 w-full h-full text-blue-300" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.93 0 3.5 1.57 3.5 3.5S13.93 12 12 12 8.5 10.43 8.5 8.5 10.07 5 12 5zm0 14.1c-2.73 0-5.38-1.07-7.24-2.83C5.07 15.35 8.35 14 12 14s6.93 1.35 7.24 2.27c-1.86 1.76-4.51 2.83-7.24 2.83z"/></svg>
                 </div>
-                <div>
-                    <!-- Menggunakan flex-col dan border yang lebih gelap untuk pemisah -->
-                    <div id="user-profile" class="flex flex-col items-center space-y-2 border-t border-blue-950 pt-4 mb-4">
-                        <!-- Menggunakan SVG default jika foto tidak ada -->
-                        <div class="relative w-12 h-12">
-                            <img id="user-photo" src="https://placehold.co/48x48/e2e8f0/e2e8f0" alt="User Photo" class="w-full h-full rounded-full border-2 border-yellow-400 object-cover">
-                            <svg id="default-user-icon" class="hidden absolute top-0 left-0 w-full h-full text-blue-300" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.93 0 3.5 1.57 3.5 3.5S13.93 12 12 12 8.5 10.43 8.5 8.5 10.07 5 12 5zm0 14.1c-2.73 0-5.38-1.07-7.24-2.83C5.07 15.35 8.35 14 12 14s6.93 1.35 7.24 2.27c-1.86 1.76-4.51 2.83-7.24 2.83z"/></svg>
-                        </div>
-                        <p id="user-name" class="font-semibold text-sm text-white">Guest User</p>
-                        <button id="logout-button" class="text-xs text-yellow-300 hover:text-yellow-200">Keluar</button>
-                    </div>
-                    <p class="text-xs text-blue-400 text-center">© 2024 RichD</p>
-                </div>
-            </aside>
+                <p id="user-name" class="font-semibold text-sm text-white mt-2">Guest User</p>
+                <button id="logout-button" class="text-xs text-yellow-300 hover:text-yellow-200 mt-1">Keluar</button>
+            </div>
 
-            <!-- Main Content -->
-            <main class="flex-1 p-4 md:p-8 overflow-y-auto">
-                <!-- Header Mobile -->
-                 <header class="md:hidden flex items-center justify-between mb-6">
-                    <button id="open-sidebar-button" class="text-white hover:text-yellow-300">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
-                        </svg>
+            <!-- Navigation Tabs -->
+            <nav id="tabs" class="flex-grow flex flex-col p-4 space-y-2">
+                 <button data-tab="tab-list" class="tab-button tab-active flex items-center p-4 rounded-lg transition duration-200 hover:bg-blue-800 relative">
+                    <svg class="w-6 h-6 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.007 5.25H3.75v.008h.007V12zm-.007 5.25H3.75v.008h.007v-.008z" />
+                    </svg>
+                    <span class="tab-label text-sm text-left">Daftar Game</span>
+                </button>
+                <button data-tab="tab-stats" class="tab-button tab-inactive flex items-center p-4 rounded-lg transition duration-200 hover:bg-blue-800">
+                    <svg class="w-6 h-6 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.5l4.5-4.5m0 0l4.5 4.5m-4.5-4.5v9m9 0l4.5-4.5m0 0l4.5 4.5m-4.5-4.5v9" />
+                    </svg>
+                    <span class="tab-label text-sm text-left">Statistik</span>
+                </button>
+                <button data-tab="tab-bulk" class="tab-button tab-inactive flex items-center p-4 rounded-lg transition duration-200 hover:bg-blue-800">
+                    <svg class="w-6 h-6 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9.75v6.75m0 0l-3-3m3 3l3-3m-8.25 6h12a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25h-12a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                    <span class="tab-label text-sm text-left">Aksi Masal</span>
+                </button>
+                <button data-tab="tab-manage" class="tab-button tab-inactive flex items-center p-4 rounded-lg transition duration-200 hover:bg-blue-800">
+                    <svg class="w-6 h-6 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 16.5m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm12 0m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm-12-6m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm12 0m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm-12-6m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm12 0m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0z" />
+                    </svg>
+                    <span class="tab-label text-sm text-left">Manajemen Data</span>
+                </button>
+            </nav>
+            
+            <p class="text-xs text-blue-400 text-center py-4">© 2024 RichD</p>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+            <!-- Header Mobile -->
+             <header class="md:hidden flex items-center justify-between mb-6">
+                <button id="open-sidebar-button" class="text-white hover:text-yellow-300">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
+                <h1 class="text-xl font-bold text-white">Koleksi Game</h1>
+                <div></div> <!-- Spacer -->
+            </header>
+
+            <!-- Tab: Daftar Game -->
+            <div id="tab-list" class="tab-content">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white">Daftar Game</h2>
+                    <button id="add-game-button" class="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-400 text-blue-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105 shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                        Tambah Game
                     </button>
-                    <h1 class="text-xl font-bold text-white">Koleksi Game</h1>
-                    <div></div> <!-- Spacer -->
-                </header>
+                </div>
+                <!-- Filter Section -->
+                <div class="bg-blue-900 p-4 md:p-6 rounded-xl shadow-lg border border-blue-700 mb-6">
+                    <h3 class="font-bold text-xl mb-4 text-white">Filter Game</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <input id="filter-title" type="text" placeholder="Filter berdasarkan judul..." class="bg-blue-800 border border-blue-700 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white placeholder-blue-300">
+                        <select id="filter-platform" class="bg-blue-800 border border-blue-700 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white">
+                            <option value="">Semua Platform</option>
+                            <option>Steam</option><option>Epic</option><option>GOG</option><option>EA App</option><option>PCSX</option><option>Crack</option>
+                        </select>
+                        <select id="filter-location" class="bg-blue-800 border border-blue-700 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white">
+                            <option value="">Semua Lokasi</option>
+                            <option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option>
+                        </select>
+                        <select id="filter-status" class="bg-blue-800 border border-blue-700 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white">
+                            <option value="">Semua Status</option>
+                            <option>Dimainkan</option><option>Belum dimainkan</option><option>Selesai</option>
+                        </select>
+                    </div>
+                 </div>
+                <!-- Game Table -->
+                <div class="bg-blue-900 rounded-xl shadow-lg overflow-x-auto border border-blue-700">
+                    <table id="game-table" class="w-full text-left min-w-[640px]">
+                        <thead class="bg-blue-800">
+                            <tr>
+                                <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="rounded bg-blue-700 border-blue-500 text-yellow-500 focus:ring-yellow-400"></th>
+                                <th id="title-header" class="p-4 font-semibold text-white sortable" data-sort="title">Judul Game <span class="sort-icon"></span></th>
+                                <th id="platform-header" class="p-4 font-semibold text-white sortable" data-sort="platform">Platform <span class="sort-icon"></span></th>
+                                <th id="location-header" class="p-4 font-semibold text-white sortable" data-sort="location">Lokasi <span class="sort-icon"></span></th>
+                                <th id="price-header" class="p-4 font-semibold text-white sortable" data-sort="price">Harga <span class="sort-icon"></span></th>
+                                <th id="status-header" class="p-4 font-semibold text-white sortable" data-sort="status">Status <span class="sort-icon"></span></th>
+                                <th class="p-4 font-semibold text-white">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="game-list-body">
+                            <!-- Game items will be injected here by JS -->
+                            <tr><td colspan="7" class="text-center p-8 text-blue-300">Memuat data game...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                 <!-- Pagination -->
+                <div id="pagination-container" class="flex justify-center items-center mt-6 space-x-1 sm:space-x-2"></div>
+            </div>
 
-                <!-- Tab: Daftar Game -->
-                <div id="tab-list" class="tab-content">
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                        <h2 class="text-2xl sm:text-3xl font-bold text-white">Daftar Game</h2>
-                        <button id="add-game-button" class="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-400 text-blue-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105 shadow-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                            Tambah Game
+            <!-- Tab: Statistik -->
+            <div id="tab-stats" class="tab-content hidden">
+                 <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white">Statistik Game</h2>
+                 <!-- New stats section -->
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                     <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
+                        <h3 class="text-xl font-bold text-white mb-2">Total Harga Game</h3>
+                        <p id="total-price" class="text-3xl font-bold text-yellow-300">Memuat...</p>
+                     </div>
+                     <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
+                         <h3 class="text-xl font-bold text-white mb-2">Game Termahal</h3>
+                         <p id="most-expensive-game" class="text-2xl font-bold text-yellow-300">Memuat...</p>
+                     </div>
+                 </div>
+                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
+                        <h3 class="font-bold text-xl text-center mb-4 text-white">Game per Platform</h3>
+                        <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
+                            <canvas id="platform-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
+                        <h3 class="font-bold text-xl text-center mb-4 text-white">Game per Lokasi</h3>
+                        <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
+                            <canvas id="location-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-blue-900 p-6 rounded-xl shadow-lg col-span-1 lg:col-span-2 border border-blue-700">
+                         <h3 class="font-bold mb-4 text-xl text-center text-white">Status Permainan</h3>
+                        <div class="relative h-64 w-full mx-auto" style="max-width: 800px;">
+                            <canvas id="status-chart"></canvas>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
+            <!-- Tab: Aksi Masal -->
+            <div id="tab-bulk" class="tab-content hidden">
+                 <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white">Aksi Masal</h2>
+                 <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
+                    <h3 class="font-bold text-xl mb-4 text-white">Tindakan untuk Game Terpilih</h3>
+                    <p id="selection-info" class="text-blue-300 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.</p>
+                    <div class="flex flex-wrap gap-4">
+                        <button id="bulk-edit-button" class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:btn-disabled transform hover:scale-105 shadow-md" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                            Edit Game Terpilih
+                        </button>
+                        <button id="bulk-delete-button" class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:btn-disabled transform hover:scale-105 shadow-md" disabled>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                            Hapus Game Terpilih
                         </button>
                     </div>
-                    <!-- Filter Section -->
-                    <div class="bg-blue-900 p-4 md:p-6 rounded-xl shadow-lg border border-blue-700 mb-6">
-                        <h3 class="font-bold text-xl mb-4 text-white">Filter Game</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <input id="filter-title" type="text" placeholder="Filter berdasarkan judul..." class="bg-blue-800 border border-blue-700 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white placeholder-blue-300">
-                            <select id="filter-platform" class="bg-blue-800 border border-blue-700 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white">
-                                <option value="">Semua Platform</option>
-                                <option>Steam</option><option>Epic</option><option>GOG</option><option>EA App</option><option>PCSX</option><option>Crack</option>
-                            </select>
-                            <select id="filter-location" class="bg-blue-800 border border-blue-700 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white">
-                                <option value="">Semua Lokasi</option>
-                                <option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option>
-                            </select>
-                            <select id="filter-status" class="bg-blue-800 border border-blue-700 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white">
-                                <option value="">Semua Status</option>
-                                <option>Dimainkan</option><option>Belum dimainkan</option><option>Selesai</option>
-                            </select>
-                        </div>
-                     </div>
-                    <!-- Game Table -->
-                    <div class="bg-blue-900 rounded-xl shadow-lg overflow-x-auto border border-blue-700">
-                        <table id="game-table" class="w-full text-left min-w-[640px]">
-                            <thead class="bg-blue-800">
-                                <tr>
-                                    <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="rounded bg-blue-700 border-blue-500 text-yellow-500 focus:ring-yellow-400"></th>
-                                    <th id="title-header" class="p-4 font-semibold text-white sortable" data-sort="title">Judul Game <span class="sort-icon"></span></th>
-                                    <th id="platform-header" class="p-4 font-semibold text-white sortable" data-sort="platform">Platform <span class="sort-icon"></span></th>
-                                    <th id="location-header" class="p-4 font-semibold text-white sortable" data-sort="location">Lokasi <span class="sort-icon"></span></th>
-                                    <th id="price-header" class="p-4 font-semibold text-white sortable" data-sort="price">Harga <span class="sort-icon"></span></th>
-                                    <th id="status-header" class="p-4 font-semibold text-white sortable" data-sort="status">Status <span class="sort-icon"></span></th>
-                                    <th class="p-4 font-semibold text-white">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="game-list-body">
-                                <!-- Game items will be injected here by JS -->
-                                <tr><td colspan="7" class="text-center p-8 text-blue-300">Memuat data game...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                     <!-- Pagination -->
-                    <div id="pagination-container" class="flex justify-center items-center mt-6 space-x-1 sm:space-x-2"></div>
-                </div>
+                 </div>
+            </div>
 
-                <!-- Tab: Statistik -->
-                <div id="tab-stats" class="tab-content hidden">
-                     <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white">Statistik Game</h2>
-                     <!-- New stats section -->
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                         <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
-                            <h3 class="text-xl font-bold text-white mb-2">Total Harga Game</h3>
-                            <p id="total-price" class="text-3xl font-bold text-yellow-300">Memuat...</p>
-                         </div>
-                         <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
-                             <h3 class="text-xl font-bold text-white mb-2">Game Termahal</h3>
-                             <p id="most-expensive-game" class="text-2xl font-bold text-yellow-300">Memuat...</p>
-                         </div>
-                     </div>
-                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
-                            <h3 class="font-bold text-xl text-center mb-4 text-white">Game per Platform</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
-                                <canvas id="platform-chart"></canvas>
-                            </div>
-                        </div>
-                        <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
-                            <h3 class="font-bold text-xl text-center mb-4 text-white">Game per Lokasi</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
-                                <canvas id="location-chart"></canvas>
-                            </div>
-                        </div>
-                        <div class="bg-blue-900 p-6 rounded-xl shadow-lg col-span-1 lg:col-span-2 border border-blue-700">
-                             <h3 class="font-bold mb-4 text-xl text-center text-white">Status Permainan</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 800px;">
-                                <canvas id="status-chart"></canvas>
-                            </div>
-                        </div>
-                     </div>
-                </div>
-
-                <!-- Tab: Aksi Masal -->
-                <div id="tab-bulk" class="tab-content hidden">
-                     <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white">Aksi Masal</h2>
-                     <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
-                        <h3 class="font-bold text-xl mb-4 text-white">Tindakan untuk Game Terpilih</h3>
-                        <p id="selection-info" class="text-blue-300 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.</p>
-                        <div class="flex flex-wrap gap-4">
-                            <button id="bulk-edit-button" class="bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:btn-disabled transform hover:scale-105 shadow-md" disabled>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
-                                Edit Game Terpilih
-                            </button>
-                            <button id="bulk-delete-button" class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 disabled:btn-disabled transform hover:scale-105 shadow-md" disabled>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
-                                Hapus Game Terpilih
+            <!-- Tab: Manajemen Data -->
+            <div id="tab-manage" class="tab-content hidden">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white">Manajemen Data</h2>
+                <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-bold text-xl mb-2 text-white">Ekspor Data</h3>
+                            <p class="text-blue-300 mb-4">Unduh semua koleksi game Anda sebagai file JSON.</p>
+                            <button id="download-json-button" class="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 transform hover:scale-105 shadow-md">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                                Unduh JSON
                             </button>
                         </div>
-                     </div>
-                </div>
-
-                <!-- Tab: Manajemen Data -->
-                <div id="tab-manage" class="tab-content hidden">
-                    <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white">Manajemen Data</h2>
-                    <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 class="font-bold text-xl mb-2 text-white">Ekspor Data</h3>
-                                <p class="text-blue-300 mb-4">Unduh semua koleksi game Anda sebagai file JSON.</p>
-                                <button id="download-json-button" class="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 transform hover:scale-105 shadow-md">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                                    Unduh JSON
-                                </button>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-xl mb-2 text-white">Impor Data</h3>
-                                <p class="text-blue-300 mb-4">Muat koleksi game dari file JSON. Game yang ada akan ditambahkan, bukan diganti.</p>
-                                <button id="upload-json-button" class="bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 transform hover:scale-105 shadow-md">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
-                                    Muat JSON
-                                </button>
-                                <input type="file" id="json-file-input" class="hidden" accept=".json">
-                            </div>
+                        <div>
+                            <h3 class="font-bold text-xl mb-2 text-white">Impor Data</h3>
+                            <p class="text-blue-300 mb-4">Muat koleksi game dari file JSON. Game yang ada akan ditambahkan, bukan diganti.</p>
+                            <button id="upload-json-button" class="bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 transform hover:scale-105 shadow-md">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                                Muat JSON
+                            </button>
+                            <input type="file" id="json-file-input" class="hidden" accept=".json">
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
 
     <!-- Add/Edit Game Modal -->
@@ -438,5 +426,27 @@
         <p id="toast-message">Operasi berhasil!</p>
     </div>
 	<script type="module" src="/script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar-wrapper');
+            const mainContent = document.querySelector('main');
+
+            sidebar.addEventListener('mouseenter', () => {
+                sidebar.classList.remove('collapsed');
+                sidebar.classList.add('expanded');
+                mainContent.style.marginLeft = '256px'; // Sesuaikan margin main content
+            });
+
+            sidebar.addEventListener('mouseleave', () => {
+                sidebar.classList.remove('expanded');
+                sidebar.classList.add('collapsed');
+                mainContent.style.marginLeft = '80px'; // Sesuaikan margin main content
+            });
+            
+            // Atur margin awal pada saat pemuatan halaman
+            // Mengatur margin-left agar main content tidak tertutup sidebar
+            mainContent.style.marginLeft = '80px';
+        });
+    </script>
 </body>
 </html>
