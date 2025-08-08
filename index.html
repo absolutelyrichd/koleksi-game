@@ -67,11 +67,7 @@
         /* Sidebar active tab indicator */
         .tab-button.tab-active {
             position: relative;
-            background-color: #1e40af;
-            color: #fff;
             overflow: hidden;
-            border-radius: 0.75rem;
-            padding-left: 1rem; /* p-4 */
         }
         .tab-button.tab-active::before {
             content: '';
@@ -80,7 +76,7 @@
             left: 0;
             width: 4px;
             height: 100%;
-            background-color: #60a5fa;
+            background: linear-gradient(to bottom, #fde047, #facc15);
             border-radius: 2px;
         }
         /* Additional style for sortable headers */
@@ -92,6 +88,35 @@
             display: inline-block;
             margin-left: 0.5rem;
             width: 1em;
+        }
+        /* Custom styles from the reference image */
+        #sidebar {
+            background-color: #0b1a2d; /* Warna latar belakang lebih gelap */
+        }
+        #tabs .tab-button {
+            padding: 12px 20px; /* Padding lebih besar */
+            border-radius: 12px; /* Sudut lebih membulat */
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        #tabs .tab-button.tab-active {
+            background-color: #1e293b; /* Latar belakang tab aktif */
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3); /* Bayangan dalam */
+            color: #fff;
+        }
+        #tabs .tab-button.tab-inactive {
+            color: #94a3b8; /* Warna teks tab tidak aktif */
+        }
+        #tabs .tab-button:hover {
+            background-color: #1e293b; /* Efek hover yang konsisten */
+            color: #e2e8f0;
+        }
+        #user-profile {
+            border-top: 1px solid #1e293b; /* Warna pemisah yang lebih gelap */
+            padding-top: 16px;
+        }
+        #sidebar h1 {
+            color: #fde047; /* Warna judul kuning */
         }
     </style>
 </head>
@@ -127,31 +152,43 @@
                         </button>
                     </div>
                     <nav id="tabs" class="flex flex-col space-y-2">
-                         <button data-tab="tab-list" class="tab-button tab-active w-full text-left py-3 pl-6 pr-4 rounded-xl transition-colors duration-200 hover:bg-blue-800 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v1H2V6zM2 9v7a2 2 0 002 2h12a2 2 0 002-2V9H2zm4-4a1 1 0 100-2 1 1 0 000 2zM8 5a1 1 0 100-2 1 1 0 000 2z"/></svg>
+                         <!-- Menggunakan ikon SVG yang lebih modern dan konsisten dari heroicons.com -->
+                         <button data-tab="tab-list" class="tab-button tab-active flex items-center py-2 px-4 rounded-lg transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 mr-3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.007 5.25H3.75v.008h.007V12zm-.007 5.25H3.75v.008h.007v-.008z" />
+                            </svg>
                             Daftar Game
                         </button>
-                        <button data-tab="tab-stats" class="tab-button w-full text-left py-3 pl-6 pr-4 rounded-xl transition-colors duration-200 hover:bg-blue-800 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+                        <button data-tab="tab-stats" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 mr-3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.5l4.5-4.5m0 0l4.5 4.5m-4.5-4.5v9m9 0l4.5-4.5m0 0l4.5 4.5m-4.5-4.5v9" />
+                            </svg>
                             Statistik
                         </button>
-                        <button data-tab="tab-bulk" class="tab-button w-full text-left py-3 pl-6 pr-4 rounded-xl transition-colors duration-200 hover:bg-blue-800 flex items-center">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
+                        <button data-tab="tab-bulk" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200">
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 mr-3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9.75v6.75m0 0l-3-3m3 3l3-3m-8.25 6h12a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25h-12a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                            </svg>
                             Aksi Masal
                         </button>
-                        <button data-tab="tab-manage" class="tab-button w-full text-left py-3 pl-6 pr-4 rounded-xl transition-colors duration-200 hover:bg-blue-800 flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                        <button data-tab="tab-manage" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200">
+                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 mr-3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 16.5m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm12 0m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm-12-6m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm12 0m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm-12-6m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0zm12 0m-1.5 0a1.5 1.5 0 103 0 1.5 1.5 0 10-3 0z" />
+                            </svg>
                             Manajemen Data
                         </button>
                     </nav>
                 </div>
                 <div>
-                    <div id="user-profile" class="flex items-center space-x-3 border-t border-blue-700 pt-4 mb-4">
-                        <img id="user-photo" src="https://placehold.co/40x40/e2e8f0/e2e8f0" alt="User Photo" class="w-10 h-10 rounded-full border-2 border-yellow-400">
-                        <div>
-                            <p id="user-name" class="font-semibold text-sm text-white">Guest User</p>
-                            <button id="logout-button" class="text-xs text-yellow-300 hover:text-yellow-200">Keluar</button>
+                    <!-- Menggunakan flex-col dan border yang lebih gelap untuk pemisah -->
+                    <div id="user-profile" class="flex flex-col items-center space-y-2 border-t border-blue-950 pt-4 mb-4">
+                        <!-- Menggunakan SVG default jika foto tidak ada -->
+                        <div class="relative w-12 h-12">
+                            <img id="user-photo" src="https://placehold.co/48x48/e2e8f0/e2e8f0" alt="User Photo" class="w-full h-full rounded-full border-2 border-yellow-400 object-cover">
+                            <svg id="default-user-icon" class="hidden absolute top-0 left-0 w-full h-full text-blue-300" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.93 0 3.5 1.57 3.5 3.5S13.93 12 12 12 8.5 10.43 8.5 8.5 10.07 5 12 5zm0 14.1c-2.73 0-5.38-1.07-7.24-2.83C5.07 15.35 8.35 14 12 14s6.93 1.35 7.24 2.27c-1.86 1.76-4.51 2.83-7.24 2.83z"/></svg>
                         </div>
+                        <p id="user-name" class="font-semibold text-sm text-white">Guest User</p>
+                        <button id="logout-button" class="text-xs text-yellow-300 hover:text-yellow-200">Keluar</button>
                     </div>
                     <p class="text-xs text-blue-400 text-center">© 2024 RichD</p>
                 </div>
