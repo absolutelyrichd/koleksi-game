@@ -44,6 +44,7 @@
         const gameListBody = document.getElementById('game-list-body');
         const addGameButton = document.getElementById('add-game-button');
         const paginationContainer = document.getElementById('pagination-container');
+        const defaultUserIcon = document.getElementById('default-user-icon');
         
         // --- Statistik UI Elements ---
         const totalPriceElement = document.getElementById('total-price');
@@ -74,29 +75,61 @@
         let gameIdToDelete = null; // To store the ID of the game to be deleted for single delete
         let currentConfirmCallback = null; // To store the callback function for modal confirmation
 
-        // --- Mobile Elements ---
-        const sidebar = document.getElementById('sidebar');
+        // --- Sidebar & Main Content Elements ---
+        const sidebarWrapper = document.getElementById('sidebar-wrapper');
+        const mainContent = document.querySelector('main');
+        const sidebarLogo = document.getElementById('sidebar-logo');
+        const userProfile = document.getElementById('user-profile');
         const openSidebarButton = document.getElementById('open-sidebar-button');
-        const closeSidebarButton = document.getElementById('close-sidebar-button');
         const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
 
         // --- Chart instances ---
         let platformChart, locationChart, statusChart;
+        
+        // Pindahkan fungsi-fungsi sidebar ke sini untuk menjaga kode tetap rapi
+        function expandSidebar() {
+            if (window.innerWidth >= 768) {
+                sidebarWrapper.classList.remove('collapsed');
+                sidebarWrapper.classList.add('expanded');
+                mainContent.style.marginLeft = '256px'; // Lebar sidebar saat diperluas
+                sidebarLogo.querySelector('h1').classList.remove('hidden');
+                userProfile.classList.remove('hidden');
+            }
+        }
+
+        function collapseSidebar() {
+            if (window.innerWidth >= 768) {
+                sidebarWrapper.classList.remove('expanded');
+                sidebarWrapper.classList.add('collapsed');
+                mainContent.style.marginLeft = '80px'; // Lebar sidebar saat diciutkan
+                sidebarLogo.querySelector('h1').classList.add('hidden');
+                userProfile.classList.add('hidden');
+            }
+        }
+        
+        function toggleMobileSidebar() {
+            sidebarWrapper.classList.toggle('collapsed');
+            mobileMenuBackdrop.classList.toggle('hidden');
+            if (sidebarWrapper.classList.contains('collapsed')) {
+                 mainContent.style.marginLeft = '0';
+            } else {
+                 mainContent.style.marginLeft = '256px';
+            }
+        }
+        
+        // Pindahkan event listener sidebar ke sini
+        if (window.innerWidth >= 768) {
+            sidebarWrapper.addEventListener('mouseenter', expandSidebar);
+            sidebarWrapper.addEventListener('mouseleave', collapseSidebar);
+            mainContent.style.marginLeft = '80px'; // Margin awal untuk tampilan desktop
+        } else {
+            mainContent.style.marginLeft = '0'; // Tidak ada margin untuk tampilan mobile
+        }
 
         // --- MOBILE SIDEBAR LOGIC ---
-        function openSidebar() {
-            sidebar.classList.remove('-translate-x-full');
-            mobileMenuBackdrop.classList.remove('hidden');
-        }
+        openSidebarButton.addEventListener('click', toggleMobileSidebar);
+        mobileMenuBackdrop.addEventListener('click', toggleMobileSidebar);
 
-        function closeSidebar() {
-            sidebar.classList.add('-translate-x-full');
-            mobileMenuBackdrop.classList.add('hidden');
-        }
-
-        openSidebarButton.addEventListener('click', openSidebar);
-        closeSidebarButton.addEventListener('click', closeSidebar);
-        mobileMenuBackdrop.addEventListener('click', closeSidebar);
 
         // --- TOAST/ALERT FUNCTION ---
         function showToast(message, isError = false) {
@@ -127,8 +160,17 @@
                 currentUser = user;
                 loginScreen.classList.add('hidden');
                 appScreen.classList.remove('hidden');
-                userPhoto.src = user.photoURL;
                 userName.textContent = user.displayName;
+
+                if (user.photoURL) {
+                    userPhoto.src = user.photoURL;
+                    userPhoto.classList.remove('hidden');
+                    defaultUserIcon.classList.add('hidden');
+                } else {
+                    userPhoto.classList.add('hidden');
+                    defaultUserIcon.classList.remove('hidden');
+                }
+
                 fetchGames();
             } else {
                 currentUser = null;
@@ -452,8 +494,9 @@
                     content.classList.add('hidden');
                 }
             });
+            // Tutup sidebar di mobile saat tab diklik
             if (window.innerWidth < 768) {
-                closeSidebar();
+                toggleMobileSidebar();
             }
         });
 
