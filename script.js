@@ -151,6 +151,7 @@ function getPlatformBadgeClasses(platform) {
         'Epic': 'bg-gray-400/30 text-gray-200',
         'GOG': 'bg-purple-500/30 text-purple-300',
 		'EA App': 'bg-red-500/30 text-red-300',
+        'Ubisoft Connect': 'bg-sky-500/30 text-sky-300', // Added new color for Ubisoft Connect
         'PCSX': 'bg-yellow-500/30 text-yellow-300',
         'Crack': 'bg-red-500/30 text-red-300',
         'default': 'bg-slate-500/30 text-slate-300'
@@ -287,6 +288,7 @@ function createGameRowHTML(game = {}) {
                         <option ${game.platform === 'Epic' ? 'selected' : ''}>Epic</option>
                         <option ${game.platform === 'GOG' ? 'selected' : ''}>GOG</option>
 						<option ${game.platform === 'EA App' ? 'selected' : ''}>EA App</option>
+                        <option ${game.platform === 'Ubisoft Connect' ? 'selected' : ''}>Ubisoft Connect</option>
                         <option ${game.platform === 'PCSX' ? 'selected' : ''}>PCSX</option>
                         <option ${game.platform === 'Crack' ? 'selected' : ''}>Crack</option>
                     </select>
@@ -559,7 +561,7 @@ function updateCharts() {
     const platformData = games.reduce((acc, game) => { acc[game.platform] = (acc[game.platform] || 0) + 1; return acc; }, {});
     platformChart.data = {
         labels: Object.keys(platformData),
-        datasets: [{ data: Object.values(platformData), backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#ef4444', '#facc15'] }]
+        datasets: [{ data: Object.values(platformData), backgroundColor: ['#3b82f6', '#8b5cf6', '#ec4899', '#f97316', '#0ea5e9', '#ef4444', '#facc15'] }]
     };
     platformChart.update();
 
