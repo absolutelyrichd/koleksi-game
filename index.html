@@ -17,12 +17,29 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
+        @keyframes doodle-animation {
+            from {
+                background-position: 0 0;
+            }
+            to {
+                background-position: 100% 100%;
+            }
+        }
+
         body {
             font-family: 'Inter', sans-serif;
             /* Mengubah gradien latar belakang menjadi lebih halus */
             background: linear-gradient(to bottom right, #3B82F6, #1D4ED8);
             color: #f8fafc;
             min-height: 100vh;
+            /* Tambahkan ornamen doodle bertema game */
+            background-image: 
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><g fill="none" stroke="%233f83f8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".3"><path d="M50 100l-25 25m0-50l25 25m50-50l-25 25m0 50l25-25m-25-25h50v50h-50z"/><path d="M100 50l25-25m-50 0l25 25m-25 50l25-25m0 50l-25-25m25-25h50v50h-50z"/><path d="M50 100l25-25m-50 0l25 25m50 50l-25-25m0-50l25 25m-25 25h50v-50h-50z"/><circle cx="100" cy="100" r="40"/><path d="M100 60v-20M100 140v-20M60 100h-20M140 100h-20"/></g></svg>'),
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><g fill="none" stroke="%23facc15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".3"><path d="M50 50h100v100h-100z"/><path d="M75 75h50v50h-50z"/><path d="M125 75l25 25m-25 0l25-25"/></g></svg>');
+            background-size: 200px, 250px;
+            background-position: 0 0;
+            background-repeat: repeat;
+            animation: doodle-animation 60s linear infinite;
         }
         .tab-active {
             background-color: #1d4ed8;
