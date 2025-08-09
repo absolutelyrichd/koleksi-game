@@ -90,6 +90,22 @@
             margin-left: 0.5rem;
             width: 1em;
         }
+        /* Gaya tambahan untuk tampilan seluler */
+        @media (max-width: 639px) {
+            .card-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .card-item > div:first-child {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding-bottom: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+            .card-item > div:last-child {
+                margin-top: 1rem;
+            }
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -195,9 +211,9 @@
                             </select>
                         </div>
                      </div>
-                    <!-- Game Table -->
-                    <div class="bg-blue-900 rounded-xl shadow-lg overflow-x-auto border border-blue-700">
-                        <table id="game-table" class="w-full text-left min-w-[640px]">
+                    <!-- Game Table (Desktop) -->
+                    <div class="hidden sm:block bg-blue-900 rounded-xl shadow-lg overflow-x-auto border border-blue-700">
+                        <table id="game-table" class="w-full text-left">
                             <thead class="bg-blue-800">
                                 <tr>
                                     <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="rounded bg-blue-700 border-blue-500 text-yellow-500 focus:ring-yellow-400"></th>
@@ -215,6 +231,14 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Game List (Mobile) -->
+                    <div id="game-list-cards" class="sm:hidden card-grid">
+                        <!-- Game items will be injected here by JS -->
+                        <div id="game-list-cards-empty" class="text-center p-8 text-blue-300">
+                            Memuat data game...
+                        </div>
+                    </div>
+
                      <!-- Pagination -->
                     <div id="pagination-container" class="flex justify-center items-center mt-6 space-x-1 sm:space-x-2"></div>
                 </div>
@@ -230,7 +254,7 @@
                          </div>
                          <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
                              <h3 class="text-xl font-bold text-white mb-2">Game Termahal</h3>
-                             <p id="most-expensive-game" class="text-lg sm:text-2xl font-bold text-yellow-300 leading-tight">Memuat...</p>
+                             <p id="most-expensive-game" class="text-2xl font-bold text-yellow-300">Memuat...</p>
                          </div>
                      </div>
                      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
