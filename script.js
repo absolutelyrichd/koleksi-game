@@ -34,7 +34,7 @@ let sortState = {
     direction: 'asc' // Arah sortir default
 };
 
-// --- Elemen UI (Didefinisikan di dalam DOMContentLoaded) ---
+// --- Elemen UI (Dideklarasikan ulang di dalam DOMContentLoaded) ---
 let loginScreen, appScreen, loginButton, logoutButton, userPhoto, userName;
 let gameListBody, gameListCards, gameListCardsEmpty, addGameButton, paginationContainer;
 let totalPriceElement, mostExpensiveGameElement;
@@ -103,53 +103,19 @@ document.addEventListener('DOMContentLoaded', () => {
     filterStatus = document.getElementById('filter-status');
     
     // --- LOGIKA SIDEBAR MOBILE ---
+    function openSidebar() {
+        sidebar.classList.remove('-translate-x-full');
+        mobileMenuBackdrop.classList.remove('hidden');
+    }
+
+    function closeSidebar() {
+        sidebar.classList.add('-translate-x-full');
+        mobileMenuBackdrop.classList.add('hidden');
+    }
+
     openSidebarButton.addEventListener('click', openSidebar);
     closeSidebarButton.addEventListener('click', closeSidebar);
     mobileMenuBackdrop.addEventListener('click', closeSidebar);
-
-    // --- OTENTIKASI ---
-    // Tangani hasil redirect terlebih dahulu
-    getRedirectResult(auth)
-        .then((result) => {
-            if (result) {
-                console.log("Berhasil masuk setelah redirect!", result.user);
-            }
-        })
-        .catch((error) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            console.error("Kesalahan saat masuk setelah redirect:", errorCode, errorMessage);
-            showToast(`Gagal masuk: ${errorMessage}`, true);
-        });
-
-    loginButton.addEventListener('click', () => {
-        console.log("Tombol login diklik. Memulai proses redirect...");
-        signInWithRedirect(auth, provider);
-    });
-
-    logoutButton.addEventListener('click', () => {
-        signOut(auth);
-    });
-
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUser = user;
-            loginScreen.classList.add('hidden');
-            appScreen.classList.remove('hidden');
-            userPhoto.src = user.photoURL;
-            userName.textContent = user.displayName;
-            fetchGames();
-        } else {
-            currentUser = null;
-            loginScreen.classList.remove('hidden');
-            appScreen.classList.add('hidden');
-            if (unsubscribe) unsubscribe();
-            games = [];
-            filteredGames = [];
-            displayPage();
-            updateCharts();
-        }
-    });
 
     // --- FUNGSI TOAST/ALERT KUSTOM ---
     function showToast(message, isError = false) {
@@ -161,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
             toast.className = toast.className.replace('translate-y-0 opacity-100', 'translate-y-20 opacity-0');
         }, 3000);
     }
-
+    
     // --- FUNGSI BANTUAN UNTUK WARNA BADGE PLATFORM ---
     function getPlatformBadgeClasses(platform) {
         const colors = {
@@ -915,4 +881,61 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsText(file);
     });
 
+});
+
+// --- OTENTIKASI ---
+// Tangani hasil redirect terlebih dahulu
+getRedirectResult(auth)
+    .then((result) => {
+        if (result) {
+            console.log("Berhasil masuk setelah redirect!", result.user);
+        }
+    })
+    .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.error("Kesalahan saat masuk setelah redirect:", errorCode, errorMessage);
+        // showToast(`Gagal masuk: ${errorMessage}`, true);
+    });
+
+// onAuthStateChanged akan mendeteksi pengguna setelah redirect kembali
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+        updateUI(true);
+        fetchGames();
+    } else {
+        currentUser = null;
+        updateUI(false);
+        if (unsubscribe) unsubscribe();
+        games = [];
+        filteredGames = [];
+        // Perlu memanggil displayPage dan updateCharts di sini jika pengguna logout
+        displayPage();
+        updateCharts();
+    }
+});
+
+// Fungsi untuk memperbarui UI berdasarkan status otentikasi
+function updateUI(isLoggedIn) {
+    if (isLoggedIn) {
+        loginScreen.classList.add('hidden');
+        appScreen.classList.remove('hidden');
+        userPhoto.src = currentUser.photoURL;
+        userName.textContent = currentUser.displayName;
+    } else {
+        loginScreen.classList.remove('hidden');
+        appScreen.classList.add('hidden');
+    }
+}
+
+// Tambahkan event listener untuk tombol masuk
+loginButton.addEventListener('click', () => {
+    console.log("Tombol login diklik. Memulai proses redirect...");
+    signInWithRedirect(auth, provider);
+});
+
+// Tambahkan event listener untuk tombol keluar
+logoutButton.addEventListener('click', () => {
+    signOut(auth);
 });
