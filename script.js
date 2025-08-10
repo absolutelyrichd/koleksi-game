@@ -116,11 +116,26 @@ function showToast(message, isError = false) {
 
 // --- OTENTIKASI ---
 loginButton.addEventListener('click', () => {
-    signInWithPopup(auth, provider)
-        .catch((error) => {
-            console.error("Error signing in: ", error);
-            showToast(`Gagal masuk: ${error.message}`, true);
-        });
+    try {
+        console.log("Mencoba untuk masuk dengan Google...");
+        signInWithPopup(auth, provider)
+            .then((result) => {
+                // Proses ini tidak akan berjalan jika otentikasi gagal
+                console.log("Berhasil masuk!", result.user);
+            })
+            .catch((error) => {
+                // Tangani kesalahan di sini.
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                const email = error.email;
+                const credential = GoogleAuthProvider.credentialFromError(error);
+
+                console.error("Kesalahan saat masuk:", errorCode, errorMessage);
+                showToast(`Gagal masuk: ${errorMessage}`, true);
+            });
+    } catch (error) {
+        console.error("Kesalahan saat memanggil signInWithPopup:", error);
+    }
 });
 
 logoutButton.addEventListener('click', () => {
