@@ -38,7 +38,12 @@ let sortState = {
 const loginScreen = document.getElementById('login-screen');
 const appScreen = document.getElementById('app-screen');
 const loginButton = document.getElementById('login-button');
-const logoutButton = document.getElementById('logout-button');
+
+// Mengupdate referensi tombol logout dan login dengan ID yang baru di navbar
+const loginButtonNavbar = document.getElementById('login-button-navbar');
+const logoutButtonNavbar = document.getElementById('logout-button-navbar');
+const logoutButtonText = document.getElementById('logout-button-text');
+
 const userPhoto = document.getElementById('user-photo');
 const userName = document.getElementById('user-name');
 const gameListBody = document.getElementById('game-list-body');
@@ -112,6 +117,7 @@ function showToast(message, isError = false) {
 }
 
 // --- AUTHENTICATION ---
+// Menambahkan event listener untuk tombol login di halaman utama
 loginButton.addEventListener('click', () => {
     signInWithPopup(auth, provider)
         .catch((error) => {
@@ -120,22 +126,58 @@ loginButton.addEventListener('click', () => {
         });
 });
 
-logoutButton.addEventListener('click', () => {
-    signOut(auth);
-});
+// Menambahkan event listener untuk tombol login di navbar
+if (loginButtonNavbar) {
+    loginButtonNavbar.addEventListener('click', () => {
+        signInWithPopup(auth, provider)
+            .catch((error) => {
+                console.error("Error signing in: ", error);
+                showToast(`Gagal masuk: ${error.message}`, true);
+            });
+    });
+}
+
+// Menambahkan event listener untuk tombol logout di navbar
+if (logoutButtonNavbar) {
+    logoutButtonNavbar.addEventListener('click', () => {
+        signOut(auth);
+    });
+}
+
+if (logoutButtonText) {
+    logoutButtonText.addEventListener('click', () => {
+        signOut(auth);
+    });
+}
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
         loginScreen.classList.add('hidden');
         appScreen.classList.remove('hidden');
+        
+        // Memperbarui tampilan navbar untuk pengguna yang login
         userPhoto.src = user.photoURL;
         userName.textContent = user.displayName;
+        if (loginButtonNavbar) loginButtonNavbar.classList.add('hidden');
+        if (logoutButtonNavbar) logoutButtonNavbar.classList.remove('hidden');
+        if (logoutButtonText) {
+            document.querySelector('#user-profile > .hidden.md\\:block').classList.remove('hidden');
+        }
+        
         fetchGames();
     } else {
         currentUser = null;
         loginScreen.classList.remove('hidden');
         appScreen.classList.add('hidden');
+        
+        // Memperbarui tampilan navbar untuk pengguna yang keluar
+        if (loginButtonNavbar) loginButtonNavbar.classList.remove('hidden');
+        if (logoutButtonNavbar) logoutButtonNavbar.classList.add('hidden');
+        if (logoutButtonText) {
+            document.querySelector('#user-profile > .hidden.md\\:block').classList.add('hidden');
+        }
+
         if (unsubscribe) unsubscribe();
         games = [];
         filteredGames = [];
@@ -498,11 +540,15 @@ function handleTabClick(e) {
     const allTabButtons = document.querySelectorAll('.tab-button');
     allTabButtons.forEach(btn => {
         btn.classList.remove('tab-active');
+        // Perbarui untuk menghapus kelas 'link-active' dari navbar baru
+        btn.classList.remove('link-active'); 
         btn.classList.add('tab-inactive');
     });
 
     // Set active state for the clicked button
     button.classList.add('tab-active');
+    // Perbarui untuk menambahkan kelas 'link-active' untuk tab yang diklik
+    button.classList.add('link-active'); 
     button.classList.remove('tab-inactive');
     
     // Show the corresponding tab content
