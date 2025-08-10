@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, writeBatch, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // --- Firebase Config (JANGAN UBAH) ---
@@ -115,33 +115,17 @@ function showToast(message, isError = false) {
 }
 
 // --- OTENTIKASI ---
+// Tambahkan event listener untuk tombol masuk
 loginButton.addEventListener('click', () => {
-    try {
-        console.log("Mencoba untuk masuk dengan Google...");
-        signInWithPopup(auth, provider)
-            .then((result) => {
-                // Proses ini tidak akan berjalan jika otentikasi gagal
-                console.log("Berhasil masuk!", result.user);
-            })
-            .catch((error) => {
-                // Tangani kesalahan di sini.
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                const email = error.email;
-                const credential = GoogleAuthProvider.credentialFromError(error);
-
-                console.error("Kesalahan saat masuk:", errorCode, errorMessage);
-                showToast(`Gagal masuk: ${errorMessage}`, true);
-            });
-    } catch (error) {
-        console.error("Kesalahan saat memanggil signInWithPopup:", error);
-    }
+    // Panggil signInWithRedirect sebagai ganti dari signInWithPopup
+    signInWithRedirect(auth, provider);
 });
 
 logoutButton.addEventListener('click', () => {
     signOut(auth);
 });
 
+// onAuthStateChanged akan mendeteksi pengguna setelah redirect kembali
 onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
@@ -161,6 +145,25 @@ onAuthStateChanged(auth, (user) => {
         updateCharts();
     }
 });
+
+// Tambahkan kode ini untuk menangani respons dari proses redirect
+getRedirectResult(auth)
+    .then((result) => {
+        if (result) {
+            // Pengguna berhasil masuk setelah redirect
+            console.log("Berhasil masuk setelah redirect!", result.user);
+        }
+    })
+    .catch((error) => {
+        // Tangani kesalahan di sini
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        const email = error.email;
+        const credential = GoogleAuthProvider.credentialFromError(error);
+
+        console.error("Kesalahan saat masuk setelah redirect:", errorCode, errorMessage);
+        showToast(`Gagal masuk: ${errorMessage}`, true);
+    });
 
 // --- FUNGSI BANTUAN UNTUK WARNA BADGE PLATFORM ---
 function getPlatformBadgeClasses(platform) {
