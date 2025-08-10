@@ -39,9 +39,7 @@ const loginScreen = document.getElementById('login-screen');
 const appScreen = document.getElementById('app-screen');
 const loginButton = document.getElementById('login-button');
 
-// Mengupdate referensi tombol logout dan login dengan ID yang baru di navbar
-const loginButtonNavbar = document.getElementById('login-button-navbar');
-const logoutButtonNavbar = document.getElementById('logout-button-navbar');
+// Menghapus referensi tombol login/logout yang terpisah, karena kita akan menggunakan yang di bawah user profile
 const logoutButtonText = document.getElementById('logout-button-text');
 
 const userPhoto = document.getElementById('user-photo');
@@ -117,7 +115,7 @@ function showToast(message, isError = false) {
 }
 
 // --- AUTHENTICATION ---
-// Menambahkan event listener untuk tombol login di halaman utama
+// Event listener untuk tombol login di halaman utama
 loginButton.addEventListener('click', () => {
     signInWithPopup(auth, provider)
         .catch((error) => {
@@ -126,24 +124,7 @@ loginButton.addEventListener('click', () => {
         });
 });
 
-// Menambahkan event listener untuk tombol login di navbar
-if (loginButtonNavbar) {
-    loginButtonNavbar.addEventListener('click', () => {
-        signInWithPopup(auth, provider)
-            .catch((error) => {
-                console.error("Error signing in: ", error);
-                showToast(`Gagal masuk: ${error.message}`, true);
-            });
-    });
-}
-
-// Menambahkan event listener untuk tombol logout di navbar
-if (logoutButtonNavbar) {
-    logoutButtonNavbar.addEventListener('click', () => {
-        signOut(auth);
-    });
-}
-
+// Hanya menggunakan tombol keluar yang ada di bawah nama pengguna
 if (logoutButtonText) {
     logoutButtonText.addEventListener('click', () => {
         signOut(auth);
@@ -159,11 +140,10 @@ onAuthStateChanged(auth, (user) => {
         // Memperbarui tampilan navbar untuk pengguna yang login
         userPhoto.src = user.photoURL;
         userName.textContent = user.displayName;
-        if (loginButtonNavbar) loginButtonNavbar.classList.add('hidden');
-        if (logoutButtonNavbar) logoutButtonNavbar.classList.remove('hidden');
-        if (logoutButtonText) {
-            document.querySelector('#user-profile > .hidden.md\\:block').classList.remove('hidden');
-        }
+        
+        // Memastikan elemen profil pengguna terlihat
+        const userProfileInfo = document.querySelector('#user-profile > div');
+        if (userProfileInfo) userProfileInfo.classList.remove('hidden');
         
         fetchGames();
     } else {
@@ -171,12 +151,9 @@ onAuthStateChanged(auth, (user) => {
         loginScreen.classList.remove('hidden');
         appScreen.classList.add('hidden');
         
-        // Memperbarui tampilan navbar untuk pengguna yang keluar
-        if (loginButtonNavbar) loginButtonNavbar.classList.remove('hidden');
-        if (logoutButtonNavbar) logoutButtonNavbar.classList.add('hidden');
-        if (logoutButtonText) {
-            document.querySelector('#user-profile > .hidden.md\\:block').classList.add('hidden');
-        }
+        // Menyembunyikan elemen profil pengguna saat pengguna keluar
+        const userProfileInfo = document.querySelector('#user-profile > div');
+        if (userProfileInfo) userProfileInfo.classList.add('hidden');
 
         if (unsubscribe) unsubscribe();
         games = [];
