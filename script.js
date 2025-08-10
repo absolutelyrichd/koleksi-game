@@ -116,7 +116,64 @@ document.addEventListener('DOMContentLoaded', () => {
     openSidebarButton.addEventListener('click', openSidebar);
     closeSidebarButton.addEventListener('click', closeSidebar);
     mobileMenuBackdrop.addEventListener('click', closeSidebar);
+    
+    // --- OTENTIKASI ---
+    // Tangani hasil redirect terlebih dahulu
+    getRedirectResult(auth)
+        .then((result) => {
+            if (result) {
+                console.log("Berhasil masuk setelah redirect!", result.user);
+            }
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.error("Kesalahan saat masuk setelah redirect:", errorCode, errorMessage);
+            // showToast(`Gagal masuk: ${errorMessage}`, true);
+        });
 
+    // onAuthStateChanged akan mendeteksi pengguna setelah redirect kembali
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            updateUI(true);
+            fetchGames();
+        } else {
+            currentUser = null;
+            updateUI(false);
+            if (unsubscribe) unsubscribe();
+            games = [];
+            filteredGames = [];
+            // Perlu memanggil displayPage dan updateCharts di sini jika pengguna logout
+            displayPage();
+            updateCharts();
+        }
+    });
+
+    // Fungsi untuk memperbarui UI berdasarkan status otentikasi
+    function updateUI(isLoggedIn) {
+        if (isLoggedIn) {
+            loginScreen.classList.add('hidden');
+            appScreen.classList.remove('hidden');
+            userPhoto.src = currentUser.photoURL;
+            userName.textContent = currentUser.displayName;
+        } else {
+            loginScreen.classList.remove('hidden');
+            appScreen.classList.add('hidden');
+        }
+    }
+
+    // Tambahkan event listener untuk tombol masuk
+    loginButton.addEventListener('click', () => {
+        console.log("Tombol login diklik. Memulai proses redirect...");
+        signInWithRedirect(auth, provider);
+    });
+
+    // Tambahkan event listener untuk tombol keluar
+    logoutButton.addEventListener('click', () => {
+        signOut(auth);
+    });
+    
     // --- FUNGSI TOAST/ALERT KUSTOM ---
     function showToast(message, isError = false) {
         const toast = document.getElementById('toast');
@@ -881,61 +938,4 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.readAsText(file);
     });
 
-});
-
-// --- OTENTIKASI ---
-// Tangani hasil redirect terlebih dahulu
-getRedirectResult(auth)
-    .then((result) => {
-        if (result) {
-            console.log("Berhasil masuk setelah redirect!", result.user);
-        }
-    })
-    .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error("Kesalahan saat masuk setelah redirect:", errorCode, errorMessage);
-        // showToast(`Gagal masuk: ${errorMessage}`, true);
-    });
-
-// onAuthStateChanged akan mendeteksi pengguna setelah redirect kembali
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUser = user;
-        updateUI(true);
-        fetchGames();
-    } else {
-        currentUser = null;
-        updateUI(false);
-        if (unsubscribe) unsubscribe();
-        games = [];
-        filteredGames = [];
-        // Perlu memanggil displayPage dan updateCharts di sini jika pengguna logout
-        displayPage();
-        updateCharts();
-    }
-});
-
-// Fungsi untuk memperbarui UI berdasarkan status otentikasi
-function updateUI(isLoggedIn) {
-    if (isLoggedIn) {
-        loginScreen.classList.add('hidden');
-        appScreen.classList.remove('hidden');
-        userPhoto.src = currentUser.photoURL;
-        userName.textContent = currentUser.displayName;
-    } else {
-        loginScreen.classList.remove('hidden');
-        appScreen.classList.add('hidden');
-    }
-}
-
-// Tambahkan event listener untuk tombol masuk
-loginButton.addEventListener('click', () => {
-    console.log("Tombol login diklik. Memulai proses redirect...");
-    signInWithRedirect(auth, provider);
-});
-
-// Tambahkan event listener untuk tombol keluar
-logoutButton.addEventListener('click', () => {
-    signOut(auth);
 });
