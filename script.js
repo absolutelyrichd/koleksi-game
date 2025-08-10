@@ -108,6 +108,20 @@ document.addEventListener('DOMContentLoaded', () => {
     mobileMenuBackdrop.addEventListener('click', closeSidebar);
 
     // --- OTENTIKASI ---
+    // Tangani hasil redirect terlebih dahulu
+    getRedirectResult(auth)
+        .then((result) => {
+            if (result) {
+                console.log("Berhasil masuk setelah redirect!", result.user);
+            }
+        })
+        .catch((error) => {
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.error("Kesalahan saat masuk setelah redirect:", errorCode, errorMessage);
+            showToast(`Gagal masuk: ${errorMessage}`, true);
+        });
+
     loginButton.addEventListener('click', () => {
         console.log("Tombol login diklik. Memulai proses redirect...");
         signInWithRedirect(auth, provider);
@@ -136,19 +150,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCharts();
         }
     });
-
-    getRedirectResult(auth)
-        .then((result) => {
-            if (result) {
-                console.log("Berhasil masuk setelah redirect!", result.user);
-            }
-        })
-        .catch((error) => {
-            const errorCode = error.code;
-            const errorMessage = error.message;
-            console.error("Kesalahan saat masuk setelah redirect:", errorCode, errorMessage);
-            showToast(`Gagal masuk: ${errorMessage}`, true);
-        });
 
     // --- FUNGSI TOAST/ALERT KUSTOM ---
     function showToast(message, isError = false) {
