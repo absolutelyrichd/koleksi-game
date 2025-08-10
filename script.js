@@ -486,18 +486,26 @@ function handleDelete(e) {
 
 // --- TAB SWITCHING ---
 const tabs = document.getElementById('tabs');
+const mobileTabs = document.getElementById('mobile-tabs');
 const tabContents = document.querySelectorAll('.tab-content');
-tabs.addEventListener('click', (e) => {
+
+// Function to handle tab clicks
+function handleTabClick(e) {
     const button = e.target.closest('.tab-button');
     if (!button) return;
 
-    tabs.querySelectorAll('.tab-button').forEach(btn => {
+    // Clear active state for all tab buttons
+    const allTabButtons = document.querySelectorAll('.tab-button');
+    allTabButtons.forEach(btn => {
         btn.classList.remove('tab-active');
         btn.classList.add('tab-inactive');
     });
+
+    // Set active state for the clicked button
     button.classList.add('tab-active');
     button.classList.remove('tab-inactive');
     
+    // Show the corresponding tab content
     const tabId = button.dataset.tab;
     tabContents.forEach(content => {
         if (content.id === tabId) {
@@ -506,10 +514,16 @@ tabs.addEventListener('click', (e) => {
             content.classList.add('hidden');
         }
     });
+    
+    // Close sidebar on mobile after clicking a tab
     if (window.innerWidth < 768) {
         closeSidebar();
     }
-});
+}
+
+tabs.addEventListener('click', handleTabClick);
+mobileTabs.addEventListener('click', handleTabClick);
+
 
 // --- CHART LOGIC ---
 function initCharts() {
