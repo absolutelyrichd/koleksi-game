@@ -108,6 +108,21 @@
                 margin-top: 1rem;
             }
         }
+        /* Style baru untuk navigasi */
+        .nav-links-container .link-active {
+            position: relative;
+        }
+        .nav-links-container .link-active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background-color: #fde047; /* Sesuai dengan warna kuning */
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -127,44 +142,50 @@
     <!-- Main App Screen -->
     <div id="app-screen" class="hidden flex flex-col h-screen">
         <!-- Navbar - Sticky on Top -->
-        <!-- Memperbarui kelas untuk membuat navbar menjadi card transparan -->
-        <header id="navbar" class="sticky top-0 z-40 bg-blue-900/50 backdrop-blur-lg rounded-b-xl shadow-xl border-b border-blue-700 p-4 md:p-6 mx-2 mt-2 md:mx-4 md:mt-4">
-            <div class="container mx-auto flex items-center justify-between">
+        <!-- Memperbarui kelas untuk membuat navbar menjadi card transparan seperti gambar -->
+        <header id="navbar" class="sticky top-4 z-40 p-2 mx-auto max-w-7xl">
+            <!-- Nav container dengan efek transparan dan bentuk kapsul -->
+            <div class="bg-blue-900/50 backdrop-blur-lg rounded-full shadow-2xl border border-blue-700 flex items-center justify-between p-2 md:px-6 md:py-3">
                 <div class="flex items-center">
-                    <button id="open-sidebar-button" class="md:hidden text-white hover:text-yellow-300 mr-4">
+                    <button id="open-sidebar-button" class="md:hidden text-white hover:text-yellow-300 mr-4 p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
                         </svg>
                     </button>
+                    <!-- Teks "Koleksi Game" sebagai logo -->
                     <h1 class="text-2xl font-bold text-white">Koleksi Game</h1>
                 </div>
 
-                <!-- Tabs (hidden on mobile, shown on desktop) -->
-                <nav id="tabs" class="hidden md:flex flex-grow justify-center space-x-2 lg:space-x-4">
-                    <button data-tab="tab-list" class="tab-button tab-active flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-blue-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v1H2V6zM2 9v7a2 2 0 002 2h12a2 2 0 002-2V9H2zm4-4a1 1 0 100-2 1 1 0 000 2zM8 5a1 1 0 100-2 1 1 0 000 2z"/></svg>
+                <!-- Navigasi Utama (desktop) -->
+                <nav id="tabs" class="hidden md:flex flex-grow justify-center space-x-6 nav-links-container">
+                    <button data-tab="tab-list" class="tab-button link-active text-white font-medium transition duration-200 hover:text-yellow-300">
                         Daftar Game
                     </button>
-                    <button data-tab="tab-stats" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-blue-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
+                    <button data-tab="tab-stats" class="tab-button text-white font-medium transition duration-200 hover:text-yellow-300">
                         Statistik
                     </button>
-                    <button data-tab="tab-bulk" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-blue-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
+                    <button data-tab="tab-bulk" class="tab-button text-white font-medium transition duration-200 hover:text-yellow-300">
                         Aksi Masal
                     </button>
-                    <button data-tab="tab-manage" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-blue-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
+                    <button data-tab="tab-manage" class="tab-button text-white font-medium transition duration-200 hover:text-yellow-300">
                         Manajemen Data
                     </button>
                 </nav>
 
-                <!-- User Profile and Logout -->
+                <!-- Tombol dan Profil Pengguna -->
                 <div id="user-profile" class="flex items-center space-x-3">
+                    <!-- Tombol Masuk/Keluar yang diperbarui -->
+                    <button id="login-button-navbar" class="hidden md:block py-2 px-4 rounded-full text-white font-semibold bg-gray-200 hover:bg-gray-300 text-blue-900 transition duration-300 transform hover:scale-105 shadow-md">
+                        Masuk
+                    </button>
+                    <button id="logout-button-navbar" class="hidden md:block py-2 px-4 rounded-full bg-blue-950 hover:bg-blue-800 text-white font-bold transition duration-300 transform hover:scale-105 shadow-md">
+                        Keluar
+                    </button>
+                    <!-- Profil Pengguna saat sudah login -->
                     <img id="user-photo" src="https://placehold.co/40x40/e2e8f0/e2e8f0" alt="User Photo" class="w-10 h-10 rounded-full border-2 border-yellow-400">
                     <div class="hidden md:block">
                         <p id="user-name" class="font-semibold text-sm text-white">Guest User</p>
-                        <button id="logout-button" class="text-xs text-yellow-300 hover:text-yellow-200">Keluar</button>
+                        <button id="logout-button-text" class="text-xs text-yellow-300 hover:text-yellow-200">Keluar</button>
                     </div>
                 </div>
             </div>
