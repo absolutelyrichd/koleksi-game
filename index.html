@@ -15,97 +15,59 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            /* Mengubah gradien latar belakang menjadi lebih halus */
-            background: linear-gradient(to bottom right, #3B82F6, #1D4ED8);
-            color: #f8fafc;
+            background-color: #0f172a; /* Latar belakang utama: slate-900 */
+            color: #e2e8f0; /* Teks utama: slate-200 */
             min-height: 100vh;
         }
-        .tab-active {
-            background-color: #1d4ed8;
-            color: #f8fafc;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+        /* Gaya tombol tab yang diperbarui */
+        .tab-button.tab-active {
+            background-color: rgba(30, 41, 59, 1); /* slate-800 */
+            color: #facc15; /* kuning */
         }
-        .tab-inactive {
-            background-color: transparent;
-            color: #d1d5db;
+        .tab-button.tab-active::before {
+            background: linear-gradient(to bottom, #fde047, #facc15); /* Gradien kuning */
         }
-        .modal-backdrop {
-            /* Perubahan utama di sini */
-            background-color: rgba(0, 0, 0, 0.5); /* Ubah menjadi lebih transparan */
-            backdrop-filter: blur(8px); /* Tambahkan efek blur */
-        }
-        /* Custom scrollbar */
+
+        /* Scrollbar custom yang diperbarui */
         ::-webkit-scrollbar {
             width: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #1e3a8a;
+            background: #1e293b;
         }
         ::-webkit-scrollbar-thumb {
-            background: #3b82f6;
+            background: #475569;
             border-radius: 10px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #60a5fa;
+            background: #64748b;
         }
-        .pagination-button {
-            min-width: 40px;
+
+        /* Efek latar belakang modal yang diperbarui */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease-in-out;
         }
-        .pagination-button.active {
-            background-color: #1e40af;
-            color: white;
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+
+        /* Animasi masuk modal */
+        .modal-content-animated {
+            animation: fadeInScale 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
-        /* Style for disabled button in bulk actions */
-        .btn-disabled {
-            background-color: #93c5fd;
-            color: #bfdbfe;
-            cursor: not-allowed;
-        }
-        /* Sidebar active tab indicator */
-        .tab-button.tab-active {
-            position: relative;
-            overflow: hidden;
-        }
-        .tab-button.tab-active::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(to bottom, #fde047, #facc15);
-            border-radius: 2px;
-        }
-        /* Additional style for sortable headers */
-        .sortable {
-            cursor: pointer;
-            user-select: none;
-        }
-        .sortable .sort-icon {
-            display: inline-block;
-            margin-left: 0.5rem;
-            width: 1em;
-        }
-        /* Gaya tambahan untuk tampilan seluler */
-        @media (max-width: 639px) {
-            .card-grid {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 1rem;
+        @keyframes fadeInScale {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
             }
-            .card-item > div:first-child {
-                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-                padding-bottom: 0.5rem;
-                margin-bottom: 0.5rem;
-            }
-            .card-item > div:last-child {
-                margin-top: 1rem;
+            to {
+                transform: scale(1);
+                opacity: 1;
             }
         }
     </style>
@@ -113,225 +75,216 @@
 <body class="antialiased">
 
     <!-- Login Screen -->
-    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-md bg-blue-900 rounded-2xl shadow-2xl p-8 text-center border border-blue-700">
+    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4 bg-slate-900">
+        <div class="w-full max-w-md bg-slate-800 rounded-3xl shadow-2xl p-8 text-center border border-slate-700">
             <h1 class="text-3xl font-bold text-white mb-2">Dasbor Koleksi Game</h1>
-            <p class="text-blue-300 mb-8">Kelola dan lacak semua game favorit Anda di satu tempat.</p>
-            <button id="login-button" class="w-full bg-yellow-500 hover:bg-yellow-400 text-blue-900 font-bold py-3 px-4 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105 shadow-lg">
-                <svg class="w-6 h-6 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.021,35.591,44,30.138,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
+            <p class="text-slate-400 mb-8">Kelola dan lacak semua game favorit Anda di satu tempat.</p>
+            <button id="login-button" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-3 px-4 rounded-xl flex items-center justify-center transition duration-300 transform hover:scale-105 shadow-lg">
+                <i class="fab fa-google text-xl mr-3"></i>
                 Masuk dengan Google
             </button>
         </div>
     </div>
 
     <!-- Main App Screen -->
-    <div id="app-screen" class="hidden flex h-screen md:p-8">
-        <div class="relative flex flex-grow md:gap-6">
-            <!-- Mobile Menu Backdrop -->
-            <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/50 z-20 md:hidden hidden"></div>
-
-            <!-- Sidebar -->
-            <aside id="sidebar" class="fixed inset-y-0 left-0 bg-blue-900 w-60 p-6 flex flex-col z-30 transform -translate-x-full transition-transform duration-300 md:relative md:translate-x-0 rounded-2xl md:w-64 border border-blue-700 shadow-2xl">
-                <div class="flex-grow flex flex-col">
-                    <div class="flex items-center justify-between mb-8">
-                        <h1 class="text-2xl font-bold text-white">Koleksi Game</h1>
-                        <button id="close-sidebar-button" class="md:hidden text-blue-300 hover:text-white">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                    <nav id="tabs" class="flex flex-col space-y-2">
-                         <button data-tab="tab-list" class="tab-button tab-active flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-blue-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v1H2V6zM2 9v7a2 2 0 002 2h12a2 2 0 002-2V9H2zm4-4a1 1 0 100-2 1 1 0 000 2zM8 5a1 1 0 100-2 1 1 0 000 2z"/></svg>
-                            Daftar Game
-                        </button>
-                        <button data-tab="tab-stats" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-blue-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>
-                            Statistik
-                        </button>
-                        <button data-tab="tab-bulk" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-blue-700">
-                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
-                            Aksi Masal
-                        </button>
-                        <button data-tab="tab-manage" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-blue-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
-                            Manajemen Data
-                        </button>
-                    </nav>
-                </div>
-                <div>
-                    <div id="user-profile" class="flex items-center space-x-3 border-t border-blue-700 pt-4 mb-4">
-                        <img id="user-photo" src="https://placehold.co/40x40/e2e8f0/e2e8f0" alt="User Photo" class="w-10 h-10 rounded-full border-2 border-yellow-400">
-                        <div>
-                            <p id="user-name" class="font-semibold text-sm text-white">Guest User</p>
-                            <button id="logout-button" class="text-xs text-yellow-300 hover:text-yellow-200">Keluar</button>
-                        </div>
-                    </div>
-                    <p class="text-xs text-blue-400 text-center">© 2024 RichD</p>
-                </div>
-            </aside>
-
-            <!-- Main Content -->
-            <main class="flex-1 p-4 md:p-8 overflow-y-auto">
-                <!-- Header Mobile -->
-                 <header class="md:hidden flex items-center justify-between mb-6">
-                    <button id="open-sidebar-button" class="text-white hover:text-yellow-300">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
-                        </svg>
+    <div id="app-screen" class="hidden h-screen grid md:grid-cols-[280px_1fr] md:p-6 p-4 gap-6">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 bg-slate-900 w-60 p-6 flex flex-col z-30 transform -translate-x-full transition-transform duration-300 md:relative md:translate-x-0 rounded-3xl md:w-full border border-slate-700 shadow-2xl">
+            <div class="flex-grow flex flex-col">
+                <div class="flex items-center justify-between mb-8">
+                    <h1 class="text-2xl font-bold text-white">Koleksi Game</h1>
+                    <button id="close-sidebar-button" class="md:hidden text-slate-400 hover:text-white">
+                        <i class="fas fa-times h-6 w-6"></i>
                     </button>
-                    <h1 class="text-xl font-bold text-white">Koleksi Game</h1>
-                    <div></div> <!-- Spacer -->
-                </header>
+                </div>
+                <nav id="tabs" class="flex flex-col space-y-2">
+                     <button data-tab="tab-list" class="tab-button tab-active flex items-center py-2 px-4 rounded-xl transition duration-200 hover:bg-slate-700">
+                        <i class="fas fa-gamepad h-5 w-5 mr-3"></i>
+                        Daftar Game
+                    </button>
+                    <button data-tab="tab-stats" class="tab-button flex items-center py-2 px-4 rounded-xl transition duration-200 hover:bg-slate-700 text-slate-400 hover:text-white">
+                        <i class="fas fa-chart-bar h-5 w-5 mr-3"></i>
+                        Statistik
+                    </button>
+                    <button data-tab="tab-bulk" class="tab-button flex items-center py-2 px-4 rounded-xl transition duration-200 hover:bg-slate-700 text-slate-400 hover:text-white">
+                        <i class="fas fa-cogs h-5 w-5 mr-3"></i>
+                        Aksi Masal
+                    </button>
+                    <button data-tab="tab-manage" class="tab-button flex items-center py-2 px-4 rounded-xl transition duration-200 hover:bg-slate-700 text-slate-400 hover:text-white">
+                        <i class="fas fa-database h-5 w-5 mr-3"></i>
+                        Manajemen Data
+                    </button>
+                </nav>
+            </div>
+            <div>
+                <div id="user-profile" class="flex items-center space-x-3 border-t border-slate-700 pt-4 mb-4">
+                    <img id="user-photo" src="https://placehold.co/40x40/e2e8f0/e2e8f0" alt="User Photo" class="w-10 h-10 rounded-full border-2 border-emerald-400">
+                    <div>
+                        <p id="user-name" class="font-semibold text-sm text-white">Guest User</p>
+                        <button id="logout-button" class="text-xs text-emerald-300 hover:text-emerald-200">Keluar</button>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500 text-center">© 2024 RichD</p>
+            </div>
+        </aside>
 
-                <!-- Tab: Daftar Game -->
-                <div id="tab-list" class="tab-content">
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                        <h2 class="text-2xl sm:text-3xl font-bold text-white">Daftar Game</h2>
-                        <button id="add-game-button" class="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-400 text-blue-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105 shadow-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                            Tambah Game
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Header Mobile -->
+             <header class="md:hidden flex items-center justify-between mb-6">
+                <button id="open-sidebar-button" class="text-white hover:text-emerald-300">
+                     <i class="fas fa-bars h-6 w-6"></i>
+                </button>
+                <h1 class="text-xl font-bold text-white">Koleksi Game</h1>
+                <div></div> <!-- Spacer -->
+            </header>
+
+            <!-- Tab: Daftar Game -->
+            <div id="tab-list" class="tab-content">
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+                    <h2 class="text-2xl sm:text-3xl font-bold text-white">Daftar Game</h2>
+                    <button id="add-game-button" class="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-2 px-4 rounded-xl flex items-center justify-center transition duration-300 transform hover:scale-105 shadow-lg">
+                        <i class="fas fa-plus h-5 w-5 mr-2"></i>
+                        Tambah Game
+                    </button>
+                </div>
+                <!-- Filter Section -->
+                <div class="bg-slate-800 p-4 md:p-6 rounded-2xl shadow-lg border border-slate-700 mb-4">
+                    <h3 class="font-bold text-xl mb-4 text-white">Filter Game</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <input id="filter-title" type="text" placeholder="Filter berdasarkan judul..." class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-white placeholder-slate-400">
+                        <select id="filter-platform" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-white">
+                            <option value="">Semua Platform</option>
+                            <option>Steam</option><option>Epic</option><option>GOG</option><option>EA App</option><option>U-Connect</option><option>PCSX</option><option>Crack</option>
+                        </select>
+                        <select id="filter-location" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-white">
+                            <option value="">Semua Lokasi</option>
+                            <option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option>
+                        </select>
+                        <select id="filter-status" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-white">
+                            <option value="">Semua Status</option>
+                            <option>Dimainkan</option><option>Belum dimainkan</option><option>Selesai</option>
+                        </select>
+                    </div>
+                 </div>
+                <!-- Game Table (Desktop) -->
+                <div class="hidden sm:block bg-slate-800 rounded-2xl shadow-lg overflow-x-auto border border-slate-700">
+                    <table id="game-table" class="w-full text-left">
+                        <thead class="bg-slate-700">
+                            <tr>
+                                <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="rounded-md bg-slate-600 border-slate-500 text-emerald-500 focus:ring-emerald-400"></th>
+                                <th id="title-header" class="p-4 font-semibold text-white sortable" data-sort="title">Judul Game <span class="sort-icon"></span></th>
+                                <th id="platform-header" class="p-4 font-semibold text-white sortable" data-sort="platform">Platform <span class="sort-icon"></span></th>
+                                <th id="location-header" class="p-4 font-semibold text-white sortable" data-sort="location">Lokasi <span class="sort-icon"></span></th>
+                                <th id="price-header" class="p-4 font-semibold text-white sortable" data-sort="price">Harga <span class="sort-icon"></span></th>
+                                <th id="status-header" class="p-4 font-semibold text-white sortable" data-sort="status">Status <span class="sort-icon"></span></th>
+                                <th class="p-4 font-semibold text-white">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="game-list-body">
+                            <!-- Game items will be injected here by JS -->
+                            <tr><td colspan="7" class="text-center p-8 text-slate-400">Memuat data game...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Game List (Mobile) -->
+                <div id="game-list-cards" class="sm:hidden card-grid">
+                    <!-- Game items will be injected here by JS -->
+                    <div id="game-list-cards-empty" class="text-center p-8 text-slate-400">
+                        Memuat data game...
+                    </div>
+                </div>
+
+                 <!-- Pagination -->
+                <div id="pagination-container" class="flex justify-center items-center mt-6 space-x-1 sm:space-x-2"></div>
+            </div>
+
+            <!-- Tab: Statistik -->
+            <div id="tab-stats" class="tab-content hidden">
+                 <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white">Statistik Game</h2>
+                 <!-- New stats section -->
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                     <div class="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700">
+                        <h3 class="text-xl font-bold text-white mb-2">Total Harga Game</h3>
+                        <p id="total-price" class="text-3xl font-bold text-emerald-300">Memuat...</p>
+                     </div>
+                     <div class="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700">
+                         <h3 class="text-xl font-bold text-white mb-2">Game Termahal</h3>
+                         <p id="most-expensive-game" class="text-2xl font-bold text-emerald-300">Memuat...</p>
+                     </div>
+                 </div>
+                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700">
+                        <h3 class="font-bold text-xl text-center mb-4 text-white">Game per Platform</h3>
+                        <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
+                            <canvas id="platform-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700">
+                        <h3 class="font-bold text-xl text-center mb-4 text-white">Game per Lokasi</h3>
+                        <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
+                            <canvas id="location-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-slate-800 p-6 rounded-2xl shadow-lg col-span-1 lg:col-span-2 border border-slate-700">
+                         <h3 class="font-bold mb-4 text-xl text-center text-white">Status Permainan</h3>
+                        <div class="relative h-64 w-full mx-auto" style="max-width: 800px;">
+                            <canvas id="status-chart"></canvas>
+                        </div>
+                    </div>
+                 </div>
+            </div>
+
+            <!-- Tab: Aksi Masal -->
+            <div id="tab-bulk" class="tab-content hidden">
+                 <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white">Aksi Masal</h2>
+                 <div class="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700">
+                    <h3 class="font-bold text-xl mb-4 text-white">Tindakan untuk Game Terpilih</h3>
+                    <p id="selection-info" class="text-slate-400 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.</p>
+                    <div class="flex flex-wrap gap-4">
+                        <button id="bulk-edit-button" class="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold py-2 px-4 rounded-xl flex items-center justify-center transition duration-300 disabled:btn-disabled transform hover:scale-105 shadow-md" disabled>
+                            <i class="fas fa-edit h-5 w-5 mr-2"></i>
+                            Edit Game Terpilih
+                        </button>
+                        <button id="bulk-delete-button" class="w-full sm:w-auto bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-xl flex items-center justify-center transition duration-300 disabled:btn-disabled transform hover:scale-105 shadow-md" disabled>
+                            <i class="fas fa-trash h-5 w-5 mr-2"></i>
+                            Hapus Game Terpilih
                         </button>
                     </div>
-                    <!-- Filter Section -->
-                    <div class="bg-blue-900 p-4 md:p-6 rounded-xl shadow-lg border border-blue-700 mb-4">
-                        <h3 class="font-bold text-xl mb-4 text-white">Filter Game</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <input id="filter-title" type="text" placeholder="Filter berdasarkan judul..." class="bg-blue-800 border border-blue-700 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white placeholder-blue-300">
-                            <select id="filter-platform" class="bg-blue-800 border border-blue-700 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white">
-                                <option value="">Semua Platform</option>
-                                <option>Steam</option><option>Epic</option><option>GOG</option><option>EA App</option><option>U-Connect</option><option>PCSX</option><option>Crack</option>
-                            </select>
-                            <select id="filter-location" class="bg-blue-800 border border-blue-700 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white">
-                                <option value="">Semua Lokasi</option>
-                                <option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option>
-                            </select>
-                            <select id="filter-status" class="bg-blue-800 border border-blue-700 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white">
-                                <option value="">Semua Status</option>
-                                <option>Dimainkan</option><option>Belum dimainkan</option><option>Selesai</option>
-                            </select>
-                        </div>
-                     </div>
-                    <!-- Game Table (Desktop) -->
-                    <div class="hidden sm:block bg-blue-900 rounded-xl shadow-lg overflow-x-auto border border-blue-700">
-                        <table id="game-table" class="w-full text-left">
-                            <thead class="bg-blue-800">
-                                <tr>
-                                    <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="rounded bg-blue-700 border-blue-500 text-yellow-500 focus:ring-yellow-400"></th>
-                                    <th id="title-header" class="p-4 font-semibold text-white sortable" data-sort="title">Judul Game <span class="sort-icon"></span></th>
-                                    <th id="platform-header" class="p-4 font-semibold text-white sortable" data-sort="platform">Platform <span class="sort-icon"></span></th>
-                                    <th id="location-header" class="p-4 font-semibold text-white sortable" data-sort="location">Lokasi <span class="sort-icon"></span></th>
-                                    <th id="price-header" class="p-4 font-semibold text-white sortable" data-sort="price">Harga <span class="sort-icon"></span></th>
-                                    <th id="status-header" class="p-4 font-semibold text-white sortable" data-sort="status">Status <span class="sort-icon"></span></th>
-                                    <th class="p-4 font-semibold text-white">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="game-list-body">
-                                <!-- Game items will be injected here by JS -->
-                                <tr><td colspan="7" class="text-center p-8 text-blue-300">Memuat data game...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Game List (Mobile) -->
-                    <div id="game-list-cards" class="sm:hidden card-grid">
-                        <!-- Game items will be injected here by JS -->
-                        <div id="game-list-cards-empty" class="text-center p-8 text-blue-300">
-                            Memuat data game...
-                        </div>
-                    </div>
+                 </div>
+            </div>
 
-                     <!-- Pagination -->
-                    <div id="pagination-container" class="flex justify-center items-center mt-6 space-x-1 sm:space-x-2"></div>
-                </div>
-
-                <!-- Tab: Statistik -->
-                <div id="tab-stats" class="tab-content hidden">
-                     <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white">Statistik Game</h2>
-                     <!-- New stats section -->
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                         <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
-                            <h3 class="text-xl font-bold text-white mb-2">Total Harga Game</h3>
-                            <p id="total-price" class="text-3xl font-bold text-yellow-300">Memuat...</p>
-                         </div>
-                         <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
-                             <h3 class="text-xl font-bold text-white mb-2">Game Termahal</h3>
-                             <p id="most-expensive-game" class="text-2xl font-bold text-yellow-300">Memuat...</p>
-                         </div>
-                     </div>
-                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
-                            <h3 class="font-bold text-xl text-center mb-4 text-white">Game per Platform</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
-                                <canvas id="platform-chart"></canvas>
-                            </div>
-                        </div>
-                        <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
-                            <h3 class="font-bold text-xl text-center mb-4 text-white">Game per Lokasi</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;">
-                                <canvas id="location-chart"></canvas>
-                            </div>
-                        </div>
-                        <div class="bg-blue-900 p-6 rounded-xl shadow-lg col-span-1 lg:col-span-2 border border-blue-700">
-                             <h3 class="font-bold mb-4 text-xl text-center text-white">Status Permainan</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 800px;">
-                                <canvas id="status-chart"></canvas>
-                            </div>
-                        </div>
-                     </div>
-                </div>
-
-                <!-- Tab: Aksi Masal -->
-                <div id="tab-bulk" class="tab-content hidden">
-                     <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white">Aksi Masal</h2>
-                     <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
-                        <h3 class="font-bold text-xl mb-4 text-white">Tindakan untuk Game Terpilih</h3>
-                        <p id="selection-info" class="text-blue-300 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal. Centang di header tabel hanya memilih item di halaman saat ini.</p>
-                        <div class="flex flex-wrap gap-4">
-                            <button id="bulk-edit-button" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:btn-disabled transform hover:scale-105 shadow-md" disabled>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
-                                Edit Game Terpilih
-                            </button>
-                            <button id="bulk-delete-button" class="w-full sm:w-auto bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:btn-disabled transform hover:scale-105 shadow-md" disabled>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
-                                Hapus Game Terpilih
+            <!-- Tab: Manajemen Data -->
+            <div id="tab-manage" class="tab-content hidden">
+                <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white">Manajemen Data</h2>
+                <div class="bg-slate-800 p-6 rounded-2xl shadow-lg border border-slate-700">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-bold text-xl mb-2 text-white">Ekspor Data</h3>
+                            <p class="text-slate-400 mb-4">Unduh semua koleksi game Anda sebagai file JSON.</p>
+                            <button id="download-json-button" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-2 px-4 rounded-xl flex items-center transition duration-300 transform hover:scale-105 shadow-md">
+                                <i class="fas fa-download h-5 w-5 mr-2"></i>
+                                Unduh JSON
                             </button>
                         </div>
-                     </div>
-                </div>
-
-                <!-- Tab: Manajemen Data -->
-                <div id="tab-manage" class="tab-content hidden">
-                    <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white">Manajemen Data</h2>
-                    <div class="bg-blue-900 p-6 rounded-xl shadow-lg border border-blue-700">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 class="font-bold text-xl mb-2 text-white">Ekspor Data</h3>
-                                <p class="text-blue-300 mb-4">Unduh semua koleksi game Anda sebagai file JSON.</p>
-                                <button id="download-json-button" class="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 transform hover:scale-105 shadow-md">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
-                                    Unduh JSON
-                                </button>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-xl mb-2 text-white">Impor Data</h3>
-                                <p class="text-blue-300 mb-4">Muat koleksi game dari file JSON. Game yang ada akan ditambahkan, bukan diganti.</p>
-                                <button id="upload-json-button" class="bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 transform hover:scale-105 shadow-md">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>
-                                    Muat JSON
-                                </button>
-                                <input type="file" id="json-file-input" class="hidden" accept=".json">
-                            </div>
+                        <div>
+                            <h3 class="font-bold text-xl mb-2 text-white">Impor Data</h3>
+                            <p class="text-slate-400 mb-4">Muat koleksi game dari file JSON. Game yang ada akan ditambahkan, bukan diganti.</p>
+                            <button id="upload-json-button" class="bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-2 px-4 rounded-xl flex items-center transition duration-300 transform hover:scale-105 shadow-md">
+                                <i class="fas fa-upload h-5 w-5 mr-2"></i>
+                                Muat JSON
+                            </button>
+                            <input type="file" id="json-file-input" class="hidden" accept=".json">
                         </div>
                     </div>
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
 
     <!-- Add/Edit Game Modal -->
     <div id="game-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-blue-900 w-full max-w-2xl rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-blue-700" id="modal-content">
+        <div class="bg-slate-800 w-full max-w-2xl rounded-3xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-slate-700 modal-content-animated" id="modal-content">
             <h3 id="modal-title" class="text-2xl font-bold mb-6 text-white">Tambah Game Baru</h3>
             <form id="game-form">
                 <div class="max-h-[70vh] overflow-y-auto pr-2">
@@ -340,11 +293,11 @@
                         <!-- Game entry rows will be injected here -->
                     </div>
                 </div>
-                <div class="flex flex-col sm:flex-row justify-between items-center mt-6 pt-4 border-t border-blue-700 gap-4">
-                    <button type="button" id="add-row-button" class="w-full sm:w-auto bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Tambah Baris</button>
+                <div class="flex flex-col sm:flex-row justify-between items-center mt-6 pt-4 border-t border-slate-700 gap-4">
+                    <button type="button" id="add-row-button" class="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold py-2 px-4 rounded-xl transition transform hover:scale-105 shadow-md">Tambah Baris</button>
                     <div class="w-full sm:w-auto flex justify-end space-x-4">
-                        <button type="button" id="cancel-button" class="flex-1 sm:flex-none bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Batal</button>
-                        <button type="submit" id="save-form-button" class="flex-1 sm:flex-none bg-yellow-500 hover:bg-yellow-400 text-blue-900 font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Simpan</button>
+                        <button type="button" id="cancel-button" class="flex-1 sm:flex-none bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-xl transition transform hover:scale-105 shadow-md">Batal</button>
+                        <button type="submit" id="save-form-button" class="flex-1 sm:flex-none bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-2 px-4 rounded-xl transition transform hover:scale-105 shadow-md">Simpan</button>
                     </div>
                 </div>
             </form>
@@ -353,45 +306,45 @@
 
     <!-- Bulk Edit Modal -->
     <div id="bulk-edit-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-blue-900 w-full max-w-lg rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-blue-700" id="bulk-edit-modal-content">
+        <div class="bg-slate-800 w-full max-w-lg rounded-3xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-slate-700 modal-content-animated" id="bulk-edit-modal-content">
             <h3 id="bulk-edit-modal-title" class="text-2xl font-bold mb-6 text-white">Edit Game Secara Masal</h3>
             <form id="bulk-edit-form">
-                <p id="bulk-edit-info" class="text-blue-300 mb-4"></p>
+                <p id="bulk-edit-info" class="text-slate-400 mb-4"></p>
                 <div class="space-y-4">
                     <!-- Platform -->
-                    <div class="flex items-center gap-4 p-3 bg-blue-800/50 rounded-lg border border-blue-700">
-                        <input type="checkbox" id="bulk-update-platform-check" class="h-5 w-5 rounded bg-blue-700 border-blue-500 text-yellow-500 focus:ring-yellow-400">
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-xl border border-slate-600">
+                        <input type="checkbox" id="bulk-update-platform-check" class="h-5 w-5 rounded-md bg-slate-600 border-slate-500 text-yellow-500 focus:ring-yellow-400">
                         <div class="flex-grow">
-                            <label for="bulk-platform" class="block text-blue-300 text-sm font-bold mb-1">Platform</label>
-                            <select id="bulk-platform" class="w-full bg-blue-700 border border-blue-600 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white">
+                            <label for="bulk-platform" class="block text-slate-400 text-sm font-bold mb-1">Platform</label>
+                            <select id="bulk-platform" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-white">
                                 <option>Steam</option><option>Epic</option><option>GOG</option><option>EA App</option><option>U-Connect</option><option>PCSX</option><option>Crack</option>
                             </select>
                         </div>
                     </div>
                     <!-- Location -->
-                    <div class="flex items-center gap-4 p-3 bg-blue-800/50 rounded-lg border border-blue-700">
-                        <input type="checkbox" id="bulk-update-location-check" class="h-5 w-5 rounded bg-blue-700 border-blue-500 text-yellow-500 focus:ring-yellow-400">
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-xl border border-slate-600">
+                        <input type="checkbox" id="bulk-update-location-check" class="h-5 w-5 rounded-md bg-slate-600 border-slate-500 text-yellow-500 focus:ring-yellow-400">
                         <div class="flex-grow">
-                            <label for="bulk-location" class="block text-blue-300 text-sm font-bold mb-1">Lokasi</label>
-                            <select id="bulk-location" class="w-full bg-blue-700 border border-blue-600 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white">
+                            <label for="bulk-location" class="block text-slate-400 text-sm font-bold mb-1">Lokasi</label>
+                            <select id="bulk-location" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-white">
                                 <option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option>
                             </select>
                         </div>
                     </div>
                     <!-- Harga -->
-                    <div class="flex items-center gap-4 p-3 bg-blue-800/50 rounded-lg border border-blue-700">
-                        <input type="checkbox" id="bulk-update-price-check" class="h-5 w-5 rounded bg-blue-700 border-blue-500 text-yellow-500 focus:ring-yellow-400">
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-xl border border-slate-600">
+                        <input type="checkbox" id="bulk-update-price-check" class="h-5 w-5 rounded-md bg-slate-600 border-slate-500 text-yellow-500 focus:ring-yellow-400">
                         <div class="flex-grow">
-                            <label for="bulk-price" class="block text-blue-300 text-sm font-bold mb-1">Harga</label>
-                            <input type="number" id="bulk-price" class="w-full bg-blue-700 border border-blue-600 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white" value="0" min="0">
+                            <label for="bulk-price" class="block text-slate-400 text-sm font-bold mb-1">Harga</label>
+                            <input type="number" id="bulk-price" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-white" value="0" min="0">
                         </div>
                     </div>
                     <!-- Status -->
-                    <div class="flex items-center gap-4 p-3 bg-blue-800/50 rounded-lg border border-blue-700">
-                        <input type="checkbox" id="bulk-update-status-check" class="h-5 w-5 rounded bg-blue-700 border-blue-500 text-yellow-500 focus:ring-yellow-400">
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-xl border border-slate-600">
+                        <input type="checkbox" id="bulk-update-status-check" class="h-5 w-5 rounded-md bg-slate-600 border-slate-500 text-yellow-500 focus:ring-yellow-400">
                         <div class="flex-grow">
-                            <label for="bulk-status" class="block text-blue-300 text-sm font-bold mb-1">Status</label>
-                            <select id="bulk-status" class="w-full bg-blue-700 border border-blue-600 rounded-lg p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none text-white">
+                            <label for="bulk-status" class="block text-slate-400 text-sm font-bold mb-1">Status</label>
+                            <select id="bulk-status" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-white">
                                 <option>Belum dimainkan</option>
                                 <option>Dimainkan</option>
                                 <option>Selesai</option>
@@ -399,9 +352,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-end space-x-4 mt-6 pt-4 border-t border-blue-700">
-                    <button type="button" id="bulk-edit-cancel-button" class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Batal</button>
-                    <button type="submit" class="bg-yellow-500 hover:bg-yellow-400 text-blue-900 font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Simpan Perubahan</button>
+                <div class="flex justify-end space-x-4 mt-6 pt-4 border-t border-slate-700">
+                    <button type="button" id="bulk-edit-cancel-button" class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-xl transition transform hover:scale-105 shadow-md">Batal</button>
+                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-2 px-4 rounded-xl transition transform hover:scale-105 shadow-md">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
@@ -409,12 +362,12 @@
 
     <!-- Delete Confirmation Modal -->
     <div id="delete-confirm-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-blue-900 w-full max-w-sm rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-blue-700" id="delete-confirm-modal-content">
+        <div class="bg-slate-800 w-full max-w-sm rounded-3xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-slate-700 modal-content-animated" id="delete-confirm-modal-content">
             <h3 class="text-2xl font-bold mb-4 text-white">Konfirmasi Penghapusan</h3>
-            <p id="delete-confirm-message" class="text-blue-300 mb-6">Apakah Anda yakin ingin menghapus game ini?</p>
+            <p id="delete-confirm-message" class="text-slate-400 mb-6">Apakah Anda yakin ingin menghapus game ini?</p>
             <div class="flex justify-end space-x-4">
-                <button type="button" id="cancel-delete-button" class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Batal</button>
-                <button type="button" id="confirm-delete-button" class="bg-yellow-500 hover:bg-yellow-400 text-blue-900 font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Hapus</button>
+                <button type="button" id="cancel-delete-button" class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-xl transition transform hover:scale-105 shadow-md">Batal</button>
+                <button type="button" id="confirm-delete-button" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-2 px-4 rounded-xl transition transform hover:scale-105 shadow-md">Hapus</button>
             </div>
         </div>
     </div>
