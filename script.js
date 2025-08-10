@@ -39,9 +39,9 @@ const loginScreen = document.getElementById('login-screen');
 const appScreen = document.getElementById('app-screen');
 const loginButton = document.getElementById('login-button');
 
-// Menghapus referensi tombol login/logout yang terpisah, karena kita akan menggunakan yang di bawah user profile
+// Mengambil referensi tombol logout yang ada di bawah nama pengguna
 const logoutButtonText = document.getElementById('logout-button-text');
-
+const userProfileContainer = document.getElementById('user-profile');
 const userPhoto = document.getElementById('user-photo');
 const userName = document.getElementById('user-name');
 const gameListBody = document.getElementById('game-list-body');
@@ -124,7 +124,7 @@ loginButton.addEventListener('click', () => {
         });
 });
 
-// Hanya menggunakan tombol keluar yang ada di bawah nama pengguna
+// Event listener untuk tombol logout yang ada di bawah nama pengguna
 if (logoutButtonText) {
     logoutButtonText.addEventListener('click', () => {
         signOut(auth);
@@ -516,19 +516,14 @@ function handleTabClick(e) {
     // Clear active state for all tab buttons
     const allTabButtons = document.querySelectorAll('.tab-button');
     allTabButtons.forEach(btn => {
-        btn.classList.remove('tab-active');
-        // Perbarui untuk menghapus kelas 'link-active' dari navbar baru
-        btn.classList.remove('link-active'); 
-        btn.classList.add('tab-inactive');
+        // Menghapus semua kelas terkait status 'aktif' dari tombol navigasi
+        btn.classList.remove('tab-active', 'link-active', 'tab-inactive');
     });
 
-    // Set active state for the clicked button
-    button.classList.add('tab-active');
-    // Perbarui untuk menambahkan kelas 'link-active' untuk tab yang diklik
+    // Menambahkan kelas 'aktif' ke tombol yang diklik
     button.classList.add('link-active'); 
-    button.classList.remove('tab-inactive');
     
-    // Show the corresponding tab content
+    // Menampilkan konten tab yang sesuai
     const tabId = button.dataset.tab;
     tabContents.forEach(content => {
         if (content.id === tabId) {
@@ -538,7 +533,7 @@ function handleTabClick(e) {
         }
     });
     
-    // Close sidebar on mobile after clicking a tab
+    // Menutup sidebar pada tampilan mobile setelah mengklik tab
     if (window.innerWidth < 768) {
         closeSidebar();
     }

@@ -111,6 +111,7 @@
         /* Style baru untuk navigasi */
         .nav-links-container .link-active {
             position: relative;
+            color: white;
         }
         .nav-links-container .link-active::after {
             content: '';
@@ -122,6 +123,14 @@
             height: 6px;
             background-color: #fde047; /* Sesuai dengan warna kuning */
             border-radius: 50%;
+        }
+        /* Menghilangkan link aktif di mobile */
+        #mobile-tabs .link-active::after {
+            display: none;
+        }
+        /* Menambahkan padding pada tombol navbar */
+        #tabs button {
+            padding: 8px 12px;
         }
     </style>
 </head>
@@ -158,6 +167,7 @@
 
                 <!-- Navigasi Utama (desktop) -->
                 <nav id="tabs" class="hidden md:flex flex-grow justify-center space-x-6 nav-links-container">
+                    <!-- Menghapus atribut `tab-inactive` karena tidak diperlukan dengan CSS baru -->
                     <button data-tab="tab-list" class="tab-button link-active text-white font-medium transition duration-200 hover:text-yellow-300">
                         Daftar Game
                     </button>
@@ -174,14 +184,7 @@
 
                 <!-- Tombol dan Profil Pengguna -->
                 <div id="user-profile" class="flex items-center space-x-3">
-                    <!-- Tombol Masuk/Keluar yang diperbarui -->
-                    <button id="login-button-navbar" class="hidden md:block py-2 px-4 rounded-full text-white font-semibold bg-gray-200 hover:bg-gray-300 text-blue-900 transition duration-300 transform hover:scale-105 shadow-md">
-                        Masuk
-                    </button>
-                    <button id="logout-button-navbar" class="hidden md:block py-2 px-4 rounded-full bg-blue-950 hover:bg-blue-800 text-white font-bold transition duration-300 transform hover:scale-105 shadow-md">
-                        Keluar
-                    </button>
-                    <!-- Profil Pengguna saat sudah login -->
+                    <!-- Menghapus tombol masuk dan keluar yang terpisah di navbar -->
                     <img id="user-photo" src="https://placehold.co/40x40/e2e8f0/e2e8f0" alt="User Photo" class="w-10 h-10 rounded-full border-2 border-yellow-400">
                     <div class="hidden md:block">
                         <p id="user-name" class="font-semibold text-sm text-white">Guest User</p>
