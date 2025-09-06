@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -134,7 +134,7 @@
         }
     </style>
 </head>
-<body class="antialiased min-h-screen">
+<body class="antialiased">
 
     <!-- Login Screen -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
@@ -149,7 +149,7 @@
     </div>
 
     <!-- Main App Screen -->
-    <div id="app-screen" class="hidden">
+    <div id="app-screen" class="hidden flex flex-col h-screen">
         <!-- Navbar - Sticky on Top -->
         <!-- Memperbarui kelas untuk membuat navbar menjadi card transparan seperti gambar -->
         <header id="navbar" class="sticky top-4 z-40 p-2 mx-auto max-w-7xl">
@@ -195,7 +195,7 @@
         </header>
 
         <!-- Main Content Area -->
-        <div class="md:gap-6 md:p-8 pt-4 md:pt-0">
+        <div class="flex flex-grow md:gap-6 md:p-8 pt-4 md:pt-0">
             <!-- Sidebar (for mobile only) -->
             <aside id="sidebar" class="fixed inset-y-0 left-0 bg-blue-900 w-60 p-6 flex flex-col z-50 transform -translate-x-full transition-transform duration-300 md:hidden rounded-2xl md:w-64 border border-blue-700 shadow-2xl">
                 <div class="flex-grow flex flex-col">
@@ -232,7 +232,7 @@
             <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"></div>
             
             <!-- Main Content -->
-            <main class="p-4 md:p-0">
+            <main class="flex-1 p-4 md:p-0 overflow-y-auto">
                 <!-- Tab: Daftar Game -->
                 <div id="tab-list" class="tab-content">
                     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
