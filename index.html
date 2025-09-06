@@ -132,20 +132,6 @@
         #tabs button {
             padding: 8px 12px;
         }
-        /* Gaya baru untuk efek kaca pada tabel */
-        .glass-table {
-            background-color: rgba(30, 58, 138, 0.3); /* blue-900 dengan transparansi */
-            backdrop-filter: blur(10px); /* Efek blur kaca */
-        }
-        .glass-table th {
-            background-color: rgba(30, 58, 138, 0.5); /* blue-800 dengan transparansi */
-        }
-        .glass-table td {
-            background-color: transparent;
-        }
-        .glass-table tr:hover {
-            background-color: rgba(55, 65, 81, 0.2) !important; /* bg-slate-700 dengan transparansi */
-        }
     </style>
 </head>
 <body class="antialiased">
@@ -276,7 +262,7 @@
                         </div>
                      </div>
                     <!-- Game Table (Desktop) -->
-                    <div class="hidden sm:block bg-blue-900/50 rounded-xl shadow-lg overflow-x-auto border border-blue-700 glass-table">
+                    <div class="hidden sm:block bg-blue-900 rounded-xl shadow-lg overflow-x-auto border border-blue-700">
                         <table id="game-table" class="w-full text-left">
                             <thead class="bg-blue-800">
                                 <tr>
