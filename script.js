@@ -444,6 +444,7 @@ function handleTabClick(e) {
     const button = e.target.closest('.tab-button');
     if (!button) return;
 
+    // --- Button styling ---
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('tab-active', 'link-active', 'tab-inactive');
     });
@@ -451,8 +452,24 @@ function handleTabClick(e) {
     button.classList.add('link-active'); 
     
     const tabId = button.dataset.tab;
+
+    // --- Content switching with transition ---
     tabContents.forEach(content => {
-        content.classList.toggle('hidden', content.id !== tabId);
+        if (content.id === tabId) {
+            // This is the tab to show
+            content.classList.remove('hidden');
+            // Use a timeout to allow the 'display' property to be applied before the transition starts
+            setTimeout(() => {
+                content.classList.remove('opacity-0', 'translate-y-3');
+            }, 10);
+        } else {
+            // This is a tab to hide
+            content.classList.add('opacity-0', 'translate-y-3');
+            // Add 'hidden' after the transition is complete
+            setTimeout(() => {
+                content.classList.add('hidden');
+            }, 300); // This should match the CSS transition duration
+        }
     });
     
     if (window.innerWidth < 768) closeSidebar();
@@ -460,6 +477,7 @@ function handleTabClick(e) {
 
 tabs.addEventListener('click', handleTabClick);
 mobileTabs.addEventListener('click', handleTabClick);
+
 
 // --- CHART LOGIC ---
 function initCharts() {
@@ -762,3 +780,4 @@ jsonFileInput.addEventListener('change', (e) => {
     };
     reader.readAsText(file);
 });
+
