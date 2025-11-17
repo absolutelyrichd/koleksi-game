@@ -144,8 +144,8 @@ function getPlatformBadgeClasses(platform) {
         'GOG': 'bg-purple-500/20 text-purple-300',
         'EA App': 'bg-rose-500/20 text-rose-300',
         'U-Connect': 'bg-sky-500/20 text-sky-300',
-        'PCSX': 'bg-amber-500/20 text-amber-300',
-        'Crack': 'bg-red-500/20 text-red-300',
+        'Ms Store': 'bg-amber-500/20 text-amber-300',
+        'PCSX': 'bg-red-500/20 text-red-300',
         'default': 'bg-slate-500/20 text-slate-300'
     };
     return colors[platform] || colors['default'];
@@ -264,7 +264,7 @@ function createGameRowHTML(game = {}) {
                 <div>
                     <label class="block text-slate-300 text-sm font-bold mb-1">Platform</label>
                     <select class="game-platform w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
-                        <option ${game.platform === 'Steam' ? 'selected' : ''}>Steam</option><option ${game.platform === 'Epic' ? 'selected' : ''}>Epic</option><option ${game.platform === 'GOG' ? 'selected' : ''}>GOG</option><option ${game.platform === 'EA App' ? 'selected' : ''}>EA App</option><option ${game.platform === 'U-Connect' ? 'selected' : ''}>U-Connect</option><option ${game.platform === 'PCSX' ? 'selected' : ''}>PCSX</option><option ${game.platform === 'Crack' ? 'selected' : ''}>Crack</option>
+                        <option ${game.platform === 'Steam' ? 'selected' : ''}>Steam</option><option ${game.platform === 'Epic' ? 'selected' : ''}>Epic</option><option ${game.platform === 'GOG' ? 'selected' : ''}>GOG</option><option ${game.platform === 'EA App' ? 'selected' : ''}>EA App</option><option ${game.platform === 'U-Connect' ? 'selected' : ''}>U-Connect</option><option ${game.platform === 'Ms Store' ? 'selected' : ''}>PCSX</option><option ${game.platform === 'PCSX' ? 'selected' : ''}>Crack</option>
                     </select>
                 </div>
                 <div>
