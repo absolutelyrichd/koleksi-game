@@ -73,6 +73,17 @@ const confirmDeleteButton = document.getElementById('confirm-delete-button');
 let gameIdToDelete = null; 
 let currentConfirmCallback = null;
 
+// --- BARU: Elemen Modal Edit Item ---
+const editItemModal = document.getElementById('edit-item-modal');
+const editItemModalContent = document.getElementById('edit-item-modal-content');
+const editItemForm = document.getElementById('edit-item-form');
+const editItemModalTitle = document.getElementById('edit-item-modal-title');
+const editItemNameInput = document.getElementById('edit-item-name-input');
+const editItemId = document.getElementById('edit-item-id');
+const editItemType = document.getElementById('edit-item-type');
+const editItemCancelButton = document.getElementById('edit-item-cancel-button');
+// const editItemSaveButton = document.getElementById('edit-item-save-button'); // Tidak perlu jika kita menangani via form submit
+
 // --- Mobile Elements ---
 const sidebar = document.getElementById('sidebar');
 const openSidebarButton = document.getElementById('open-sidebar-button');
@@ -374,17 +385,20 @@ platformListContainer.addEventListener('click', async (e) => {
     if (editBtn) {
         const id = editBtn.dataset.id;
         const oldName = editBtn.dataset.name;
-        const newName = prompt(`Edit nama platform:`, oldName);
-        if (newName && newName.trim() !== '' && newName !== oldName) {
-            try {
-                // PERBAIKAN: Path diubah dari 'platforms' ke 'games'
-                await updateDoc(doc(db, 'games', currentUser.uid, 'userPlatforms', id), { name: newName.trim() });
-                showToast("Platform berhasil diperbarui.");
-            } catch (error) {
-                console.error("Error updating platform: ", error);
-                showToast("Gagal memperbarui platform.", true);
-            }
-        }
+        // GANTI: Hapus prompt()
+        // const newName = prompt(`Edit nama platform:`, oldName);
+        // if (newName && newName.trim() !== '' && newName !== oldName) {
+        //     try {
+        //         // PERBAIKAN: Path diubah dari 'platforms' ke 'games'
+        //         await updateDoc(doc(db, 'games', currentUser.uid, 'userPlatforms', id), { name: newName.trim() });
+        //         showToast("Platform berhasil diperbarui.");
+        //     } catch (error) {
+        //         console.error("Error updating platform: ", error);
+        //         showToast("Gagal memperbarui platform.", true);
+        //     }
+        // }
+        // TAMBAHKAN: Buka modal baru
+        openEditItemModal(id, oldName, 'platform');
     }
 
     if (deleteBtn) {
@@ -411,17 +425,20 @@ locationListContainer.addEventListener('click', async (e) => {
     if (editBtn) {
         const id = editBtn.dataset.id;
         const oldName = editBtn.dataset.name;
-        const newName = prompt(`Edit nama lokasi:`, oldName);
-        if (newName && newName.trim() !== '' && newName !== oldName) {
-            try {
-                // PERBAIKAN: Path diubah dari 'locations' ke 'games'
-                await updateDoc(doc(db, 'games', currentUser.uid, 'userLocations', id), { name: newName.trim() });
-                showToast("Lokasi berhasil diperbarui.");
-            } catch (error) {
-                console.error("Error updating location: ", error);
-                showToast("Gagal memperbarui lokasi.", true);
-            }
-        }
+        // GANTI: Hapus prompt()
+        // const newName = prompt(`Edit nama lokasi:`, oldName);
+        // if (newName && newName.trim() !== '' && newName !== oldName) {
+        //     try {
+        //         // PERBAIKAN: Path diubah dari 'locations' ke 'games'
+        //         await updateDoc(doc(db, 'games', currentUser.uid, 'userLocations', id), { name: newName.trim() });
+        //         showToast("Lokasi berhasil diperbarui.");
+        //     } catch (error) {
+        //         console.error("Error updating location: ", error);
+        //         showToast("Gagal memperbarui lokasi.", true);
+        //     }
+        // }
+        // TAMBAHKAN: Buka modal baru
+        openEditItemModal(id, oldName, 'location');
     }
 
     if (deleteBtn) {
@@ -438,6 +455,67 @@ locationListContainer.addEventListener('click', async (e) => {
                 showToast(`Gagal menghapus: ${error.message}`, true);
             }
         });
+    }
+});
+
+
+// --- BARU: Fungsi Modal Edit Item ---
+function openEditItemModal(id, currentName, type) {
+    editItemModalTitle.textContent = `Edit ${type === 'platform' ? 'Platform' : 'Lokasi'}`;
+    editItemId.value = id;
+    editItemType.value = type;
+    editItemNameInput.value = currentName;
+    
+    editItemModal.classList.remove('hidden');
+    editItemModal.classList.add('flex');
+    setTimeout(() => editItemModalContent.classList.remove('scale-95', 'opacity-0'), 10);
+}
+
+function closeEditItemModal() {
+    editItemModalContent.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        editItemModal.classList.add('hidden');
+        editItemModal.classList.remove('flex');
+        editItemForm.reset();
+    }, 200);
+}
+
+// Tambahkan listener untuk modal baru
+editItemCancelButton.addEventListener('click', closeEditItemModal);
+editItemModal.addEventListener('click', (e) => {
+    if (e.target === editItemModal) closeEditItemModal();
+});
+
+editItemForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    const id = editItemId.value;
+    const type = editItemType.value;
+    const newName = editItemNameInput.value.trim();
+
+    if (!id || !type || !newName) {
+        return showToast("Terjadi kesalahan, data tidak lengkap.", true);
+    }
+
+    const collectionPath = type === 'platform' ? 'userPlatforms' : 'userLocations';
+    const existingList = type === 'platform' ? platforms : locations;
+    const prettyName = type === 'platform' ? 'Platform' : 'Lokasi';
+
+    // Cek duplikat (pastikan tidak sama dengan nama lain, tapi boleh sama dengan nama diri sendiri jika tidak berubah)
+    const duplicate = existingList.find(item => item.name.toLowerCase() === newName.toLowerCase() && item.id !== id);
+    if (duplicate) {
+        return showToast(`Nama ${prettyName} "${newName}" sudah ada.`, true);
+    }
+
+    try {
+        const docRef = doc(db, 'games', currentUser.uid, collectionPath, id);
+        await updateDoc(docRef, { name: newName });
+        showToast(`${prettyName} berhasil diperbarui.`);
+        closeEditItemModal();
+    } catch (error) {
+        console.error(`Error updating ${type}: `, error);
+        showToast(`Gagal memperbarui ${prettyName}.`, true);
     }
 });
 

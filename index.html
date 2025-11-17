@@ -407,6 +407,25 @@
         </div>
     </div>
 
+    <!-- BARU: Edit Item (Platform/Lokasi) Modal -->
+    <div id="edit-item-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-slate-800 w-full max-w-sm rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-slate-700" id="edit-item-modal-content">
+            <h3 id="edit-item-modal-title" class="text-2xl font-bold mb-4 text-white">Edit Item</h3>
+            <form id="edit-item-form">
+                <input type="hidden" id="edit-item-id">
+                <input type="hidden" id="edit-item-type">
+                <div>
+                    <label for="edit-item-name-input" class="block text-slate-300 text-sm font-bold mb-2">Nama</label>
+                    <input type="text" id="edit-item-name-input" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white" required>
+                </div>
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" id="edit-item-cancel-button" class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Batal</button>
+                    <button type="submit" id="edit-item-save-button" class="bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Custom Alert/Toast -->
     <div id="toast" class="fixed bottom-5 right-1/2 translate-x-1/2 w-11/12 max-w-sm bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
         <p id="toast-message">Operasi berhasil!</p>
