@@ -21,8 +21,12 @@ const provider = new GoogleAuthProvider();
 
 let currentUser = null;
 let games = [];
+let platforms = []; // BARU
+let locations = []; // BARU
 let filteredGames = [];
-let unsubscribe = null; 
+let unsubscribeGames = null; 
+let unsubscribePlatforms = null; // BARU
+let unsubscribeLocations = null; // BARU
 
 // --- Pagination state ---
 let currentPage = 1;
@@ -78,6 +82,14 @@ const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
 // --- Chart instances ---
 let platformChart, locationChart, statusChart;
 
+// --- ELEMEN UI MANAJEMEN BARU ---
+const newPlatformInput = document.getElementById('new-platform-input');
+const addPlatformButton = document.getElementById('add-platform-button');
+const platformListContainer = document.getElementById('platform-list-container');
+const newLocationInput = document.getElementById('new-location-input');
+const addLocationButton = document.getElementById('add-location-button');
+const locationListContainer = document.getElementById('location-list-container');
+
 // --- MOBILE SIDEBAR LOGIC ---
 function openSidebar() {
     sidebar.classList.remove('-translate-x-full');
@@ -123,16 +135,27 @@ onAuthStateChanged(auth, (user) => {
         appScreen.classList.remove('hidden');
         userPhoto.src = user.photoURL;
         userName.textContent = user.displayName;
+        // Panggil fetch baru
         fetchGames();
+        fetchPlatforms();
+        fetchLocations();
     } else {
         currentUser = null;
         loginScreen.classList.remove('hidden');
         appScreen.classList.add('hidden');
-        if (unsubscribe) unsubscribe();
+        // Hentikan semua listener saat logout
+        if (unsubscribeGames) unsubscribeGames();
+        if (unsubscribePlatforms) unsubscribePlatforms();
+        if (unsubscribeLocations) unsubscribeLocations();
         games = [];
+        platforms = [];
+        locations = [];
         filteredGames = [];
         displayPage();
         updateCharts();
+        // Kosongkan daftar kustom
+        platformListContainer.innerHTML = '';
+        locationListContainer.innerHTML = '';
     }
 });
 
@@ -148,6 +171,7 @@ function getPlatformBadgeClasses(platform) {
         'Crack': 'bg-red-500/20 text-red-300',
         'default': 'bg-slate-500/20 text-slate-300'
     };
+    // Coba temukan warna, jika tidak ada, gunakan default
     return colors[platform] || colors['default'];
 }
 
@@ -168,13 +192,14 @@ function formatPrice(price) {
     }).format(price);
 }
 
-// --- CRUD FUNCTIONS ---
+// --- CRUD FUNCTIONS (Games) ---
 function fetchGames() {
     if (!currentUser) return;
+    if (unsubscribeGames) unsubscribeGames(); // Hentikan listener sebelumnya
     const gamesCollectionRef = collection(db, 'games', currentUser.uid, 'userGames');
     const q = query(gamesCollectionRef, orderBy("title")); 
 
-    unsubscribe = onSnapshot(q, (snapshot) => {
+    unsubscribeGames = onSnapshot(q, (snapshot) => {
         games = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         games.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
         applyFiltersAndSort();
@@ -185,6 +210,230 @@ function fetchGames() {
         showToast("Gagal memuat data game.", true);
     });
 }
+
+// --- FUNGSI CRUD BARU UNTUK PLATFORM & LOKASI ---
+
+async function addDefaultData(collectionName, defaultItems) {
+    if (!currentUser) return;
+    try {
+        const batch = writeBatch(db);
+        defaultItems.forEach(name => {
+            const docRef = doc(collection(db, collectionName, currentUser.uid, `user${collectionName.charAt(0).toUpperCase() + collectionName.slice(1)}`));
+            batch.set(docRef, { name });
+        });
+        await batch.commit();
+    } catch (error) {
+        console.error(`Error adding default ${collectionName}: `, error);
+        showToast(`Gagal menambah ${collectionName} default.`, true);
+    }
+}
+
+function fetchPlatforms() {
+    if (!currentUser) return;
+    if (unsubscribePlatforms) unsubscribePlatforms();
+    const ref = collection(db, 'platforms', currentUser.uid, 'userPlatforms');
+    const q = query(ref, orderBy("name"));
+
+    unsubscribePlatforms = onSnapshot(q, async (snapshot) => {
+        if (snapshot.empty) {
+            // Jika kosong, tambahkan data default
+            await addDefaultData('platforms', ['Steam', 'Epic', 'GOG', 'EA App', 'U-Connect', 'PCSX', 'Crack']);
+        } else {
+            platforms = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            platforms.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+            renderPlatformList();
+            populatePlatformDropdowns();
+        }
+    }, (error) => {
+        console.error("Error fetching platforms: ", error);
+        showToast("Gagal memuat platform.", true);
+    });
+}
+
+function fetchLocations() {
+    if (!currentUser) return;
+    if (unsubscribeLocations) unsubscribeLocations();
+    const ref = collection(db, 'locations', currentUser.uid, 'userLocations');
+    const q = query(ref, orderBy("name"));
+
+    unsubscribeLocations = onSnapshot(q, async (snapshot) => {
+        if (snapshot.empty) {
+            // Jika kosong, tambahkan data default
+            await addDefaultData('locations', ['HDD Eksternal 2TB', 'HDD Eksternal 4TB', 'Internal SSD', 'Belum Install']);
+        } else {
+            locations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            locations.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+            renderLocationList();
+            populateLocationDropdowns();
+        }
+    }, (error) => {
+        console.error("Error fetching locations: ", error);
+        showToast("Gagal memuat lokasi.", true);
+    });
+}
+
+function renderPlatformList() {
+    platformListContainer.innerHTML = '';
+    if (platforms.length === 0) {
+        platformListContainer.innerHTML = '<p class="text-slate-400">Belum ada platform.</p>';
+        return;
+    }
+    platforms.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center bg-slate-700 p-2 rounded-lg';
+        div.innerHTML = `
+            <span class="text-white">${p.name}</span>
+            <div>
+                <button class="edit-platform-btn p-1 text-slate-400 hover:text-white" data-id="${p.id}" data-name="${p.name}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
+                <button class="delete-platform-btn p-1 text-slate-400 hover:text-red-400" data-id="${p.id}" data-name="${p.name}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
+            </div>
+        `;
+        platformListContainer.appendChild(div);
+    });
+}
+
+function renderLocationList() {
+    locationListContainer.innerHTML = '';
+    if (locations.length === 0) {
+        locationListContainer.innerHTML = '<p class="text-slate-400">Belum ada lokasi.</p>';
+        return;
+    }
+    locations.forEach(l => {
+        const div = document.createElement('div');
+        div.className = 'flex justify-between items-center bg-slate-700 p-2 rounded-lg';
+        div.innerHTML = `
+            <span class="text-white">${l.name}</span>
+            <div>
+                <button class="edit-location-btn p-1 text-slate-400 hover:text-white" data-id="${l.id}" data-name="${l.name}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
+                <button class="delete-location-btn p-1 text-slate-400 hover:text-red-400" data-id="${l.id}" data-name="${l.name}"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
+            </div>
+        `;
+        locationListContainer.appendChild(div);
+    });
+}
+
+function populatePlatformDropdowns() {
+    const platformOptions = platforms.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
+    document.getElementById('filter-platform').innerHTML = `<option value="">Semua Platform</option>${platformOptions}`;
+    document.getElementById('bulk-platform').innerHTML = platformOptions;
+    // Ini akan digunakan oleh createGameRowHTML saat modal dibuka
+}
+
+function populateLocationDropdowns() {
+    const locationOptions = locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
+    document.getElementById('filter-location').innerHTML = `<option value="">Semua Lokasi</option>${locationOptions}`;
+    document.getElementById('bulk-location').innerHTML = locationOptions;
+    // Ini akan digunakan oleh createGameRowHTML saat modal dibuka
+}
+
+// --- Event Listeners untuk Manajemen Baru ---
+addPlatformButton.addEventListener('click', async () => {
+    const name = newPlatformInput.value.trim();
+    if (name && currentUser) {
+        if (platforms.find(p => p.name.toLowerCase() === name.toLowerCase())) {
+            return showToast("Platform tersebut sudah ada.", true);
+        }
+        try {
+            await addDoc(collection(db, 'platforms', currentUser.uid, 'userPlatforms'), { name });
+            newPlatformInput.value = '';
+            showToast("Platform berhasil ditambahkan.");
+        } catch (error) {
+            console.error("Error adding platform: ", error);
+            showToast("Gagal menambah platform.", true);
+        }
+    }
+});
+
+addLocationButton.addEventListener('click', async () => {
+    const name = newLocationInput.value.trim();
+    if (name && currentUser) {
+        if (locations.find(l => l.name.toLowerCase() === name.toLowerCase())) {
+            return showToast("Lokasi tersebut sudah ada.", true);
+        }
+        try {
+            await addDoc(collection(db, 'locations', currentUser.uid, 'userLocations'), { name });
+            newLocationInput.value = '';
+            showToast("Lokasi berhasil ditambahkan.");
+        } catch (error) {
+            console.error("Error adding location: ", error);
+            showToast("Gagal menambah lokasi.", true);
+        }
+    }
+});
+
+// Event delegation untuk edit/delete
+platformListContainer.addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('.edit-platform-btn');
+    const deleteBtn = e.target.closest('.delete-platform-btn');
+    
+    if (editBtn) {
+        const id = editBtn.dataset.id;
+        const oldName = editBtn.dataset.name;
+        const newName = prompt(`Edit nama platform:`, oldName);
+        if (newName && newName.trim() !== '' && newName !== oldName) {
+            try {
+                await updateDoc(doc(db, 'platforms', currentUser.uid, 'userPlatforms', id), { name: newName.trim() });
+                showToast("Platform berhasil diperbarui.");
+            } catch (error) {
+                console.error("Error updating platform: ", error);
+                showToast("Gagal memperbarui platform.", true);
+            }
+        }
+    }
+
+    if (deleteBtn) {
+        const id = deleteBtn.dataset.id;
+        const name = deleteBtn.dataset.name;
+        openDeleteConfirmModal(id, `Apakah Anda yakin ingin menghapus platform "${name}"?`, async () => {
+            try {
+                await deleteDoc(doc(db, 'platforms', currentUser.uid, 'userPlatforms', id));
+                showToast('Platform berhasil dihapus.');
+                closeDeleteConfirmModal();
+            } catch (error) {
+                console.error("Error deleting platform: ", error);
+                showToast(`Gagal menghapus: ${error.message}`, true);
+            }
+        });
+    }
+});
+
+locationListContainer.addEventListener('click', async (e) => {
+    const editBtn = e.target.closest('.edit-location-btn');
+    const deleteBtn = e.target.closest('.delete-location-btn');
+    
+    if (editBtn) {
+        const id = editBtn.dataset.id;
+        const oldName = editBtn.dataset.name;
+        const newName = prompt(`Edit nama lokasi:`, oldName);
+        if (newName && newName.trim() !== '' && newName !== oldName) {
+            try {
+                await updateDoc(doc(db, 'locations', currentUser.uid, 'userLocations', id), { name: newName.trim() });
+                showToast("Lokasi berhasil diperbarui.");
+            } catch (error) {
+                console.error("Error updating location: ", error);
+                showToast("Gagal memperbarui lokasi.", true);
+            }
+        }
+    }
+
+    if (deleteBtn) {
+        const id = deleteBtn.dataset.id;
+        const name = deleteBtn.dataset.name;
+        openDeleteConfirmModal(id, `Apakah Anda yakin ingin menghapus lokasi "${name}"?`, async () => {
+            try {
+                await deleteDoc(doc(db, 'locations', currentUser.uid, 'userLocations', id));
+                showToast('Lokasi berhasil dihapus.');
+                closeDeleteConfirmModal();
+            } catch (error) {
+                console.error("Error deleting location: ", error);
+                showToast(`Gagal menghapus: ${error.message}`, true);
+            }
+        });
+    }
+});
+
+
+// --- RENDER GAME (TABLE & CARD) ---
 
 function renderGames(gamesToRender) {
     gameListBody.innerHTML = '';
@@ -250,9 +499,19 @@ function renderGamesAsCards(gamesToRender) {
     });
 }
 
-// --- ADD/EDIT MODAL LOGIC ---
+// --- ADD/EDIT MODAL LOGIC (DINAMIS) ---
 function createGameRowHTML(game = {}) {
     const isEdit = !!game.id;
+    
+    // Buat opsi dropdown secara dinamis dari array global
+    const platformOptions = platforms.map(p => 
+        `<option value="${p.name}" ${game.platform === p.name ? 'selected' : ''}>${p.name}</option>`
+    ).join('');
+    
+    const locationOptions = locations.map(l => 
+        `<option value="${l.name}" ${game.location === l.name ? 'selected' : ''}>${l.name}</option>`
+    ).join('');
+
     return `
         <div class="game-row p-4 border border-slate-700 rounded-lg space-y-3 relative">
             ${isEdit ? '' : '<button type="button" class="remove-row-btn absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center">&times;</button>'}
@@ -264,13 +523,13 @@ function createGameRowHTML(game = {}) {
                 <div>
                     <label class="block text-slate-300 text-sm font-bold mb-1">Platform</label>
                     <select class="game-platform w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
-                        <option ${game.platform === 'Steam' ? 'selected' : ''}>Steam</option><option ${game.platform === 'Epic' ? 'selected' : ''}>Epic</option><option ${game.platform === 'GOG' ? 'selected' : ''}>GOG</option><option ${game.platform === 'EA App' ? 'selected' : ''}>EA App</option><option ${game.platform === 'U-Connect' ? 'selected' : ''}>U-Connect</option><option ${game.platform === 'PCSX' ? 'selected' : ''}>PCSX</option><option ${game.platform === 'Crack' ? 'selected' : ''}>Crack</option>
+                        ${platformOptions.length > 0 ? platformOptions : '<option>Memuat...</option>'}
                     </select>
                 </div>
                 <div>
                     <label class="block text-slate-300 text-sm font-bold mb-1">Lokasi</label>
                     <select class="game-location w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
-                        <option ${game.location === 'HDD Eksternal 2TB' ? 'selected' : ''}>HDD Eksternal 2TB</option><option ${game.location === 'HDD Eksternal 4TB' ? 'selected' : ''}>HDD Eksternal 4TB</option><option ${game.location === 'Internal SSD' ? 'selected' : ''}>Internal SSD</option><option ${game.location === 'Belum Install' ? 'selected' : ''}>Belum Install</option>
+                        ${locationOptions.length > 0 ? locationOptions : '<option>Memuat...</option>'}
                     </select>
                 </div>
                 <div>
@@ -393,7 +652,7 @@ function handleEdit(e) {
 
 // --- DELETE CONFIRMATION MODAL LOGIC ---
 function openDeleteConfirmModal(id, message, onConfirmCallback) {
-    gameIdToDelete = id;
+    gameIdToDelete = id; // Ini mungkin tidak lagi relevan jika callback menangani semuanya
     deleteConfirmMessage.textContent = message;
     currentConfirmCallback = onConfirmCallback;
     deleteConfirmModal.classList.remove('hidden');
@@ -510,6 +769,7 @@ function updateCharts() {
     totalPriceElement.textContent = formatPrice(totalPrice);
     mostExpensiveGameElement.textContent = mostExpensiveGame && mostExpensiveGame.price > 0 ? `${mostExpensiveGame.title} (${formatPrice(mostExpensiveGame.price)})` : "Belum ada game";
 
+    // Chart.js akan membuat warna secara otomatis jika kita tidak menyediakannya
     const platformData = games.reduce((acc, game) => { acc[game.platform] = (acc[game.platform] || 0) + 1; return acc; }, {});
     platformChart.data = {
         labels: Object.keys(platformData),
@@ -759,7 +1019,10 @@ jsonFileInput.addEventListener('change', (e) => {
                 try {
                     const batch = writeBatch(db);
                     importedGames.forEach(game => {
+                        // Validasi sederhana, pastikan data utama ada
                         if (game.title && game.platform && game.location && game.status) {
+                            // Gunakan data platform/lokasi dari file JSON, 
+                            // bahkan jika belum ada di daftar kustom Anda
                             batch.set(doc(collection(db, 'games', currentUser.uid, 'userGames')), game);
                         }
                     });
@@ -780,4 +1043,3 @@ jsonFileInput.addEventListener('change', (e) => {
     };
     reader.readAsText(file);
 });
-
