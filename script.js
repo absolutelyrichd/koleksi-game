@@ -218,7 +218,8 @@ async function addDefaultData(collectionName, defaultItems) {
     try {
         const batch = writeBatch(db);
         defaultItems.forEach(name => {
-            const docRef = doc(collection(db, collectionName, currentUser.uid, `user${collectionName.charAt(0).toUpperCase() + collectionName.slice(1)}`));
+            // PERBAIKAN: Path diubah dari collectionName ke 'games'
+            const docRef = doc(collection(db, 'games', currentUser.uid, `user${collectionName.charAt(0).toUpperCase() + collectionName.slice(1)}`));
             batch.set(docRef, { name });
         });
         await batch.commit();
@@ -231,7 +232,8 @@ async function addDefaultData(collectionName, defaultItems) {
 function fetchPlatforms() {
     if (!currentUser) return;
     if (unsubscribePlatforms) unsubscribePlatforms();
-    const ref = collection(db, 'platforms', currentUser.uid, 'userPlatforms');
+    // PERBAIKAN: Path diubah dari 'platforms' ke 'games'
+    const ref = collection(db, 'games', currentUser.uid, 'userPlatforms');
     const q = query(ref, orderBy("name"));
 
     unsubscribePlatforms = onSnapshot(q, async (snapshot) => {
@@ -253,7 +255,8 @@ function fetchPlatforms() {
 function fetchLocations() {
     if (!currentUser) return;
     if (unsubscribeLocations) unsubscribeLocations();
-    const ref = collection(db, 'locations', currentUser.uid, 'userLocations');
+    // PERBAIKAN: Path diubah dari 'locations' ke 'games'
+    const ref = collection(db, 'games', currentUser.uid, 'userLocations');
     const q = query(ref, orderBy("name"));
 
     unsubscribeLocations = onSnapshot(q, async (snapshot) => {
@@ -334,7 +337,8 @@ addPlatformButton.addEventListener('click', async () => {
             return showToast("Platform tersebut sudah ada.", true);
         }
         try {
-            await addDoc(collection(db, 'platforms', currentUser.uid, 'userPlatforms'), { name });
+            // PERBAIKAN: Path diubah dari 'platforms' ke 'games'
+            await addDoc(collection(db, 'games', currentUser.uid, 'userPlatforms'), { name });
             newPlatformInput.value = '';
             showToast("Platform berhasil ditambahkan.");
         } catch (error) {
@@ -351,7 +355,8 @@ addLocationButton.addEventListener('click', async () => {
             return showToast("Lokasi tersebut sudah ada.", true);
         }
         try {
-            await addDoc(collection(db, 'locations', currentUser.uid, 'userLocations'), { name });
+            // PERBAIKAN: Path diubah dari 'locations' ke 'games'
+            await addDoc(collection(db, 'games', currentUser.uid, 'userLocations'), { name });
             newLocationInput.value = '';
             showToast("Lokasi berhasil ditambahkan.");
         } catch (error) {
@@ -372,7 +377,8 @@ platformListContainer.addEventListener('click', async (e) => {
         const newName = prompt(`Edit nama platform:`, oldName);
         if (newName && newName.trim() !== '' && newName !== oldName) {
             try {
-                await updateDoc(doc(db, 'platforms', currentUser.uid, 'userPlatforms', id), { name: newName.trim() });
+                // PERBAIKAN: Path diubah dari 'platforms' ke 'games'
+                await updateDoc(doc(db, 'games', currentUser.uid, 'userPlatforms', id), { name: newName.trim() });
                 showToast("Platform berhasil diperbarui.");
             } catch (error) {
                 console.error("Error updating platform: ", error);
@@ -386,7 +392,8 @@ platformListContainer.addEventListener('click', async (e) => {
         const name = deleteBtn.dataset.name;
         openDeleteConfirmModal(id, `Apakah Anda yakin ingin menghapus platform "${name}"?`, async () => {
             try {
-                await deleteDoc(doc(db, 'platforms', currentUser.uid, 'userPlatforms', id));
+                // PERBAIKAN: Path diubah dari 'platforms' ke 'games'
+                await deleteDoc(doc(db, 'games', currentUser.uid, 'userPlatforms', id));
                 showToast('Platform berhasil dihapus.');
                 closeDeleteConfirmModal();
             } catch (error) {
@@ -407,7 +414,8 @@ locationListContainer.addEventListener('click', async (e) => {
         const newName = prompt(`Edit nama lokasi:`, oldName);
         if (newName && newName.trim() !== '' && newName !== oldName) {
             try {
-                await updateDoc(doc(db, 'locations', currentUser.uid, 'userLocations', id), { name: newName.trim() });
+                // PERBAIKAN: Path diubah dari 'locations' ke 'games'
+                await updateDoc(doc(db, 'games', currentUser.uid, 'userLocations', id), { name: newName.trim() });
                 showToast("Lokasi berhasil diperbarui.");
             } catch (error) {
                 console.error("Error updating location: ", error);
@@ -421,7 +429,8 @@ locationListContainer.addEventListener('click', async (e) => {
         const name = deleteBtn.dataset.name;
         openDeleteConfirmModal(id, `Apakah Anda yakin ingin menghapus lokasi "${name}"?`, async () => {
             try {
-                await deleteDoc(doc(db, 'locations', currentUser.uid, 'userLocations', id));
+                // PERBAIKAN: Path diubah dari 'locations' ke 'games'
+                await deleteDoc(doc(db, 'games', currentUser.uid, 'userLocations', id));
                 showToast('Lokasi berhasil dihapus.');
                 closeDeleteConfirmModal();
             } catch (error) {
