@@ -1,783 +1,382 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, writeBatch, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasbor Koleksi Game</title>
 
-// --- Firebase Config (DO NOT CHANGE) ---
-const firebaseConfig = {
-    apiKey: "AIzaSyAzJTL179V9bT-DfefZq9gcG8Tz88VzLmQ",
-    authDomain: "koleksi-game.firebaseapp.com",
-    projectId: "koleksi-game",
-    storageBucket: "koleksi-game.appspot.com",
-    messagingSenderId: "222959670551",
-    appId: "1:222959670551:web:048b1e2c4ef16b7bd31352",
-    measurementId: "G-BYYCM7R4M8"
-};
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-// --- Initialize Firebase ---
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-const provider = new GoogleAuthProvider();
+    <!-- Chart.js for Statistics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-let currentUser = null;
-let games = [];
-let filteredGames = [];
-let unsubscribe = null; 
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-// --- Pagination state ---
-let currentPage = 1;
-const gamesPerPage = 10;
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Palet warna baru yang segar dengan gradien slate */
+            background-color: #0f172a; /* slate-900 */
+            background-image: radial-gradient(at 0% 0%, hsla(212,45%,18%,1) 0px, transparent 50%),
+                              radial-gradient(at 98% 12%, hsla(283,45%,22%,1) 0px, transparent 50%);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+        .tab-active {
+            background-color: #1e293b; /* slate-800 */
+            color: #f8fafc;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .tab-inactive {
+            background-color: transparent;
+            color: #d1d5db;
+        }
+        .modal-backdrop {
+            background-color: rgba(15, 23, 42, 0.5); /* slate-900/50 */
+            backdrop-filter: blur(8px);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b; /* slate-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #14b8a6; /* teal-500 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2dd4bf; /* teal-400 */
+        }
+        .pagination-button {
+            min-width: 40px;
+        }
+        .pagination-button.active {
+            background-color: #14b8a6; /* teal-500 */
+            color: #0f172a; /* slate-900 */
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        .btn-disabled {
+            background-color: #334155; /* slate-700 */
+            color: #64748b; /* slate-500 */
+            cursor: not-allowed;
+        }
+        /* Sidebar active tab indicator */
+        .tab-button.tab-active {
+            position: relative;
+            overflow: hidden;
+        }
+        .tab-button.tab-active::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, #2dd4bf, #14b8a6); /* teal gradient */
+            border-radius: 2px;
+        }
+        .sortable {
+            cursor: pointer;
+            user-select: none;
+        }
+        .sortable .sort-icon {
+            display: inline-block;
+            margin-left: 0.5rem;
+            width: 1em;
+        }
+        @media (max-width: 639px) {
+            .card-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+            .card-item > div:first-child { border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
+            .card-item > div:last-child { margin-top: 1rem; }
+        }
+        /* Style baru untuk navigasi */
+        .nav-links-container .link-active {
+            position: relative;
+            color: white;
+        }
+        .nav-links-container .link-active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background-color: #2dd4bf; /* teal-400 */
+            border-radius: 50%;
+        }
+        #mobile-tabs .link-active::after { display: none; }
+        #tabs button { padding: 8px 12px; }
+    </style>
+</head>
+<body class="antialiased">
 
-// --- Sort state ---
-let sortState = {
-    column: 'title', // Default sort column
-    direction: 'asc' // Default sort direction
-};
+    <!-- Login Screen -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8 text-center border border-slate-700">
+            <h1 class="text-3xl font-bold text-white mb-2">Dasbor Koleksi Game</h1>
+            <p class="text-slate-400 mb-8">Kelola dan lacak semua game favorit Anda di satu tempat.</p>
+            <button id="login-button" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold py-3 px-4 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105 shadow-lg">
+                <svg class="w-6 h-6 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.021,35.591,44,30.138,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
+                Masuk dengan Google
+            </button>
+        </div>
+    </div>
 
-// --- UI Elements ---
-const loginScreen = document.getElementById('login-screen');
-const appScreen = document.getElementById('app-screen');
-const loginButton = document.getElementById('login-button');
-const logoutButtonText = document.getElementById('logout-button-text');
-const userPhoto = document.getElementById('user-photo');
-const userName = document.getElementById('user-name');
-const gameListBody = document.getElementById('game-list-body');
-const gameListCards = document.getElementById('game-list-cards');
-const addGameButton = document.getElementById('add-game-button');
-const paginationContainer = document.getElementById('pagination-container');
-const totalPriceElement = document.getElementById('total-price');
-const mostExpensiveGameElement = document.getElementById('most-expensive-game');
-
-// --- Modals & Forms ---
-const gameModal = document.getElementById('game-modal');
-const modalContent = document.getElementById('modal-content');
-const gameForm = document.getElementById('game-form');
-const cancelButton = document.getElementById('cancel-button');
-const modalTitle = document.getElementById('modal-title');
-const gameRowsContainer = document.getElementById('game-rows-container');
-const addRowButton = document.getElementById('add-row-button');
-const bulkEditModal = document.getElementById('bulk-edit-modal');
-const bulkEditModalContent = document.getElementById('bulk-edit-modal-content');
-const bulkEditForm = document.getElementById('bulk-edit-form');
-const bulkEditCancelButton = document.getElementById('bulk-edit-cancel-button');
-const bulkEditInfo = document.getElementById('bulk-edit-info');
-const deleteConfirmModal = document.getElementById('delete-confirm-modal');
-const deleteConfirmModalContent = document.getElementById('delete-confirm-modal-content');
-const deleteConfirmMessage = document.getElementById('delete-confirm-message');
-const cancelDeleteButton = document.getElementById('cancel-delete-button');
-const confirmDeleteButton = document.getElementById('confirm-delete-button');
-let gameIdToDelete = null; 
-let currentConfirmCallback = null;
-
-// --- Mobile Elements ---
-const sidebar = document.getElementById('sidebar');
-const openSidebarButton = document.getElementById('open-sidebar-button');
-const closeSidebarButton = document.getElementById('close-sidebar-button');
-const mobileMenuBackdrop = document.getElementById('mobile-menu-backdrop');
-
-// --- Chart instances ---
-let platformChart, locationChart, statusChart;
-
-// --- MOBILE SIDEBAR LOGIC ---
-function openSidebar() {
-    sidebar.classList.remove('-translate-x-full');
-    mobileMenuBackdrop.classList.remove('hidden');
-}
-
-function closeSidebar() {
-    sidebar.classList.add('-translate-x-full');
-    mobileMenuBackdrop.classList.add('hidden');
-}
-
-openSidebarButton.addEventListener('click', openSidebar);
-closeSidebarButton.addEventListener('click', closeSidebar);
-mobileMenuBackdrop.addEventListener('click', closeSidebar);
-
-// --- TOAST/ALERT FUNCTION ---
-function showToast(message, isError = false) {
-    const toast = document.getElementById('toast');
-    const toastMessage = document.getElementById('toast-message');
-    toastMessage.textContent = message;
-    toast.className = `fixed bottom-5 right-1/2 translate-x-1/2 w-11/12 max-w-sm text-white py-2 px-4 rounded-lg shadow-lg transform transition-all duration-300 z-50 ${isError ? 'bg-red-500' : 'bg-green-500'} translate-y-0 opacity-100`;
-    setTimeout(() => {
-        toast.className = toast.className.replace('translate-y-0 opacity-100', 'translate-y-20 opacity-0');
-    }, 3000);
-}
-
-// --- AUTHENTICATION ---
-loginButton.addEventListener('click', () => {
-    signInWithPopup(auth, provider).catch((error) => {
-        console.error("Error signing in: ", error);
-        showToast(`Gagal masuk: ${error.message}`, true);
-    });
-});
-
-if (logoutButtonText) {
-    logoutButtonText.addEventListener('click', () => signOut(auth));
-}
-
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUser = user;
-        loginScreen.classList.add('hidden');
-        appScreen.classList.remove('hidden');
-        userPhoto.src = user.photoURL;
-        userName.textContent = user.displayName;
-        fetchGames();
-    } else {
-        currentUser = null;
-        loginScreen.classList.remove('hidden');
-        appScreen.classList.add('hidden');
-        if (unsubscribe) unsubscribe();
-        games = [];
-        filteredGames = [];
-        displayPage();
-        updateCharts();
-    }
-});
-
-// --- HELPER FUNCTIONS ---
-function getPlatformBadgeClasses(platform) {
-    const colors = {
-        'Steam': 'bg-cyan-500/20 text-cyan-300',
-        'Epic': 'bg-gray-500/20 text-gray-300',
-        'GOG': 'bg-purple-500/20 text-purple-300',
-        'EA App': 'bg-rose-500/20 text-rose-300',
-        'U-Connect': 'bg-sky-500/20 text-sky-300',
-        'Ms Store': 'bg-amber-500/20 text-amber-300',
-        'PCSX': 'bg-red-500/20 text-red-300',
-        'default': 'bg-slate-500/20 text-slate-300'
-    };
-    return colors[platform] || colors['default'];
-}
-
-function getStatusBadgeClasses(status) {
-    const colors = {
-        'Dimainkan': 'bg-teal-500/20 text-teal-300',
-        'Selesai': 'bg-green-500/20 text-green-300',
-        'Belum dimainkan': 'bg-slate-500/20 text-slate-300'
-    };
-    return colors[status] || colors['Belum dimainkan'];
-}
-
-function formatPrice(price) {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0
-    }).format(price);
-}
-
-// --- CRUD FUNCTIONS ---
-function fetchGames() {
-    if (!currentUser) return;
-    const gamesCollectionRef = collection(db, 'games', currentUser.uid, 'userGames');
-    const q = query(gamesCollectionRef, orderBy("title")); 
-
-    unsubscribe = onSnapshot(q, (snapshot) => {
-        games = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        games.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
-        applyFiltersAndSort();
-        updateCharts();
-        updateBulkActionUI();
-    }, (error) => {
-        console.error("Error fetching games: ", error);
-        showToast("Gagal memuat data game.", true);
-    });
-}
-
-function renderGames(gamesToRender) {
-    gameListBody.innerHTML = '';
-    gameListCards.innerHTML = '';
-    
-    if (!gamesToRender || gamesToRender.length === 0) {
-        const emptyMessage = '<tr><td colspan="7" class="text-center p-8 text-slate-400">Tidak ada game yang cocok.</td></tr>';
-        gameListBody.innerHTML = emptyMessage;
-        gameListCards.innerHTML = `<div class="text-center p-8 text-slate-400">Tidak ada game yang cocok.</div>`;
-        return;
-    }
-
-    renderGamesAsTable(gamesToRender);
-    renderGamesAsCards(gamesToRender);
-
-    document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEdit));
-    document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', handleDelete));
-    document.querySelectorAll('.game-checkbox').forEach(cb => cb.addEventListener('change', updateBulkActionUI));
-    updateSortIcons();
-}
-
-function renderGamesAsTable(gamesToRender) {
-    gamesToRender.forEach(game => {
-        const row = document.createElement('tr');
-        row.className = 'border-b border-slate-700 hover:bg-slate-700/50 transition-colors';
-        row.innerHTML = `
-            <td class="p-4"><input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-slate-600 border-slate-500 text-teal-500 focus:ring-teal-400"></td>
-            <td class="p-4 font-medium">${game.title}</td>
-            <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getPlatformBadgeClasses(game.platform)}">${game.platform}</span></td>
-            <td class="p-4 text-slate-300">${game.location}</td>
-            <td class="p-4 text-amber-400">${game.price ? formatPrice(game.price) : 'Gratis'}</td>
-            <td class="p-4"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClasses(game.status)}">${game.status}</span></td>
-            <td class="p-4 whitespace-nowrap">
-                <button class="edit-btn p-1 text-slate-400 hover:text-white" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
-                <button class="delete-btn p-1 text-slate-400 hover:text-red-400" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
-            </td>
-        `;
-        gameListBody.appendChild(row);
-    });
-}
-
-function renderGamesAsCards(gamesToRender) {
-    gamesToRender.forEach(game => {
-        const card = document.createElement('div');
-        card.className = 'card-item bg-slate-800 rounded-xl shadow-lg p-4 border border-slate-700 space-y-2';
-        card.innerHTML = `
-            <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-3">
-                    <input type="checkbox" data-id="${game.id}" class="game-checkbox rounded bg-slate-600 border-slate-500 text-teal-500 focus:ring-teal-400">
-                    <span class="font-bold text-lg text-white">${game.title}</span>
+    <!-- Main App Screen -->
+    <div id="app-screen" class="hidden flex flex-col h-screen">
+        <!-- Navbar -->
+        <header id="navbar" class="sticky top-4 z-40 p-2 mx-auto max-w-7xl">
+            <div class="bg-slate-900/50 backdrop-blur-lg rounded-full shadow-2xl border border-slate-700 flex items-center justify-between p-2 md:px-6 md:py-3">
+                <div class="flex items-center">
+                    <button id="open-sidebar-button" class="md:hidden text-white hover:text-teal-300 mr-4 p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
+                    </button>
+                    <div class="flex items-center">
+                        <img src="https://i.ibb.co.com/jvqg4gS7/game-1.png" alt="Koleksi Game" class="w-12 h-auto">
+                    </div>
                 </div>
-                <div class="flex space-x-1">
-                    <button class="edit-btn p-1 text-slate-400 hover:text-white" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg></button>
-                    <button class="delete-btn p-1 text-slate-400 hover:text-red-400" data-id="${game.id}"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg></button>
+
+                <nav id="tabs" class="hidden md:flex flex-grow justify-center space-x-6 nav-links-container">
+                    <button data-tab="tab-list" class="tab-button link-active text-white font-medium transition duration-200 hover:text-teal-300">Daftar Game</button>
+                    <button data-tab="tab-stats" class="tab-button text-white font-medium transition duration-200 hover:text-teal-300">Statistik</button>
+                    <button data-tab="tab-bulk" class="tab-button text-white font-medium transition duration-200 hover:text-teal-300">Aksi Masal</button>
+                    <button data-tab="tab-manage" class="tab-button text-white font-medium transition duration-200 hover:text-teal-300">Manajemen Data</button>
+                </nav>
+
+                <div id="user-profile" class="flex items-center space-x-3">
+                    <img id="user-photo" src="https://placehold.co/40x40/e2e8f0/e2e8f0" alt="User Photo" class="w-10 h-10 rounded-full border-2 border-teal-400">
+                    <div class="hidden md:block">
+                        <p id="user-name" class="font-semibold text-sm text-white">Guest User</p>
+                        <button id="logout-button-text" class="text-xs text-teal-300 hover:text-teal-200">Keluar</button>
+                    </div>
                 </div>
             </div>
-            <div class="flex justify-between text-sm text-slate-400"><span>Platform:</span><span class="font-semibold text-white">${game.platform}</span></div>
-            <div class="flex justify-between text-sm text-slate-400"><span>Lokasi:</span><span class="font-semibold text-white">${game.location}</span></div>
-            <div class="flex justify-between text-sm text-slate-400"><span>Harga:</span><span class="font-semibold text-amber-400">${game.price ? formatPrice(game.price) : 'Gratis'}</span></div>
-            <div class="flex justify-between text-sm text-slate-400"><span>Status:</span><span class="font-semibold text-white"><span class="px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClasses(game.status)}">${game.status}</span></span></div>
-        `;
-        gameListCards.appendChild(card);
-    });
-}
+        </header>
 
-// --- ADD/EDIT MODAL LOGIC ---
-function createGameRowHTML(game = {}) {
-    const isEdit = !!game.id;
-    return `
-        <div class="game-row p-4 border border-slate-700 rounded-lg space-y-3 relative">
-            ${isEdit ? '' : '<button type="button" class="remove-row-btn absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center">&times;</button>'}
-            <div>
-                <label class="block text-slate-300 text-sm font-bold mb-1">Judul Game</label>
-                <input type="text" class="game-title w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none" value="${game.title || ''}" required>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                <div>
-                    <label class="block text-slate-300 text-sm font-bold mb-1">Platform</label>
-                    <select class="game-platform w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
-                        <option ${game.platform === 'Steam' ? 'selected' : ''}>Steam</option><option ${game.platform === 'Epic' ? 'selected' : ''}>Epic</option><option ${game.platform === 'GOG' ? 'selected' : ''}>GOG</option><option ${game.platform === 'EA App' ? 'selected' : ''}>EA App</option><option ${game.platform === 'U-Connect' ? 'selected' : ''}>U-Connect</option><option ${game.platform === 'Ms Store' ? 'selected' : ''}>PCSX</option><option ${game.platform === 'PCSX' ? 'selected' : ''}>Crack</option>
-                    </select>
+        <!-- Main Content Area -->
+        <div class="flex flex-grow md:gap-6 md:p-8 pt-4 md:pt-0">
+            <!-- Sidebar (for mobile only) -->
+            <aside id="sidebar" class="fixed inset-y-0 left-0 bg-slate-800 w-60 p-6 flex flex-col z-50 transform -translate-x-full transition-transform duration-300 md:hidden rounded-2xl border border-slate-700 shadow-2xl">
+                <div class="flex-grow flex flex-col">
+                    <div class="flex items-center justify-between mb-8">
+                        <h1 class="text-2xl font-bold text-white">Menu</h1>
+                        <button id="close-sidebar-button" class="md:hidden text-slate-400 hover:text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                    <nav id="mobile-tabs" class="flex flex-col space-y-2">
+                        <button data-tab="tab-list" class="tab-button tab-active flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-slate-700"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v1H2V6zM2 9v7a2 2 0 002 2h12a2 2 0 002-2V9H2zm4-4a1 1 0 100-2 1 1 0 000 2zM8 5a1 1 0 100-2 1 1 0 000 2z"/></svg>Daftar Game</button>
+                        <button data-tab="tab-stats" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-slate-700"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>Statistik</button>
+                        <button data-tab="tab-bulk" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-slate-700"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>Aksi Masal</button>
+                        <button data-tab="tab-manage" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-slate-700"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>Manajemen Data</button>
+                    </nav>
                 </div>
-                <div>
-                    <label class="block text-slate-300 text-sm font-bold mb-1">Lokasi</label>
-                    <select class="game-location w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
-                        <option ${game.location === 'HDD Eksternal 2TB' ? 'selected' : ''}>HDD Eksternal 2TB</option><option ${game.location === 'HDD Eksternal 4TB' ? 'selected' : ''}>HDD Eksternal 4TB</option><option ${game.location === 'Internal SSD' ? 'selected' : ''}>Internal SSD</option><option ${game.location === 'Belum Install' ? 'selected' : ''}>Belum Install</option>
-                    </select>
+            </aside>
+            <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"></div>
+            
+            <main class="flex-1 p-4 md:p-0 overflow-y-auto">
+                <!-- Tab: Daftar Game -->
+                <div id="tab-list" class="tab-content transition-all duration-300 ease-in-out">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
+                        <h2 class="text-2xl sm:text-3xl font-bold text-white"></h2>
+                        <button id="add-game-button" class="w-full sm:w-auto bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105 shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                            Tambah Game
+                        </button>
+                    </div>
+                    <div class="bg-slate-800 p-4 md:p-6 rounded-xl shadow-lg border border-slate-700 mb-4">
+                        <h3 class="font-bold text-xl mb-4 text-white">Filter Game</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <input id="filter-title" type="text" placeholder="Filter berdasarkan judul..." class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white placeholder-slate-400">
+                            <select id="filter-platform" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white">
+                                <option value="">Semua Platform</option><option>Steam</option><option>Epic</option><option>GOG</option><option>EA App</option><option>U-Connect</option><option>Ms Store</option><option>PCSX</option>
+                            </select>
+                            <select id="filter-location" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white">
+                                <option value="">Semua Lokasi</option><option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option>
+                            </select>
+                            <select id="filter-status" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white">
+                                <option value="">Semua Status</option><option>Dimainkan</option><option>Belum dimainkan</option><option>Selesai</option>
+                            </select>
+                        </div>
+                     </div>
+                    <div class="hidden sm:block bg-slate-800 rounded-xl shadow-lg overflow-x-auto border border-slate-700">
+                        <table id="game-table" class="w-full text-left">
+                            <thead class="bg-slate-700/50">
+                                <tr>
+                                    <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="rounded bg-slate-600 border-slate-500 text-teal-500 focus:ring-teal-400"></th>
+                                    <th id="title-header" class="p-4 font-semibold text-white sortable" data-sort="title">Judul Game <span class="sort-icon"></span></th>
+                                    <th id="platform-header" class="p-4 font-semibold text-white sortable" data-sort="platform">Platform <span class="sort-icon"></span></th>
+                                    <th id="location-header" class="p-4 font-semibold text-white sortable" data-sort="location">Lokasi <span class="sort-icon"></span></th>
+                                    <th id="price-header" class="p-4 font-semibold text-white sortable" data-sort="price">Harga <span class="sort-icon"></span></th>
+                                    <th id="status-header" class="p-4 font-semibold text-white sortable" data-sort="status">Status <span class="sort-icon"></span></th>
+                                    <th class="p-4 font-semibold text-white">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="game-list-body">
+                                <tr><td colspan="7" class="text-center p-8 text-slate-400">Memuat data game...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="game-list-cards" class="sm:hidden card-grid">
+                        <div id="game-list-cards-empty" class="text-center p-8 text-slate-400">Memuat data game...</div>
+                    </div>
+                    <div id="pagination-container" class="flex justify-center items-center mt-6 space-x-1 sm:space-x-2"></div>
                 </div>
-                <div>
-                    <label class="block text-slate-300 text-sm font-bold mb-1">Harga (IDR)</label>
-                    <input type="number" class="game-price w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none" value="${game.price || '0'}" min="0">
+
+                <!-- Tab: Statistik -->
+                <div id="tab-stats" class="tab-content hidden opacity-0 translate-y-3 transition-all duration-300 ease-in-out">
+                     <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white"></h2>
+                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                         <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
+                            <h3 class="text-xl font-bold text-white mb-2">Total Harga Game</h3>
+                            <p id="total-price" class="text-3xl font-bold text-amber-400">Memuat...</p>
+                         </div>
+                         <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
+                             <h3 class="text-xl font-bold text-white mb-2">Game Termahal</h3>
+                             <p id="most-expensive-game" class="text-2xl font-bold text-amber-400">Memuat...</p>
+                         </div>
+                     </div>
+                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
+                            <h3 class="font-bold text-xl text-center mb-4 text-white">Game per Platform</h3>
+                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;"><canvas id="platform-chart"></canvas></div>
+                        </div>
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
+                            <h3 class="font-bold text-xl text-center mb-4 text-white">Game per Lokasi</h3>
+                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;"><canvas id="location-chart"></canvas></div>
+                        </div>
+                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg col-span-1 lg:col-span-2 border border-slate-700">
+                             <h3 class="font-bold mb-4 text-xl text-center text-white">Status Permainan</h3>
+                            <div class="relative h-64 w-full mx-auto" style="max-width: 800px;"><canvas id="status-chart"></canvas></div>
+                        </div>
+                     </div>
                 </div>
-                <div>
-                    <label class="block text-slate-300 text-sm font-bold mb-1">Status</label>
-                    <select class="game-status w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none">
-                        <option ${game.status === 'Belum dimainkan' ? 'selected' : ''}>Belum dimainkan</option><option ${game.status === 'Dimainkan' ? 'selected' : ''}>Dimainkan</option><option ${game.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
-                    </select>
+
+                <!-- Tab: Aksi Masal -->
+                <div id="tab-bulk" class="tab-content hidden opacity-0 translate-y-3 transition-all duration-300 ease-in-out">
+                     <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white"></h2>
+                     <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
+                        <h3 class="font-bold text-xl mb-4 text-white">Tindakan untuk Game Terpilih</h3>
+                        <p id="selection-info" class="text-slate-400 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal.</p>
+                        <div class="flex flex-wrap gap-4">
+                            <button id="bulk-edit-button" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:btn-disabled transform hover:scale-105 shadow-md" disabled><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>Edit Game Terpilih</button>
+                            <button id="bulk-delete-button" class="w-full sm:w-auto bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:btn-disabled transform hover:scale-105 shadow-md" disabled><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>Hapus Game Terpilih</button>
+                        </div>
+                     </div>
                 </div>
+
+                <!-- Tab: Manajemen Data -->
+                <div id="tab-manage" class="tab-content hidden opacity-0 translate-y-3 transition-all duration-300 ease-in-out">
+                    <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white"></h2>
+                    <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 class="font-bold text-xl mb-2 text-white">Ekspor Data</h3>
+                                <p class="text-slate-400 mb-4">Unduh semua koleksi game Anda sebagai file JSON.</p>
+                                <button id="download-json-button" class="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 transform hover:scale-105 shadow-md"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>Unduh JSON</button>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-xl mb-2 text-white">Impor Data</h3>
+                                <p class="text-slate-400 mb-4">Muat koleksi game dari file JSON.</p>
+                                <button id="upload-json-button" class="bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 transform hover:scale-105 shadow-md"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>Muat JSON</button>
+                                <input type="file" id="json-file-input" class="hidden" accept=".json">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Add/Edit Game Modal -->
+    <div id="game-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-slate-700" id="modal-content">
+            <h3 id="modal-title" class="text-2xl font-bold mb-6 text-white"></h3>
+            <form id="game-form">
+                <div class="max-h-[70vh] overflow-y-auto pr-2">
+                    <input type="hidden" id="game-id">
+                    <div id="game-rows-container" class="space-y-4"></div>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-between items-center mt-6 pt-4 border-t border-slate-700 gap-4">
+                    <button type="button" id="add-row-button" class="w-full sm:w-auto bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Tambah Baris</button>
+                    <div class="w-full sm:w-auto flex justify-end space-x-4">
+                        <button type="button" id="cancel-button" class="flex-1 sm:flex-none bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Batal</button>
+                        <button type="submit" id="save-form-button" class="flex-1 sm:flex-none bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Simpan</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bulk Edit Modal -->
+    <div id="bulk-edit-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-slate-800 w-full max-w-lg rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-slate-700" id="bulk-edit-modal-content">
+            <h3 class="text-2xl font-bold mb-6 text-white">Edit Game Secara Masal</h3>
+            <form id="bulk-edit-form">
+                <p id="bulk-edit-info" class="text-slate-400 mb-4"></p>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
+                        <input type="checkbox" id="bulk-update-platform-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-teal-500 focus:ring-teal-400">
+                        <div class="flex-grow">
+                            <label for="bulk-platform" class="block text-slate-300 text-sm font-bold mb-1">Platform</label>
+                            <select id="bulk-platform" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white"><option>Steam</option><option>Epic</option><option>GOG</option><option>EA App</option><option>U-Connect</option><option>Ms Store</option><option>PCSX</option></select>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
+                        <input type="checkbox" id="bulk-update-location-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-teal-500 focus:ring-teal-400">
+                        <div class="flex-grow">
+                            <label for="bulk-location" class="block text-slate-300 text-sm font-bold mb-1">Lokasi</label>
+                            <select id="bulk-location" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white"><option>HDD Eksternal 2TB</option><option>HDD Eksternal 4TB</option><option>Internal SSD</option><option>Belum Install</option></select>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
+                        <input type="checkbox" id="bulk-update-price-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-teal-500 focus:ring-teal-400">
+                        <div class="flex-grow">
+                            <label for="bulk-price" class="block text-slate-300 text-sm font-bold mb-1">Harga</label>
+                            <input type="number" id="bulk-price" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white" value="0" min="0">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
+                        <input type="checkbox" id="bulk-update-status-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-teal-500 focus:ring-teal-400">
+                        <div class="flex-grow">
+                            <label for="bulk-status" class="block text-slate-300 text-sm font-bold mb-1">Status</label>
+                            <select id="bulk-status" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white"><option>Belum dimainkan</option><option>Dimainkan</option><option>Selesai</option></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4 mt-6 pt-4 border-t border-slate-700">
+                    <button type="button" id="bulk-edit-cancel-button" class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Batal</button>
+                    <button type="submit" class="bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-confirm-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
+        <div class="bg-slate-800 w-full max-w-sm rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-slate-700" id="delete-confirm-modal-content">
+            <h3 class="text-2xl font-bold mb-4 text-white">Konfirmasi Penghapusan</h3>
+            <p id="delete-confirm-message" class="text-slate-400 mb-6"></p>
+            <div class="flex justify-end space-x-4">
+                <button type="button" id="cancel-delete-button" class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Batal</button>
+                <button type="button" id="confirm-delete-button" class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Hapus</button>
             </div>
         </div>
-    `;
-}
+    </div>
 
-function addNewGameRow() {
-    gameRowsContainer.insertAdjacentHTML('beforeend', createGameRowHTML());
-}
-
-gameRowsContainer.addEventListener('click', (e) => {
-    if (e.target.matches('.remove-row-btn')) {
-        e.target.closest('.game-row').remove();
-    }
-});
-
-function openModal(game = null) {
-    gameRowsContainer.innerHTML = '';
-    document.getElementById('game-id').value = game ? game.id : '';
-    
-    if (game) { // Edit mode
-        modalTitle.textContent = 'Edit Game';
-        gameRowsContainer.innerHTML = createGameRowHTML(game);
-        addRowButton.classList.add('hidden');
-    } else { // Add mode
-        modalTitle.textContent = 'Tambah Game Baru';
-        addNewGameRow();
-        addRowButton.classList.remove('hidden');
-    }
-    
-    gameModal.classList.remove('hidden');
-    gameModal.classList.add('flex');
-    setTimeout(() => modalContent.classList.remove('scale-95', 'opacity-0'), 10);
-}
-
-function closeModal() {
-    modalContent.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => {
-        gameModal.classList.add('hidden');
-        gameModal.classList.remove('flex');
-    }, 200);
-}
-
-addGameButton.addEventListener('click', () => openModal());
-addRowButton.addEventListener('click', addNewGameRow);
-cancelButton.addEventListener('click', closeModal);
-gameModal.addEventListener('click', (e) => {
-    if (e.target === gameModal) closeModal();
-});
-
-gameForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!currentUser) return;
-    const id = document.getElementById('game-id').value;
-    
-    try {
-        if (id) {
-            const row = gameRowsContainer.querySelector('.game-row');
-            const gameData = {
-                title: row.querySelector('.game-title').value,
-                platform: row.querySelector('.game-platform').value,
-                location: row.querySelector('.game-location').value,
-                price: parseInt(row.querySelector('.game-price').value, 10),
-                status: row.querySelector('.game-status').value,
-            };
-            if (!gameData.title) {
-                showToast("Judul game tidak boleh kosong.", true);
-                return;
-            }
-            const gameRef = doc(db, 'games', currentUser.uid, 'userGames', id);
-            await updateDoc(gameRef, gameData);
-            showToast('Game berhasil diperbarui!');
-        } else {
-            const rows = gameRowsContainer.querySelectorAll('.game-row');
-            if (rows.length === 0) return showToast("Tidak ada game untuk ditambahkan.", true);
-            
-            const batch = writeBatch(db);
-            let gamesAdded = 0;
-            rows.forEach(row => {
-                const gameData = {
-                    title: row.querySelector('.game-title').value, platform: row.querySelector('.game-platform').value, location: row.querySelector('.game-location').value, price: parseInt(row.querySelector('.game-price').value, 10), status: row.querySelector('.game-status').value,
-                };
-                if (gameData.title) {
-                    const newGameRef = doc(collection(db, 'games', currentUser.uid, 'userGames'));
-                    batch.set(newGameRef, gameData);
-                    gamesAdded++;
-                }
-            });
-            
-            if (gamesAdded > 0) {
-                await batch.commit();
-                showToast(`${gamesAdded} game berhasil ditambahkan!`);
-            } else {
-                return showToast("Tidak ada game untuk ditambahkan.", true);
-            }
-        }
-        closeModal();
-    } catch (error) {
-        console.error("Error saving game(s): ", error);
-        showToast(`Gagal menyimpan: ${error.message}`, true);
-    }
-});
-
-function handleEdit(e) {
-    const id = e.currentTarget.dataset.id;
-    const game = games.find(g => g.id === id);
-    if(game) openModal(game);
-}
-
-// --- DELETE CONFIRMATION MODAL LOGIC ---
-function openDeleteConfirmModal(id, message, onConfirmCallback) {
-    gameIdToDelete = id;
-    deleteConfirmMessage.textContent = message;
-    currentConfirmCallback = onConfirmCallback;
-    deleteConfirmModal.classList.remove('hidden');
-    deleteConfirmModal.classList.add('flex');
-    setTimeout(() => deleteConfirmModalContent.classList.remove('scale-95', 'opacity-0'), 10);
-}
-
-function closeDeleteConfirmModal() {
-    deleteConfirmModalContent.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => {
-        deleteConfirmModal.classList.add('hidden');
-        deleteConfirmModal.classList.remove('flex');
-        gameIdToDelete = null;
-        currentConfirmCallback = null;
-    }, 200);
-}
-
-cancelDeleteButton.addEventListener('click', closeDeleteConfirmModal);
-deleteConfirmModal.addEventListener('click', (e) => {
-    if (e.target === deleteConfirmModal) closeDeleteConfirmModal();
-});
-
-confirmDeleteButton.addEventListener('click', async () => {
-    if (currentConfirmCallback) await currentConfirmCallback();
-});
-
-function handleDelete(e) {
-    const id = e.currentTarget.dataset.id;
-    const gameTitle = games.find(g => g.id === id)?.title || 'game ini';
-    openDeleteConfirmModal(id, `Apakah Anda yakin ingin menghapus ${gameTitle}?`, async () => {
-        try {
-            await deleteDoc(doc(db, 'games', currentUser.uid, 'userGames', id));
-            showToast('Game berhasil dihapus.');
-            closeDeleteConfirmModal();
-        } catch (error) {
-            console.error("Error deleting game: ", error);
-            showToast(`Gagal menghapus: ${error.message}`, true);
-        }
-    });
-}
-
-// --- TAB SWITCHING ---
-const tabs = document.getElementById('tabs');
-const mobileTabs = document.getElementById('mobile-tabs');
-const tabContents = document.querySelectorAll('.tab-content');
-
-function handleTabClick(e) {
-    const button = e.target.closest('.tab-button');
-    if (!button) return;
-
-    // --- Button styling ---
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('tab-active', 'link-active', 'tab-inactive');
-    });
-
-    button.classList.add('link-active'); 
-    
-    const tabId = button.dataset.tab;
-
-    // --- Content switching with transition ---
-    tabContents.forEach(content => {
-        if (content.id === tabId) {
-            // This is the tab to show
-            content.classList.remove('hidden');
-            // Use a timeout to allow the 'display' property to be applied before the transition starts
-            setTimeout(() => {
-                content.classList.remove('opacity-0', 'translate-y-3');
-            }, 10);
-        } else {
-            // This is a tab to hide
-            content.classList.add('opacity-0', 'translate-y-3');
-            // Add 'hidden' after the transition is complete
-            setTimeout(() => {
-                content.classList.add('hidden');
-            }, 300); // This should match the CSS transition duration
-        }
-    });
-    
-    if (window.innerWidth < 768) closeSidebar();
-}
-
-tabs.addEventListener('click', handleTabClick);
-mobileTabs.addEventListener('click', handleTabClick);
-
-
-// --- CHART LOGIC ---
-function initCharts() {
-    const pieDoughnutOptions = {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1', padding: 15, font: { size: 12 } } } },
-        onHover: (event, chartElement) => { event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default'; },
-        elements: { arc: { hoverOffset: 12, borderWidth: 0 } }
-    };
-    const barOptions = { 
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        onHover: (event, chartElement) => { event.native.target.style.cursor = chartElement.length ? 'pointer' : 'default'; },
-        scales: {
-            y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } },
-            x: { ticks: { color: '#94a3b8' }, grid: { color: '#1e293b' } }
-        }
-    };
-
-    platformChart = new Chart(document.getElementById('platform-chart'), { type: 'doughnut', data: {}, options: pieDoughnutOptions });
-    locationChart = new Chart(document.getElementById('location-chart'), { type: 'pie', data: {}, options: pieDoughnutOptions });
-    statusChart = new Chart(document.getElementById('status-chart'), { type: 'bar', data: {}, options: barOptions });
-}
-
-function updateCharts() {
-    if (!platformChart) initCharts();
-
-    const totalPrice = games.reduce((sum, game) => sum + (game.price || 0), 0);
-    const mostExpensiveGame = games.length > 0 ? games.reduce((max, game) => (game.price > max.price ? game : max), { price: 0 }) : null;
-    totalPriceElement.textContent = formatPrice(totalPrice);
-    mostExpensiveGameElement.textContent = mostExpensiveGame && mostExpensiveGame.price > 0 ? `${mostExpensiveGame.title} (${formatPrice(mostExpensiveGame.price)})` : "Belum ada game";
-
-    const platformData = games.reduce((acc, game) => { acc[game.platform] = (acc[game.platform] || 0) + 1; return acc; }, {});
-    platformChart.data = {
-        labels: Object.keys(platformData),
-        datasets: [{ data: Object.values(platformData), backgroundColor: ['#14b8a6', '#6366f1', '#ec4899', '#f97316', '#0ea5e9', '#ef4444', '#facc15'] }]
-    };
-    platformChart.update();
-
-    const locationData = games.reduce((acc, game) => { acc[game.location] = (acc[game.location] || 0) + 1; return acc; }, {});
-    locationChart.data = {
-        labels: Object.keys(locationData),
-        datasets: [{ data: Object.values(locationData), backgroundColor: ['#10b981', '#06b6d4', '#8b5cf6', '#f59e0b'] }]
-    };
-    locationChart.update();
-    
-    const statusData = games.reduce((acc, game) => { acc[game.status] = (acc[game.status] || 0) + 1; return acc; }, {});
-    const statusLabels = Object.keys(statusData);
-    const statusColors = { 'Belum dimainkan': '#64748b', 'Dimainkan': '#14b8a6', 'Selesai': '#22c55e' };
-    const hoverStatusColors = { 'Belum dimainkan': '#94a3b8', 'Dimainkan': '#2dd4bf', 'Selesai': '#4ade80' };
-    statusChart.data = {
-        labels: statusLabels,
-        datasets: [{ 
-            label: 'Jumlah Game', data: Object.values(statusData), 
-            backgroundColor: statusLabels.map(label => statusColors[label] || '#64748b'),
-            hoverBackgroundColor: statusLabels.map(label => hoverStatusColors[label] || '#94a3b8'),
-            borderRadius: 4, borderWidth: 2, borderColor: 'transparent', hoverBorderColor: '#6366f1'
-        }]
-    };
-    statusChart.update();
-}
-
-// --- FILTERING, SORTING, PAGINATION ---
-const filterTitle = document.getElementById('filter-title');
-const filterPlatform = document.getElementById('filter-platform');
-const filterLocation = document.getElementById('filter-location');
-const filterStatus = document.getElementById('filter-status');
-
-[filterTitle, filterPlatform, filterLocation, filterStatus].forEach(el => {
-    el.addEventListener('input', () => {
-        currentPage = 1;
-        applyFiltersAndSort();
-    });
-});
-
-function updateSortIcons() {
-    document.querySelectorAll('.sort-icon').forEach(icon => icon.textContent = '');
-    if (sortState.column) {
-        const currentHeader = document.querySelector(`th[data-sort="${sortState.column}"] .sort-icon`);
-        if (currentHeader) currentHeader.textContent = sortState.direction === 'asc' ? '▲' : '▼';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.sortable').forEach(header => {
-        header.addEventListener('click', (e) => {
-            const column = e.currentTarget.dataset.sort;
-            sortState.direction = (sortState.column === column && sortState.direction === 'asc') ? 'desc' : 'asc';
-            sortState.column = column;
-            currentPage = 1;
-            applyFiltersAndSort();
-        });
-    });
-    updateSortIcons();
-});
-
-function applyFiltersAndSort() {
-    const title = filterTitle.value.toLowerCase();
-    const platform = filterPlatform.value;
-    const location = filterLocation.value;
-    const status = filterStatus.value;
-
-    filteredGames = games.filter(game => 
-        (game.title.toLowerCase().includes(title)) &&
-        (platform === '' || game.platform === platform) &&
-        (location === '' || game.location === location) &&
-        (status === '' || game.status === status)
-    );
-    
-    if (sortState.column) {
-        filteredGames.sort((a, b) => {
-            let aVal = a[sortState.column] || '';
-            let bVal = b[sortState.column] || '';
-            const comparison = typeof aVal === 'string' ? aVal.localeCompare(bVal, undefined, { sensitivity: 'base' }) : aVal - bVal;
-            return sortState.direction === 'asc' ? comparison : -comparison;
-        });
-    }
-
-    displayPage();
-}
-
-function displayPage() {
-    const paginatedGames = filteredGames.slice((currentPage - 1) * gamesPerPage, currentPage * gamesPerPage);
-    renderGames(paginatedGames);
-    setupPagination();
-    updateBulkActionUI();
-    document.getElementById('select-all-checkbox').checked = false;
-}
-
-function setupPagination() {
-    paginationContainer.innerHTML = '';
-    const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
-    if (totalPages <= 1) return;
-
-    // Simplified pagination buttons
-    const createButton = (content, page, isDisabled = false) => {
-        const button = document.createElement('button');
-        button.innerHTML = content;
-        button.className = 'px-3 py-1 rounded-md bg-slate-700 hover:bg-slate-600 pagination-button';
-        if (page === currentPage) button.classList.add('active');
-        button.disabled = isDisabled;
-        button.addEventListener('click', () => { currentPage = page; displayPage(); });
-        return button;
-    };
-    
-    paginationContainer.appendChild(createButton('&laquo;', currentPage - 1, currentPage === 1));
-    // Always show first page
-    if (currentPage > 2) paginationContainer.appendChild(createButton('1', 1));
-    if (currentPage > 3) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-slate-400">...</span>`);
-
-    // Show current page and neighbors
-    for (let i = Math.max(1, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
-        if (i !== 1 && i !== totalPages) {
-            paginationContainer.appendChild(createButton(i, i));
-        }
-    }
-
-    // Always show last page
-    if (currentPage < totalPages - 2) paginationContainer.insertAdjacentHTML('beforeend', `<span class="px-2 py-1 text-slate-400">...</span>`);
-    if (currentPage < totalPages - 1) paginationContainer.appendChild(createButton(totalPages, totalPages));
-    paginationContainer.appendChild(createButton('&raquo;', currentPage + 1, currentPage === totalPages));
-}
-
-// --- BULK ACTIONS LOGIC ---
-const selectAllCheckbox = document.getElementById('select-all-checkbox');
-const bulkDeleteButton = document.getElementById('bulk-delete-button');
-const bulkEditButton = document.getElementById('bulk-edit-button');
-const selectionInfo = document.getElementById('selection-info');
-
-selectAllCheckbox.addEventListener('change', (e) => {
-    document.querySelectorAll('.game-checkbox').forEach(cb => { cb.checked = e.target.checked; });
-    updateBulkActionUI();
-});
-
-function updateBulkActionUI() {
-    const selectedCount = getSelectedGameIds().length;
-    bulkDeleteButton.disabled = bulkEditButton.disabled = selectedCount === 0;
-    selectionInfo.innerHTML = selectedCount > 0 ? `<b>${selectedCount} game terpilih.</b>` : `Pilih game untuk melakukan aksi masal.`;
-}
-
-function getSelectedGameIds() {
-    return Array.from(document.querySelectorAll('.game-checkbox:checked')).map(cb => cb.dataset.id);
-}
-
-bulkDeleteButton.addEventListener('click', () => {
-    const idsToDelete = getSelectedGameIds();
-    if (idsToDelete.length === 0) return;
-    
-    openDeleteConfirmModal(null, `Apakah Anda yakin ingin menghapus ${idsToDelete.length} game terpilih?`, async () => {
-        try {
-            const batch = writeBatch(db);
-            idsToDelete.forEach(id => batch.delete(doc(db, 'games', currentUser.uid, 'userGames', id)));
-            await batch.commit();
-            showToast(`${idsToDelete.length} game berhasil dihapus.`);
-            selectAllCheckbox.checked = false;
-            closeDeleteConfirmModal();
-        } catch (error) {
-            console.error("Error bulk deleting: ", error);
-            showToast(`Gagal menghapus: ${error.message}`, true);
-        }
-    });
-});
-
-function openBulkEditModal() {
-    const selectedIds = getSelectedGameIds();
-    if (selectedIds.length === 0) return;
-    bulkEditInfo.textContent = `Anda akan mengedit ${selectedIds.length} game.`;
-    bulkEditForm.reset();
-    bulkEditModal.classList.remove('hidden');
-    bulkEditModal.classList.add('flex');
-    setTimeout(() => bulkEditModalContent.classList.remove('scale-95', 'opacity-0'), 10);
-}
-
-function closeBulkEditModal() {
-    bulkEditModalContent.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => {
-        bulkEditModal.classList.add('hidden');
-        bulkEditModal.classList.remove('flex');
-    }, 200);
-}
-
-bulkEditButton.addEventListener('click', openBulkEditModal);
-bulkEditCancelButton.addEventListener('click', closeBulkEditModal);
-bulkEditModal.addEventListener('click', (e) => { if (e.target === bulkEditModal) closeBulkEditModal(); });
-
-bulkEditForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const idsToUpdate = getSelectedGameIds();
-    const updateData = {};
-    if (document.getElementById('bulk-update-platform-check').checked) updateData.platform = document.getElementById('bulk-platform').value;
-    if (document.getElementById('bulk-update-location-check').checked) updateData.location = document.getElementById('bulk-location').value;
-    if (document.getElementById('bulk-update-price-check').checked) updateData.price = parseInt(document.getElementById('bulk-price').value, 10);
-    if (document.getElementById('bulk-update-status-check').checked) updateData.status = document.getElementById('bulk-status').value;
-
-    if (idsToUpdate.length === 0 || Object.keys(updateData).length === 0) {
-        return showToast("Pilih game dan properti untuk diubah.", true);
-    }
-
-    try {
-        const batch = writeBatch(db);
-        idsToUpdate.forEach(id => batch.update(doc(db, 'games', currentUser.uid, 'userGames', id), updateData));
-        await batch.commit();
-        showToast(`${idsToUpdate.length} game berhasil diperbarui.`);
-        selectAllCheckbox.checked = false;
-        closeBulkEditModal();
-    } catch (error) {
-        console.error("Error bulk updating: ", error);
-        showToast(`Gagal memperbarui: ${error.message}`, true);
-    }
-});
-
-// --- DATA MANAGEMENT ---
-const downloadJsonButton = document.getElementById('download-json-button');
-const uploadJsonButton = document.getElementById('upload-json-button');
-const jsonFileInput = document.getElementById('json-file-input');
-
-downloadJsonButton.addEventListener('click', () => {
-    if (games.length === 0) return showToast("Tidak ada data untuk diunduh.", true);
-    const dataStr = JSON.stringify(games.map(({id, ...rest}) => rest), null, 2);
-    const linkElement = document.createElement('a');
-    linkElement.href = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    linkElement.download = 'koleksi_game.json';
-    linkElement.click();
-    showToast("Data sedang diunduh...");
-});
-
-uploadJsonButton.addEventListener('click', () => jsonFileInput.click());
-
-jsonFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-        try {
-            const importedGames = JSON.parse(event.target.result);
-            if (!Array.isArray(importedGames)) throw new Error("File JSON harus berupa array.");
-            
-            openDeleteConfirmModal(null, `Anda akan mengimpor ${importedGames.length} game. Lanjutkan?`, async () => {
-                try {
-                    const batch = writeBatch(db);
-                    importedGames.forEach(game => {
-                        if (game.title && game.platform && game.location && game.status) {
-                            batch.set(doc(collection(db, 'games', currentUser.uid, 'userGames')), game);
-                        }
-                    });
-                    await batch.commit();
-                    showToast(`${importedGames.length} game berhasil diimpor.`);
-                    closeDeleteConfirmModal();
-                } catch (error) {
-                    console.error("Error importing JSON: ", error);
-                    showToast(`Gagal mengimpor: ${error.message}`, true);
-                } finally {
-                    jsonFileInput.value = '';
-                }
-            });
-        } catch (error) {
-            console.error("Error parsing JSON: ", error);
-            showToast(`Gagal memuat file: ${error.message}`, true);
-        }
-    };
-    reader.readAsText(file);
-});
+    <!-- Custom Alert/Toast -->
+    <div id="toast" class="fixed bottom-5 right-1/2 translate-x-1/2 w-11/12 max-w-sm bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+        <p id="toast-message">Operasi berhasil!</p>
+    </div>
+	<script type="module" src="/script.js"></script>
+</body>
+</html>
 
