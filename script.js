@@ -141,42 +141,45 @@ function formatPrice(price) {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
 }
 
-// --- COLOR GENERATOR (UPDATED) ---
+// --- COLOR GENERATOR (UPDATED & ROBUST) ---
 function generatePlatformColor(str) {
     if (!str) return '#e5e7eb'; // Gray default
     
-    // Daftar Warna Manual (Overrides)
+    const normalizedStr = str.trim(); // Hapus spasi berlebih
+    
+    // Daftar Warna Manual (Overrides) - Gunakan !important di render nanti
     const colorOverrides = {
-        'GOG': 'hsl(270, 90%, 75%)',             // Ungu (GOG)
+        'GOG': 'hsl(270, 90%, 75%)',             // Ungu
         
-        'U-Connect': 'hsl(175, 90%, 70%)',       // Teal (Ubisoft)
+        'U-Connect': 'hsl(175, 90%, 70%)',       // Teal
         'Ubisoft': 'hsl(175, 90%, 70%)',
         'Ubisoft Connect': 'hsl(175, 90%, 70%)',
         
-        'EA': 'hsl(30, 100%, 70%)',              // Orange (EA)
+        'EA': 'hsl(30, 100%, 70%)',              // Orange
         'EA App': 'hsl(30, 100%, 70%)',
         'Origin': 'hsl(30, 100%, 70%)',
 
-        'Steam': 'hsl(210, 90%, 75%)',           // Biru Standar
+        'Steam': 'hsl(210, 90%, 75%)',           // Biru
         'Epic': 'hsl(0, 0%, 80%)',               // Abu-abu
         'Switch': 'hsl(0, 90%, 75%)',            // Merah
-        'PS5': 'hsl(240, 90%, 80%)',             // Biru Keputihan
+        'Nintendo Switch': 'hsl(0, 90%, 75%)',
+        'PS5': 'hsl(240, 90%, 80%)',             // Biru Muda/Putih
         'PlayStation': 'hsl(240, 90%, 80%)',
-        'Xbox': 'hsl(120, 90%, 75%)'             // Hijau
+        'Xbox': 'hsl(120, 90%, 75%)',            // Hijau
+        'Game Pass': 'hsl(120, 90%, 75%)'
     };
 
-    // Cek apakah nama platform ada di daftar override (case-insensitive match)
-    const key = Object.keys(colorOverrides).find(k => k.toLowerCase() === str.toLowerCase());
+    // Pencarian case-insensitive yang lebih aman
+    const key = Object.keys(colorOverrides).find(k => k.toLowerCase() === normalizedStr.toLowerCase());
     if (key) {
         return colorOverrides[key];
     }
 
-    // Jika tidak ada di daftar manual, gunakan generator otomatis (Hash)
+    // Generator Otomatis (Hash) untuk platform lain
     let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < normalizedStr.length; i++) {
+        hash = normalizedStr.charCodeAt(i) + ((hash << 5) - hash);
     }
-    
     const h = Math.abs(hash % 360);
     return `hsl(${h}, 90%, 75%)`;
 }
@@ -250,7 +253,6 @@ function renderGames(gamesToRender) {
         if(game.status === 'Dimainkan') statusColor = 'bg-cyan-300';
         if(game.status === 'Selesai') statusColor = 'bg-lime-400';
         
-        // Menggunakan generator warna dinamis
         const platformColor = generatePlatformColor(game.platform);
         
         card.innerHTML = `
@@ -260,8 +262,8 @@ function renderGames(gamesToRender) {
             <div class="mb-4 pr-8">
                 <h3 class="font-display font-black text-lg leading-tight mb-2 uppercase break-words">${game.title}</h3>
                 <div class="flex flex-wrap gap-2">
-                    <!-- Terapkan warna dinamis sebagai inline style -->
-                    <span class="neo-badge" style="background-color: ${platformColor};">${game.platform}</span>
+                    <!-- Force background color with !important -->
+                    <span class="neo-badge" style="background-color: ${platformColor} !important;">${game.platform}</span>
                     <span class="neo-badge ${statusColor}">${game.status}</span>
                 </div>
             </div>
@@ -298,7 +300,6 @@ function renderList(type) {
         const div = document.createElement('div');
         div.className = 'flex justify-between items-center bg-white border-2 border-black p-2 shadow-sm';
         
-        // Tambahkan sedikit indikator warna untuk item platform di list manajemen
         let colorDot = '';
         if (type === 'platform') {
             colorDot = `<span class="w-4 h-4 border-2 border-black mr-2 inline-block" style="background-color: ${generatePlatformColor(item.name)}"></span>`;
