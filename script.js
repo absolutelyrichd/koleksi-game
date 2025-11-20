@@ -141,6 +141,22 @@ function formatPrice(price) {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
 }
 
+// --- COLOR GENERATOR (BARU) ---
+function generatePlatformColor(str) {
+    if (!str) return '#e5e7eb'; // Gray default
+    
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    // Konversi hash ke HSL color agar cerah dan konsisten (Neobrutalism style)
+    // Saturation: 85-100% (Sangat cerah)
+    // Lightness: 65-75% (Terang, tapi teks hitam masih terbaca)
+    const h = Math.abs(hash % 360);
+    return `hsl(${h}, 90%, 75%)`;
+}
+
 // --- CRUD LOGIC ---
 
 async function addDefaultData(collectionName, defaultItems) {
@@ -210,6 +226,9 @@ function renderGames(gamesToRender) {
         if(game.status === 'Dimainkan') statusColor = 'bg-cyan-300';
         if(game.status === 'Selesai') statusColor = 'bg-lime-400';
         
+        // Menggunakan generator warna dinamis
+        const platformColor = generatePlatformColor(game.platform);
+        
         card.innerHTML = `
             <div class="absolute top-4 right-4">
                 <input type="checkbox" data-id="${game.id}" class="game-checkbox w-6 h-6 border-3 border-black accent-black">
@@ -217,7 +236,8 @@ function renderGames(gamesToRender) {
             <div class="mb-4 pr-8">
                 <h3 class="font-display font-black text-lg leading-tight mb-2 uppercase break-words">${game.title}</h3>
                 <div class="flex flex-wrap gap-2">
-                    <span class="neo-badge bg-yellow-300">${game.platform}</span>
+                    <!-- Terapkan warna dinamis sebagai inline style -->
+                    <span class="neo-badge" style="background-color: ${platformColor};">${game.platform}</span>
                     <span class="neo-badge ${statusColor}">${game.status}</span>
                 </div>
             </div>
@@ -253,8 +273,18 @@ function renderList(type) {
     list.forEach(item => {
         const div = document.createElement('div');
         div.className = 'flex justify-between items-center bg-white border-2 border-black p-2 shadow-sm';
+        
+        // Tambahkan sedikit indikator warna untuk item platform di list manajemen
+        let colorDot = '';
+        if (type === 'platform') {
+            colorDot = `<span class="w-4 h-4 border-2 border-black mr-2 inline-block" style="background-color: ${generatePlatformColor(item.name)}"></span>`;
+        }
+
         div.innerHTML = `
-            <span class="font-bold text-sm">${item.name}</span>
+            <div class="flex items-center">
+                ${colorDot}
+                <span class="font-bold text-sm">${item.name}</span>
+            </div>
             <div class="flex gap-1">
                 <button class="edit-item-btn p-1 hover:bg-yellow-200 border border-transparent hover:border-black transition" data-id="${item.id}" data-type="${type}" data-name="${item.name}">✏️</button>
                 <button class="delete-item-btn p-1 hover:bg-red-200 border border-transparent hover:border-black transition" data-id="${item.id}" data-type="${type}" data-name="${item.name}">🗑️</button>
@@ -264,7 +294,7 @@ function renderList(type) {
     });
 }
 
-// --- UI LOGIC (UPDATED FOR MULTI-ROW) ---
+// --- UI LOGIC (MULTI-ROW) ---
 
 function createGameRowHTML(game = null) {
     const g = game || {};
@@ -273,7 +303,6 @@ function createGameRowHTML(game = null) {
     const platformOptions = platforms.map(p => `<option value="${p.name}" ${g.platform === p.name ? 'selected' : ''}>${p.name}</option>`).join('');
     const locationOptions = locations.map(l => `<option value="${l.name}" ${g.location === l.name ? 'selected' : ''}>${l.name}</option>`).join('');
     
-    // Tombol hapus hanya muncul jika kita dalam mode tambah (bukan edit single)
     const deleteBtn = isEditMode ? '' : `<button type="button" class="remove-row-btn absolute top-0 right-0 bg-red-500 text-white w-8 h-8 flex items-center justify-center border-l-2 border-b-2 border-black font-bold hover:bg-red-600 z-10" title="Hapus Baris">✕</button>`;
 
     return `
@@ -319,7 +348,6 @@ function addNewGameRow() {
     gameRowsContainer.insertAdjacentHTML('beforeend', createGameRowHTML());
 }
 
-// Event listener untuk tombol hapus di dalam baris
 if(gameRowsContainer) {
     gameRowsContainer.addEventListener('click', (e) => {
         if (e.target.classList.contains('remove-row-btn')) {
@@ -331,16 +359,12 @@ if(gameRowsContainer) {
 function openModal(game = null) {
     document.getElementById('game-id').value = game ? game.id : '';
     modalTitle.textContent = game ? 'EDIT GAME' : 'TAMBAH GAME (BATCH)';
-    
-    // Reset container
     gameRowsContainer.innerHTML = '';
 
     if (game) {
-        // Mode Edit: Hanya 1 baris, tombol tambah disembunyikan
         gameRowsContainer.innerHTML = createGameRowHTML(game);
         addRowButton.classList.add('hidden');
     } else {
-        // Mode Tambah: Mulai dengan 1 baris, tombol tambah ditampilkan
         addNewGameRow();
         addRowButton.classList.remove('hidden');
     }
@@ -359,7 +383,7 @@ function closeModal() {
 }
 
 if(addGameButton) addGameButton.addEventListener('click', () => openModal());
-if(addRowButton) addRowButton.addEventListener('click', addNewGameRow); // Event listener untuk tombol tambah row
+if(addRowButton) addRowButton.addEventListener('click', addNewGameRow);
 if(cancelButton) cancelButton.addEventListener('click', closeModal);
 
 if(gameForm) {
@@ -371,7 +395,6 @@ if(gameForm) {
         
         try {
             if (id) {
-                // --- UPDATE SINGLE GAME ---
                 const row = gameRowsContainer.querySelector('.game-row');
                 const gameData = {
                     title: row.querySelector('.game-title').value,
@@ -383,15 +406,11 @@ if(gameForm) {
                 await updateDoc(doc(db, 'games', currentUser.uid, 'userGames', id), gameData);
                 showToast('DATA DIPERBARUI');
             } else {
-                // --- BATCH ADD GAMES ---
                 const rows = gameRowsContainer.querySelectorAll('.game-row');
-                if (rows.length === 0) {
-                    return showToast("Tidak ada data untuk disimpan", true);
-                }
+                if (rows.length === 0) return showToast("Tidak ada data untuk disimpan", true);
 
                 const batch = writeBatch(db);
                 let count = 0;
-
                 rows.forEach(row => {
                     const title = row.querySelector('.game-title').value.trim();
                     if (title) {
@@ -402,7 +421,6 @@ if(gameForm) {
                             price: parseInt(row.querySelector('.game-price').value, 10) || 0,
                             status: row.querySelector('.game-status').value,
                         };
-                        // Buat referensi dokumen baru dengan ID otomatis
                         const newGameRef = doc(collection(db, 'games', currentUser.uid, 'userGames'));
                         batch.set(newGameRef, gameData);
                         count++;
@@ -431,10 +449,8 @@ const tabContents = document.querySelectorAll('.tab-content');
 if(tabs) {
     tabs.addEventListener('click', (e) => {
         if (!e.target.classList.contains('tab-btn')) return;
-        
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         e.target.classList.add('active');
-        
         const targetId = e.target.dataset.tab;
         tabContents.forEach(content => {
             if (content.id === targetId) content.classList.remove('hidden');
@@ -483,7 +499,6 @@ function displayPage() {
             paginationContainer.appendChild(btn);
         }
     }
-    
     updateBulkActionUI();
 }
 
@@ -549,7 +564,6 @@ if(cancelDeleteButton) {
 function updateBulkActionUI() {
     const selected = document.querySelectorAll('.game-checkbox:checked');
     const count = selected.length;
-    
     if(count > 0 && bulkActionsBar) {
         bulkActionsBar.classList.remove('hidden');
         document.getElementById('selection-info').textContent = `${count} DIPILIH`;
@@ -616,7 +630,7 @@ if(bulkEditForm) {
     });
 }
 
-// --- CHARTS ---
+// --- CHARTS (UPDATED COLORS) ---
 function updateCharts() {
     const totalPrice = games.reduce((sum, g) => sum + (g.price || 0), 0);
     const expensive = games.reduce((max, g) => (g.price > max.price ? g : max), { price: 0 });
@@ -631,7 +645,6 @@ function updateCharts() {
         sData[g.status] = (sData[g.status] || 0) + 1;
     });
 
-    // Neobrutal Chart Options
     const chartConfig = (type, labels, data, colors) => ({
         type: type,
         data: {
@@ -658,10 +671,15 @@ function updateCharts() {
         statusChart = new Chart(sc, chartConfig('bar', Object.keys(sData), Object.values(sData), '#a3e635'));
     }
 
+    // Update Platform Chart agar warnanya sinkron dengan Badge
     const pc = document.getElementById('platform-chart');
     if(pc) {
         if(platformChart) platformChart.destroy();
-        platformChart = new Chart(pc, chartConfig('pie', Object.keys(pData), Object.values(pData), ['#22d3ee', '#f472b6', '#facc15', '#a3e635', '#c084fc']));
+        // Generate array warna berdasarkan label platform
+        const platformLabels = Object.keys(pData);
+        const platformColors = platformLabels.map(label => generatePlatformColor(label));
+        
+        platformChart = new Chart(pc, chartConfig('pie', platformLabels, Object.values(pData), platformColors));
     }
 
     const lc = document.getElementById('location-chart');
@@ -696,7 +714,6 @@ if(addLocationBtn) {
     });
 }
 
-// Event Delegation for Edit/Delete Items
 const setupItemListeners = (container) => {
     if(!container) return;
     container.addEventListener('click', (e) => {
