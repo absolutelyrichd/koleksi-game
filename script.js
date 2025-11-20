@@ -2,9 +2,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, writeBatch, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// --- Firebase Config ---
+// --- Firebase Config (SUDAH DIPERBAIKI) ---
 const firebaseConfig = {
-    apiKey: "", // Provided by environment
+    apiKey: "AIzaSyAzJTL179V9bT-DfefZq9gcG8Tz88VzLmQ",
     authDomain: "koleksi-game.firebaseapp.com",
     projectId: "koleksi-game",
     storageBucket: "koleksi-game.appspot.com",
@@ -30,7 +30,7 @@ let unsubscribeLocations = null;
 
 // --- Pagination state ---
 let currentPage = 1;
-const gamesPerPage = 12; // Sedikit lebih banyak karena grid
+const gamesPerPage = 12; 
 
 // --- DOM Elements ---
 const loginScreen = document.getElementById('login-screen');
@@ -39,10 +39,9 @@ const loginButton = document.getElementById('login-button');
 const logoutButtonText = document.getElementById('logout-button-text');
 const userPhoto = document.getElementById('user-photo');
 const userName = document.getElementById('user-name');
-const gameListCards = document.getElementById('game-list-cards'); // Main container now
+const gameListCards = document.getElementById('game-list-cards'); 
 const addGameButton = document.getElementById('add-game-button');
 const paginationContainer = document.getElementById('pagination-container');
-const totalPriceElement = document.getElementById('total-price'); // Hidden but kept for logic
 const statsTotalPrice = document.getElementById('stats-total-price');
 const statsExpensive = document.getElementById('stats-expensive');
 const bulkActionsBar = document.getElementById('bulk-actions-bar');
@@ -82,12 +81,14 @@ let currentConfirmCallback = null;
 let platformChart, locationChart, statusChart;
 
 // --- AUTHENTICATION ---
-loginButton.addEventListener('click', () => {
-    signInWithPopup(auth, provider).catch((error) => {
-        console.error("Error signing in: ", error);
-        showToast(`Gagal masuk: ${error.message}`, true);
+if (loginButton) {
+    loginButton.addEventListener('click', () => {
+        signInWithPopup(auth, provider).catch((error) => {
+            console.error("Error signing in: ", error);
+            showToast(`Gagal masuk: ${error.message}`, true);
+        });
     });
-});
+}
 
 if (logoutButtonText) {
     logoutButtonText.addEventListener('click', () => signOut(auth));
@@ -96,17 +97,17 @@ if (logoutButtonText) {
 onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
-        loginScreen.classList.add('hidden');
-        appScreen.classList.remove('hidden');
-        userPhoto.src = user.photoURL;
-        userName.textContent = user.displayName;
+        if(loginScreen) loginScreen.classList.add('hidden');
+        if(appScreen) appScreen.classList.remove('hidden');
+        if(userPhoto) userPhoto.src = user.photoURL;
+        if(userName) userName.textContent = user.displayName;
         fetchGames();
         fetchPlatforms();
         fetchLocations();
     } else {
         currentUser = null;
-        loginScreen.classList.remove('hidden');
-        appScreen.classList.add('hidden');
+        if(loginScreen) loginScreen.classList.remove('hidden');
+        if(appScreen) appScreen.classList.add('hidden');
         if (unsubscribeGames) unsubscribeGames();
         if (unsubscribePlatforms) unsubscribePlatforms();
         if (unsubscribeLocations) unsubscribeLocations();
@@ -118,9 +119,10 @@ onAuthStateChanged(auth, (user) => {
 function showToast(message, isError = false) {
     const toast = document.getElementById('toast');
     const toastMessage = document.getElementById('toast-message');
+    if(!toast || !toastMessage) return;
+
     toastMessage.textContent = message;
     
-    // Style change based on error
     if (isError) {
         toast.classList.remove('bg-black');
         toast.classList.add('bg-red-600');
@@ -192,6 +194,7 @@ function fetchLocations() {
 // --- RENDER FUNCTIONS (NEOBRUTALISM STYLE) ---
 
 function renderGames(gamesToRender) {
+    if(!gameListCards) return;
     gameListCards.innerHTML = '';
     
     if (!gamesToRender || gamesToRender.length === 0) {
@@ -249,6 +252,7 @@ function renderGames(gamesToRender) {
 
 function renderList(type) {
     const container = document.getElementById(`${type}-list-container`);
+    if(!container) return;
     const list = type === 'platform' ? platforms : locations;
     container.innerHTML = '';
     
@@ -327,57 +331,68 @@ function closeModal() {
     }, 200);
 }
 
-addGameButton.addEventListener('click', () => openModal());
-cancelButton.addEventListener('click', closeModal);
-gameForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!currentUser) return;
-    
-    const row = gameRowsContainer.querySelector('.game-row');
-    const gameData = {
-        title: row.querySelector('.game-title').value,
-        platform: row.querySelector('.game-platform').value,
-        location: row.querySelector('.game-location').value,
-        price: parseInt(row.querySelector('.game-price').value, 10),
-        status: row.querySelector('.game-status').value,
-    };
+if(addGameButton) addGameButton.addEventListener('click', () => openModal());
+if(cancelButton) cancelButton.addEventListener('click', closeModal);
+if(gameForm) {
+    gameForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentUser) return;
+        
+        const row = gameRowsContainer.querySelector('.game-row');
+        const gameData = {
+            title: row.querySelector('.game-title').value,
+            platform: row.querySelector('.game-platform').value,
+            location: row.querySelector('.game-location').value,
+            price: parseInt(row.querySelector('.game-price').value, 10),
+            status: row.querySelector('.game-status').value,
+        };
 
-    try {
-        const id = document.getElementById('game-id').value;
-        if (id) {
-            await updateDoc(doc(db, 'games', currentUser.uid, 'userGames', id), gameData);
-            showToast('DATA DIPERBARUI');
-        } else {
-            await addDoc(collection(db, 'games', currentUser.uid, 'userGames'), gameData);
-            showToast('GAME DITAMBAHKAN');
-        }
-        closeModal();
-    } catch (err) { showToast(err.message, true); }
-});
+        try {
+            const id = document.getElementById('game-id').value;
+            if (id) {
+                await updateDoc(doc(db, 'games', currentUser.uid, 'userGames', id), gameData);
+                showToast('DATA DIPERBARUI');
+            } else {
+                await addDoc(collection(db, 'games', currentUser.uid, 'userGames'), gameData);
+                showToast('GAME DITAMBAHKAN');
+            }
+            closeModal();
+        } catch (err) { showToast(err.message, true); }
+    });
+}
 
 // --- TAB SWITCHING ---
 const tabs = document.getElementById('tabs');
 const tabContents = document.querySelectorAll('.tab-content');
 
-tabs.addEventListener('click', (e) => {
-    if (!e.target.classList.contains('tab-btn')) return;
-    
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    e.target.classList.add('active');
-    
-    const targetId = e.target.dataset.tab;
-    tabContents.forEach(content => {
-        if (content.id === targetId) content.classList.remove('hidden');
-        else content.classList.add('hidden');
+if(tabs) {
+    tabs.addEventListener('click', (e) => {
+        if (!e.target.classList.contains('tab-btn')) return;
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        
+        const targetId = e.target.dataset.tab;
+        tabContents.forEach(content => {
+            if (content.id === targetId) content.classList.remove('hidden');
+            else content.classList.add('hidden');
+        });
     });
-});
+}
 
-// --- FILTER & PAGINATION Logic (Simplified) ---
+// --- FILTER & PAGINATION Logic ---
 function applyFiltersAndSort() {
-    const title = document.getElementById('filter-title').value.toLowerCase();
-    const platform = document.getElementById('filter-platform').value;
-    const location = document.getElementById('filter-location').value;
-    const status = document.getElementById('filter-status').value;
+    const titleInput = document.getElementById('filter-title');
+    const platformInput = document.getElementById('filter-platform');
+    const locationInput = document.getElementById('filter-location');
+    const statusInput = document.getElementById('filter-status');
+
+    if (!titleInput || !platformInput || !locationInput || !statusInput) return;
+
+    const title = titleInput.value.toLowerCase();
+    const platform = platformInput.value;
+    const location = locationInput.value;
+    const status = statusInput.value;
 
     filteredGames = games.filter(g => 
         g.title.toLowerCase().includes(title) &&
@@ -393,7 +408,7 @@ function displayPage() {
     const start = (currentPage - 1) * gamesPerPage;
     renderGames(filteredGames.slice(start, start + gamesPerPage));
     
-    // Update pagination UI
+    if(!paginationContainer) return;
     paginationContainer.innerHTML = '';
     const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
     if(totalPages > 1) {
@@ -406,11 +421,12 @@ function displayPage() {
         }
     }
     
-    updateBulkActionUI(); // Reset checkboxes
+    updateBulkActionUI();
 }
 
 ['filter-title', 'filter-platform', 'filter-location', 'filter-status'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => { currentPage = 1; applyFiltersAndSort(); });
+    const el = document.getElementById(id);
+    if(el) el.addEventListener('input', () => { currentPage = 1; applyFiltersAndSort(); });
 });
 
 // --- POPULATE DROPDOWNS ---
@@ -418,13 +434,18 @@ function populateDropdowns() {
     const pOpts = `<option value="">SEMUA</option>` + platforms.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
     const lOpts = `<option value="">SEMUA</option>` + locations.map(l => `<option value="${l.name}">${l.name}</option>`).join('');
     
-    document.getElementById('filter-platform').innerHTML = pOpts;
-    document.getElementById('filter-location').innerHTML = lOpts;
-    document.getElementById('bulk-platform').innerHTML = pOpts.replace('SEMUA', '');
-    document.getElementById('bulk-location').innerHTML = lOpts.replace('SEMUA', '');
+    const fp = document.getElementById('filter-platform');
+    const fl = document.getElementById('filter-location');
+    const bp = document.getElementById('bulk-platform');
+    const bl = document.getElementById('bulk-location');
+
+    if(fp) fp.innerHTML = pOpts;
+    if(fl) fl.innerHTML = lOpts;
+    if(bp) bp.innerHTML = pOpts.replace('SEMUA', '');
+    if(bl) bl.innerHTML = lOpts.replace('SEMUA', '');
 }
 
-// --- OTHER ACTIONS (Edit, Delete, Bulk) ---
+// --- OTHER ACTIONS ---
 function handleEdit(e) {
     const id = e.target.dataset.id;
     const game = games.find(g => g.id === id);
@@ -447,81 +468,98 @@ function openDeleteConfirm(id, callback) {
     setTimeout(() => deleteConfirmModalContent.classList.remove('scale-95', 'opacity-0'), 10);
 }
 
-document.getElementById('confirm-delete-button').addEventListener('click', async () => {
-    if(currentConfirmCallback) await currentConfirmCallback();
-    deleteConfirmModalContent.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => deleteConfirmModal.classList.add('hidden'), 200);
-});
-document.getElementById('cancel-delete-button').addEventListener('click', () => {
-    deleteConfirmModalContent.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => deleteConfirmModal.classList.add('hidden'), 200);
-});
+if(confirmDeleteButton) {
+    confirmDeleteButton.addEventListener('click', async () => {
+        if(currentConfirmCallback) await currentConfirmCallback();
+        deleteConfirmModalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => deleteConfirmModal.classList.add('hidden'), 200);
+    });
+}
+if(cancelDeleteButton) {
+    cancelDeleteButton.addEventListener('click', () => {
+        deleteConfirmModalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => deleteConfirmModal.classList.add('hidden'), 200);
+    });
+}
 
 // Bulk Actions
 function updateBulkActionUI() {
     const selected = document.querySelectorAll('.game-checkbox:checked');
     const count = selected.length;
     
-    if(count > 0) {
+    if(count > 0 && bulkActionsBar) {
         bulkActionsBar.classList.remove('hidden');
         document.getElementById('selection-info').textContent = `${count} DIPILIH`;
-    } else {
+    } else if (bulkActionsBar) {
         bulkActionsBar.classList.add('hidden');
     }
 }
 
-document.getElementById('select-all-checkbox').addEventListener('change', (e) => {
-    document.querySelectorAll('.game-checkbox').forEach(cb => cb.checked = e.target.checked);
-    updateBulkActionUI();
-});
-
-document.getElementById('bulk-delete-button').addEventListener('click', () => {
-    const ids = Array.from(document.querySelectorAll('.game-checkbox:checked')).map(cb => cb.dataset.id);
-    openDeleteConfirm(null, async () => {
-        const batch = writeBatch(db);
-        ids.forEach(id => batch.delete(doc(db, 'games', currentUser.uid, 'userGames', id)));
-        await batch.commit();
-        showToast(`${ids.length} GAME DIHAPUS`);
+const selectAllCheckbox = document.getElementById('select-all-checkbox');
+if(selectAllCheckbox) {
+    selectAllCheckbox.addEventListener('change', (e) => {
+        document.querySelectorAll('.game-checkbox').forEach(cb => cb.checked = e.target.checked);
+        updateBulkActionUI();
     });
-});
+}
 
-document.getElementById('bulk-edit-button').addEventListener('click', () => {
-    const count = document.querySelectorAll('.game-checkbox:checked').length;
-    bulkEditInfo.textContent = `MENGEDIT ${count} GAME`;
-    bulkEditModal.classList.remove('hidden');
-    bulkEditModal.classList.add('flex');
-    setTimeout(() => bulkEditModalContent.classList.remove('scale-95', 'opacity-0'), 10);
-});
+const bulkDeleteBtn = document.getElementById('bulk-delete-button');
+if(bulkDeleteBtn) {
+    bulkDeleteBtn.addEventListener('click', () => {
+        const ids = Array.from(document.querySelectorAll('.game-checkbox:checked')).map(cb => cb.dataset.id);
+        openDeleteConfirm(null, async () => {
+            const batch = writeBatch(db);
+            ids.forEach(id => batch.delete(doc(db, 'games', currentUser.uid, 'userGames', id)));
+            await batch.commit();
+            showToast(`${ids.length} GAME DIHAPUS`);
+        });
+    });
+}
 
-document.getElementById('bulk-edit-cancel-button').addEventListener('click', () => {
-    bulkEditModalContent.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => bulkEditModal.classList.add('hidden'), 200);
-});
+const bulkEditBtn = document.getElementById('bulk-edit-button');
+if(bulkEditBtn) {
+    bulkEditBtn.addEventListener('click', () => {
+        const count = document.querySelectorAll('.game-checkbox:checked').length;
+        bulkEditInfo.textContent = `MENGEDIT ${count} GAME`;
+        bulkEditModal.classList.remove('hidden');
+        bulkEditModal.classList.add('flex');
+        setTimeout(() => bulkEditModalContent.classList.remove('scale-95', 'opacity-0'), 10);
+    });
+}
 
-bulkEditForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const ids = Array.from(document.querySelectorAll('.game-checkbox:checked')).map(cb => cb.dataset.id);
-    const data = {};
-    
-    if(document.getElementById('bulk-update-platform-check').checked) data.platform = document.getElementById('bulk-platform').value;
-    if(document.getElementById('bulk-update-location-check').checked) data.location = document.getElementById('bulk-location').value;
-    if(document.getElementById('bulk-update-price-check').checked) data.price = parseInt(document.getElementById('bulk-price').value);
-    if(document.getElementById('bulk-update-status-check').checked) data.status = document.getElementById('bulk-status').value;
+if(bulkEditCancelButton) {
+    bulkEditCancelButton.addEventListener('click', () => {
+        bulkEditModalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => bulkEditModal.classList.add('hidden'), 200);
+    });
+}
 
-    const batch = writeBatch(db);
-    ids.forEach(id => batch.update(doc(db, 'games', currentUser.uid, 'userGames', id), data));
-    await batch.commit();
-    showToast("UPDATE MASAL BERHASIL");
-    bulkEditModal.classList.add('hidden');
-});
+if(bulkEditForm) {
+    bulkEditForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const ids = Array.from(document.querySelectorAll('.game-checkbox:checked')).map(cb => cb.dataset.id);
+        const data = {};
+        
+        if(document.getElementById('bulk-update-platform-check').checked) data.platform = document.getElementById('bulk-platform').value;
+        if(document.getElementById('bulk-update-location-check').checked) data.location = document.getElementById('bulk-location').value;
+        if(document.getElementById('bulk-update-price-check').checked) data.price = parseInt(document.getElementById('bulk-price').value);
+        if(document.getElementById('bulk-update-status-check').checked) data.status = document.getElementById('bulk-status').value;
+
+        const batch = writeBatch(db);
+        ids.forEach(id => batch.update(doc(db, 'games', currentUser.uid, 'userGames', id), data));
+        await batch.commit();
+        showToast("UPDATE MASAL BERHASIL");
+        bulkEditModal.classList.add('hidden');
+    });
+}
 
 // --- CHARTS ---
 function updateCharts() {
     const totalPrice = games.reduce((sum, g) => sum + (g.price || 0), 0);
     const expensive = games.reduce((max, g) => (g.price > max.price ? g : max), { price: 0 });
     
-    statsTotalPrice.textContent = formatPrice(totalPrice);
-    statsExpensive.textContent = expensive.title ? `${expensive.title} (${formatPrice(expensive.price)})` : '-';
+    if(statsTotalPrice) statsTotalPrice.textContent = formatPrice(totalPrice);
+    if(statsExpensive) statsExpensive.textContent = expensive.title ? `${expensive.title} (${formatPrice(expensive.price)})` : '-';
 
     const pData = {}; const lData = {}; const sData = {};
     games.forEach(g => {
@@ -551,37 +589,53 @@ function updateCharts() {
         }
     });
 
-    if(statusChart) statusChart.destroy();
-    statusChart = new Chart(document.getElementById('status-chart'), chartConfig('bar', Object.keys(sData), Object.values(sData), '#a3e635'));
+    const sc = document.getElementById('status-chart');
+    if(sc) {
+        if(statusChart) statusChart.destroy();
+        statusChart = new Chart(sc, chartConfig('bar', Object.keys(sData), Object.values(sData), '#a3e635'));
+    }
 
-    if(platformChart) platformChart.destroy();
-    platformChart = new Chart(document.getElementById('platform-chart'), chartConfig('pie', Object.keys(pData), Object.values(pData), ['#22d3ee', '#f472b6', '#facc15', '#a3e635', '#c084fc']));
+    const pc = document.getElementById('platform-chart');
+    if(pc) {
+        if(platformChart) platformChart.destroy();
+        platformChart = new Chart(pc, chartConfig('pie', Object.keys(pData), Object.values(pData), ['#22d3ee', '#f472b6', '#facc15', '#a3e635', '#c084fc']));
+    }
 
-    if(locationChart) locationChart.destroy();
-    locationChart = new Chart(document.getElementById('location-chart'), chartConfig('doughnut', Object.keys(lData), Object.values(lData), ['#fb923c', '#60a5fa', '#4ade80']));
+    const lc = document.getElementById('location-chart');
+    if(lc) {
+        if(locationChart) locationChart.destroy();
+        locationChart = new Chart(lc, chartConfig('doughnut', Object.keys(lData), Object.values(lData), ['#fb923c', '#60a5fa', '#4ade80']));
+    }
 }
 
 // --- MASTER DATA MANAGEMENT ---
-document.getElementById('add-platform-button').addEventListener('click', async () => {
-    const name = document.getElementById('new-platform-input').value.trim();
-    if(name) {
-        await addDoc(collection(db, 'games', currentUser.uid, 'userPlatforms'), { name });
-        document.getElementById('new-platform-input').value = '';
-        showToast('PLATFORM DITAMBAH');
-    }
-});
+const addPlatformBtn = document.getElementById('add-platform-button');
+if(addPlatformBtn) {
+    addPlatformBtn.addEventListener('click', async () => {
+        const name = document.getElementById('new-platform-input').value.trim();
+        if(name) {
+            await addDoc(collection(db, 'games', currentUser.uid, 'userPlatforms'), { name });
+            document.getElementById('new-platform-input').value = '';
+            showToast('PLATFORM DITAMBAH');
+        }
+    });
+}
 
-document.getElementById('add-location-button').addEventListener('click', async () => {
-    const name = document.getElementById('new-location-input').value.trim();
-    if(name) {
-        await addDoc(collection(db, 'games', currentUser.uid, 'userLocations'), { name });
-        document.getElementById('new-location-input').value = '';
-        showToast('LOKASI DITAMBAH');
-    }
-});
+const addLocationBtn = document.getElementById('add-location-button');
+if(addLocationBtn) {
+    addLocationBtn.addEventListener('click', async () => {
+        const name = document.getElementById('new-location-input').value.trim();
+        if(name) {
+            await addDoc(collection(db, 'games', currentUser.uid, 'userLocations'), { name });
+            document.getElementById('new-location-input').value = '';
+            showToast('LOKASI DITAMBAH');
+        }
+    });
+}
 
 // Event Delegation for Edit/Delete Items
 const setupItemListeners = (container) => {
+    if(!container) return;
     container.addEventListener('click', (e) => {
         const editBtn = e.target.closest('.edit-item-btn');
         const delBtn = e.target.closest('.delete-item-btn');
@@ -610,20 +664,24 @@ const setupItemListeners = (container) => {
 setupItemListeners(document.getElementById('platform-list-container'));
 setupItemListeners(document.getElementById('location-list-container'));
 
-editItemCancelButton.addEventListener('click', () => {
-    editItemModalContent.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => editItemModal.classList.add('hidden'), 200);
-});
+if(editItemCancelButton) {
+    editItemCancelButton.addEventListener('click', () => {
+        editItemModalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => editItemModal.classList.add('hidden'), 200);
+    });
+}
 
-editItemForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = editItemId.value;
-    const type = editItemType.value;
-    const name = editItemNameInput.value.trim();
-    const col = type === 'platform' ? 'userPlatforms' : 'userLocations';
-    
-    await updateDoc(doc(db, 'games', currentUser.uid, col, id), { name });
-    showToast('ITEM DIPERBARUI');
-    editItemModalContent.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => editItemModal.classList.add('hidden'), 200);
-});
+if(editItemForm) {
+    editItemForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = editItemId.value;
+        const type = editItemType.value;
+        const name = editItemNameInput.value.trim();
+        const col = type === 'platform' ? 'userPlatforms' : 'userLocations';
+        
+        await updateDoc(doc(db, 'games', currentUser.uid, col, id), { name });
+        showToast('ITEM DIPERBARUI');
+        editItemModalContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => editItemModal.classList.add('hidden'), 200);
+    });
+}
