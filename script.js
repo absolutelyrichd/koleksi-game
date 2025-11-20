@@ -45,6 +45,7 @@ const paginationContainer = document.getElementById('pagination-container');
 const statsTotalPrice = document.getElementById('stats-total-price');
 const statsExpensive = document.getElementById('stats-expensive');
 const bulkActionsBar = document.getElementById('bulk-actions-bar');
+const backToTopBtn = document.getElementById('back-to-top'); // New
 
 // Modals
 const gameModal = document.getElementById('game-modal');
@@ -816,5 +817,23 @@ if (navbar) {
             navbar.classList.add('bg-white');
             navbar.classList.remove('bg-white/30', 'backdrop-blur-xl');
         }
+    });
+}
+
+// --- BACK TO TOP BUTTON ---
+if (backToTopBtn) {
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            backToTopBtn.classList.remove('hidden');
+        } else {
+            backToTopBtn.classList.add('hidden');
+        }
+    });
+
+    backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     });
 }
