@@ -145,19 +145,24 @@ function formatPrice(price) {
 function generatePlatformColor(str) {
     if (!str) return '#e5e7eb'; // Gray default
     
-    // Daftar Warna Manual (Overrides) untuk platform tertentu
-    // Format: Nama Platform : Warna HSL
+    // Daftar Warna Manual (Overrides)
     const colorOverrides = {
-        'GOG': 'hsl(190, 90%, 75%)',           // Biru Langit (Ditukar)
-        'U-Connect': 'hsl(270, 90%, 75%)',     // Ungu (Ditukar)
-        'Ubisoft Connect': 'hsl(270, 90%, 75%)', // Ungu (Ditukar - jaga2 nama panjang)
+        'GOG': 'hsl(270, 90%, 75%)',             // Ungu (GOG)
         
-        'Steam': 'hsl(210, 90%, 75%)',         // Biru Standar
-        'Epic': 'hsl(0, 0%, 80%)',             // Abu-abu
-        'Switch': 'hsl(0, 90%, 75%)',          // Merah
-        'PS5': 'hsl(240, 90%, 80%)',           // Biru Keputihan
+        'U-Connect': 'hsl(175, 90%, 70%)',       // Teal (Ubisoft)
+        'Ubisoft': 'hsl(175, 90%, 70%)',
+        'Ubisoft Connect': 'hsl(175, 90%, 70%)',
+        
+        'EA': 'hsl(30, 100%, 70%)',              // Orange (EA)
+        'EA App': 'hsl(30, 100%, 70%)',
+        'Origin': 'hsl(30, 100%, 70%)',
+
+        'Steam': 'hsl(210, 90%, 75%)',           // Biru Standar
+        'Epic': 'hsl(0, 0%, 80%)',               // Abu-abu
+        'Switch': 'hsl(0, 90%, 75%)',            // Merah
+        'PS5': 'hsl(240, 90%, 80%)',             // Biru Keputihan
         'PlayStation': 'hsl(240, 90%, 80%)',
-        'Xbox': 'hsl(120, 90%, 75%)'           // Hijau
+        'Xbox': 'hsl(120, 90%, 75%)'             // Hijau
     };
 
     // Cek apakah nama platform ada di daftar override (case-insensitive match)
