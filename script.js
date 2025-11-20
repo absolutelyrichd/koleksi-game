@@ -141,30 +141,34 @@ function formatPrice(price) {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
 }
 
-// --- COLOR GENERATOR (UPDATED) ---
+// --- COLOR GENERATOR (UPDATED & ROBUST) ---
 function generatePlatformColor(str) {
     if (!str) return '#e5e7eb'; // Gray default
     
     const normalizedStr = str.trim(); // Hapus spasi berlebih
     
-    // Daftar Warna Manual (Overrides) - Gunakan !important di render nanti
+    // Daftar Warna Manual (Overrides)
     const colorOverrides = {
-        'GOG': 'hsl(270, 90%, 75%)',             // Ungu (GOG)
+        // GOG: Violet (Ungu Kebiruan)
+        'GOG': 'hsl(260, 90%, 75%)',             
         
-        // Ubisoft sekarang Ungu Indigo/Violet (beda nuansa dengan GOG)
-        'U-Connect': 'hsl(250, 85%, 70%)',       
-        'Ubisoft': 'hsl(250, 85%, 70%)',
-        'Ubisoft Connect': 'hsl(250, 85%, 70%)',
+        // Ubisoft: Magenta/Fuchsia (Ungu Kemerahan) - Jauh lebih beda dari GOG
+        'U-Connect': 'hsl(310, 90%, 70%)',       
+        'Ubisoft': 'hsl(310, 90%, 70%)',
+        'Ubisoft Connect': 'hsl(310, 90%, 70%)',
+        'Uplay': 'hsl(310, 90%, 70%)',
         
-        'EA': 'hsl(30, 100%, 70%)',              // Orange
+        // EA: Orange Cerah
+        'EA': 'hsl(30, 100%, 70%)',              
         'EA App': 'hsl(30, 100%, 70%)',
         'Origin': 'hsl(30, 100%, 70%)',
 
+        // Lainnya
         'Steam': 'hsl(210, 90%, 75%)',           // Biru
         'Epic': 'hsl(0, 0%, 80%)',               // Abu-abu
         'Switch': 'hsl(0, 90%, 75%)',            // Merah
         'Nintendo Switch': 'hsl(0, 90%, 75%)',
-        'PS5': 'hsl(240, 90%, 80%)',             // Biru Muda/Putih
+        'PS5': 'hsl(240, 90%, 80%)',             // Putih Kebiruan
         'PlayStation': 'hsl(240, 90%, 80%)',
         'Xbox': 'hsl(120, 90%, 75%)',            // Hijau
         'Game Pass': 'hsl(120, 90%, 75%)'
