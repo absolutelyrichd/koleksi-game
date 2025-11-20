@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, writeBatch, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// --- Firebase Config (SUDAH DIPERBAIKI) ---
+// --- Firebase Config ---
 const firebaseConfig = {
     apiKey: "AIzaSyAzJTL179V9bT-DfefZq9gcG8Tz88VzLmQ",
     authDomain: "koleksi-game.firebaseapp.com",
@@ -272,16 +272,18 @@ function renderList(type) {
 
 // --- UI LOGIC ---
 
-function createGameRowHTML(game = {}) {
+function createGameRowHTML(game) {
+    const g = game || {}; // FIX: Pastikan g selalu objek, meskipun game bernilai null
+    
     // Dynamic Options
-    const platformOptions = platforms.map(p => `<option value="${p.name}" ${game.platform === p.name ? 'selected' : ''}>${p.name}</option>`).join('');
-    const locationOptions = locations.map(l => `<option value="${l.name}" ${game.location === l.name ? 'selected' : ''}>${l.name}</option>`).join('');
+    const platformOptions = platforms.map(p => `<option value="${p.name}" ${g.platform === p.name ? 'selected' : ''}>${p.name}</option>`).join('');
+    const locationOptions = locations.map(l => `<option value="${l.name}" ${g.location === l.name ? 'selected' : ''}>${l.name}</option>`).join('');
     
     return `
         <div class="game-row space-y-4">
             <div>
                 <label class="block font-black text-xs uppercase mb-1">JUDUL GAME</label>
-                <input type="text" class="game-title neo-input" value="${game.title || ''}" required>
+                <input type="text" class="game-title neo-input" value="${g.title || ''}" required>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -298,14 +300,14 @@ function createGameRowHTML(game = {}) {
                 </div>
                 <div>
                     <label class="block font-black text-xs uppercase mb-1">HARGA (IDR)</label>
-                    <input type="number" class="game-price neo-input" value="${game.price || '0'}" min="0">
+                    <input type="number" class="game-price neo-input" value="${g.price || '0'}" min="0">
                 </div>
                 <div>
                     <label class="block font-black text-xs uppercase mb-1">STATUS</label>
                     <select class="game-status neo-input cursor-pointer">
-                        <option ${game.status === 'Belum dimainkan' ? 'selected' : ''}>Belum dimainkan</option>
-                        <option ${game.status === 'Dimainkan' ? 'selected' : ''}>Dimainkan</option>
-                        <option ${game.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                        <option ${g.status === 'Belum dimainkan' ? 'selected' : ''}>Belum dimainkan</option>
+                        <option ${g.status === 'Dimainkan' ? 'selected' : ''}>Dimainkan</option>
+                        <option ${g.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
                     </select>
                 </div>
             </div>
