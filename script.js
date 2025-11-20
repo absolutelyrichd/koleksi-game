@@ -141,7 +141,7 @@ function formatPrice(price) {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
 }
 
-// --- COLOR GENERATOR (UPDATED & ROBUST) ---
+// --- COLOR GENERATOR (UPDATED) ---
 function generatePlatformColor(str) {
     if (!str) return '#e5e7eb'; // Gray default
     
@@ -149,11 +149,12 @@ function generatePlatformColor(str) {
     
     // Daftar Warna Manual (Overrides) - Gunakan !important di render nanti
     const colorOverrides = {
-        'GOG': 'hsl(270, 90%, 75%)',             // Ungu
+        'GOG': 'hsl(270, 90%, 75%)',             // Ungu (GOG)
         
-        'U-Connect': 'hsl(175, 90%, 70%)',       // Teal
-        'Ubisoft': 'hsl(175, 90%, 70%)',
-        'Ubisoft Connect': 'hsl(175, 90%, 70%)',
+        // Ubisoft sekarang Ungu Indigo/Violet (beda nuansa dengan GOG)
+        'U-Connect': 'hsl(250, 85%, 70%)',       
+        'Ubisoft': 'hsl(250, 85%, 70%)',
+        'Ubisoft Connect': 'hsl(250, 85%, 70%)',
         
         'EA': 'hsl(30, 100%, 70%)',              // Orange
         'EA App': 'hsl(30, 100%, 70%)',
