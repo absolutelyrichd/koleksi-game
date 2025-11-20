@@ -141,46 +141,39 @@ function formatPrice(price) {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
 }
 
-// --- COLOR GENERATOR (UPDATED & ROBUST) ---
+// --- COLOR GENERATOR ---
 function generatePlatformColor(str) {
-    if (!str) return '#e5e7eb'; // Gray default
+    if (!str) return '#e5e7eb'; 
     
-    const normalizedStr = str.trim(); // Hapus spasi berlebih
+    const normalizedStr = str.trim(); 
     
-    // Daftar Warna Manual (Overrides)
     const colorOverrides = {
-        // GOG: Violet (Ungu Kebiruan)
         'GOG': 'hsl(260, 90%, 75%)',             
         
-        // Ubisoft: Magenta/Fuchsia (Ungu Kemerahan) - Jauh lebih beda dari GOG
         'U-Connect': 'hsl(310, 90%, 70%)',       
         'Ubisoft': 'hsl(310, 90%, 70%)',
         'Ubisoft Connect': 'hsl(310, 90%, 70%)',
         'Uplay': 'hsl(310, 90%, 70%)',
         
-        // EA: Orange Cerah
         'EA': 'hsl(30, 100%, 70%)',              
         'EA App': 'hsl(30, 100%, 70%)',
         'Origin': 'hsl(30, 100%, 70%)',
 
-        // Lainnya
-        'Steam': 'hsl(210, 90%, 75%)',           // Biru
-        'Epic': 'hsl(0, 0%, 80%)',               // Abu-abu
-        'Switch': 'hsl(0, 90%, 75%)',            // Merah
+        'Steam': 'hsl(210, 90%, 75%)',           
+        'Epic': 'hsl(0, 0%, 80%)',               
+        'Switch': 'hsl(0, 90%, 75%)',            
         'Nintendo Switch': 'hsl(0, 90%, 75%)',
-        'PS5': 'hsl(240, 90%, 80%)',             // Putih Kebiruan
+        'PS5': 'hsl(240, 90%, 80%)',             
         'PlayStation': 'hsl(240, 90%, 80%)',
-        'Xbox': 'hsl(120, 90%, 75%)',            // Hijau
+        'Xbox': 'hsl(120, 90%, 75%)',            
         'Game Pass': 'hsl(120, 90%, 75%)'
     };
 
-    // Pencarian case-insensitive yang lebih aman
     const key = Object.keys(colorOverrides).find(k => k.toLowerCase() === normalizedStr.toLowerCase());
     if (key) {
         return colorOverrides[key];
     }
 
-    // Generator Otomatis (Hash) untuk platform lain
     let hash = 0;
     for (let i = 0; i < normalizedStr.length; i++) {
         hash = normalizedStr.charCodeAt(i) + ((hash << 5) - hash);
@@ -209,7 +202,6 @@ function fetchGames() {
     const q = query(collection(db, 'games', currentUser.uid, 'userGames'), orderBy("title")); 
     unsubscribeGames = onSnapshot(q, (snapshot) => {
         games = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        // Default sort by title initially
         games.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
         applyFiltersAndSort();
         updateCharts();
@@ -268,7 +260,6 @@ function renderGames(gamesToRender) {
             <div class="mb-4 pr-8">
                 <h3 class="font-display font-black text-lg leading-tight mb-2 uppercase break-words">${game.title}</h3>
                 <div class="flex flex-wrap gap-2">
-                    <!-- Force background color with !important -->
                     <span class="neo-badge" style="background-color: ${platformColor} !important;">${game.platform}</span>
                     <span class="neo-badge ${statusColor}">${game.status}</span>
                 </div>
@@ -496,7 +487,7 @@ function applyFiltersAndSort() {
     const platformInput = document.getElementById('filter-platform');
     const locationInput = document.getElementById('filter-location');
     const statusInput = document.getElementById('filter-status');
-    const sortSelect = document.getElementById('sort-options'); // New
+    const sortSelect = document.getElementById('sort-options'); 
 
     if (!titleInput || !platformInput || !locationInput || !statusInput || !sortSelect) return;
 
@@ -504,7 +495,7 @@ function applyFiltersAndSort() {
     const platform = platformInput.value;
     const location = locationInput.value;
     const status = statusInput.value;
-    const sortValue = sortSelect.value; // New
+    const sortValue = sortSelect.value;
 
     filteredGames = games.filter(g => 
         g.title.toLowerCase().includes(title) &&
@@ -513,7 +504,6 @@ function applyFiltersAndSort() {
         (status === '' || g.status === status)
     );
 
-    // Sorting Logic (New)
     filteredGames.sort((a, b) => {
         switch (sortValue) {
             case 'price-desc': // Termahal
@@ -820,10 +810,11 @@ if (navbar) {
     window.addEventListener('scroll', () => {
         if (window.scrollY > 20) {
             navbar.classList.remove('bg-white');
-            navbar.classList.add('bg-white/80', 'backdrop-blur-md');
+            // More transparent and more blur
+            navbar.classList.add('bg-white/30', 'backdrop-blur-xl');
         } else {
             navbar.classList.add('bg-white');
-            navbar.classList.remove('bg-white/80', 'backdrop-blur-md');
+            navbar.classList.remove('bg-white/30', 'backdrop-blur-xl');
         }
     });
 }
