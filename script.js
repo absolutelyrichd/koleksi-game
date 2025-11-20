@@ -141,18 +141,37 @@ function formatPrice(price) {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
 }
 
-// --- COLOR GENERATOR (BARU) ---
+// --- COLOR GENERATOR (UPDATED) ---
 function generatePlatformColor(str) {
     if (!str) return '#e5e7eb'; // Gray default
     
+    // Daftar Warna Manual (Overrides) untuk platform tertentu
+    // Format: Nama Platform : Warna HSL
+    const colorOverrides = {
+        'GOG': 'hsl(190, 90%, 75%)',           // Biru Langit (Ditukar)
+        'U-Connect': 'hsl(270, 90%, 75%)',     // Ungu (Ditukar)
+        'Ubisoft Connect': 'hsl(270, 90%, 75%)', // Ungu (Ditukar - jaga2 nama panjang)
+        
+        'Steam': 'hsl(210, 90%, 75%)',         // Biru Standar
+        'Epic': 'hsl(0, 0%, 80%)',             // Abu-abu
+        'Switch': 'hsl(0, 90%, 75%)',          // Merah
+        'PS5': 'hsl(240, 90%, 80%)',           // Biru Keputihan
+        'PlayStation': 'hsl(240, 90%, 80%)',
+        'Xbox': 'hsl(120, 90%, 75%)'           // Hijau
+    };
+
+    // Cek apakah nama platform ada di daftar override (case-insensitive match)
+    const key = Object.keys(colorOverrides).find(k => k.toLowerCase() === str.toLowerCase());
+    if (key) {
+        return colorOverrides[key];
+    }
+
+    // Jika tidak ada di daftar manual, gunakan generator otomatis (Hash)
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
     
-    // Konversi hash ke HSL color agar cerah dan konsisten (Neobrutalism style)
-    // Saturation: 85-100% (Sangat cerah)
-    // Lightness: 65-75% (Terang, tapi teks hitam masih terbaca)
     const h = Math.abs(hash % 360);
     return `hsl(${h}, 90%, 75%)`;
 }
