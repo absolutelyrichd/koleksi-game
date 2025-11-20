@@ -222,15 +222,23 @@
                                 <option>Selesai</option>
                             </select>
                         </div>
+                        
+                         <!-- UPDATE: Sort Dropdown yang Lebih Mencolok -->
                          <div>
-                            <label class="font-black text-xs uppercase mb-1 block">Urutkan</label>
-                            <select id="sort-options" class="neo-input cursor-pointer">
-                                <option value="title-asc">Judul (A-Z)</option>
-                                <option value="title-desc">Judul (Z-A)</option>
-                                <option value="price-asc">Harga (Termurah)</option>
-                                <option value="price-desc">Harga (Termahal)</option>
-                            </select>
+                            <label class="font-black text-xs uppercase mb-1 block bg-black text-white inline-block px-1 transform -rotate-1">URUTKAN</label>
+                            <div class="relative">
+                                <select id="sort-options" class="neo-input cursor-pointer appearance-none border-3 border-black bg-pink-300 hover:bg-pink-400 transition-colors text-black font-black">
+                                    <option value="title-asc">🅰️ Judul (A-Z)</option>
+                                    <option value="title-desc">🔠 Judul (Z-A)</option>
+                                    <option value="price-asc">💸 Termurah</option>
+                                    <option value="price-desc">💎 Termahal</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-black">
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                </div>
+                            </div>
                         </div>
+
                     </div>
                     <button id="add-game-button" class="neo-btn bg-lime-400 px-6 py-3 h-[52px] w-full lg:w-auto flex-shrink-0 flex items-center justify-center gap-2 whitespace-nowrap">
                         <span class="text-xl leading-none">+</span> BARU
