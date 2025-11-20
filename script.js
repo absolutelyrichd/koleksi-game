@@ -209,6 +209,7 @@ function fetchGames() {
     const q = query(collection(db, 'games', currentUser.uid, 'userGames'), orderBy("title")); 
     unsubscribeGames = onSnapshot(q, (snapshot) => {
         games = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Default sort by title initially
         games.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
         applyFiltersAndSort();
         updateCharts();
@@ -495,13 +496,15 @@ function applyFiltersAndSort() {
     const platformInput = document.getElementById('filter-platform');
     const locationInput = document.getElementById('filter-location');
     const statusInput = document.getElementById('filter-status');
+    const sortSelect = document.getElementById('sort-options'); // New
 
-    if (!titleInput || !platformInput || !locationInput || !statusInput) return;
+    if (!titleInput || !platformInput || !locationInput || !statusInput || !sortSelect) return;
 
     const title = titleInput.value.toLowerCase();
     const platform = platformInput.value;
     const location = locationInput.value;
     const status = statusInput.value;
+    const sortValue = sortSelect.value; // New
 
     filteredGames = games.filter(g => 
         g.title.toLowerCase().includes(title) &&
@@ -509,6 +512,21 @@ function applyFiltersAndSort() {
         (location === '' || g.location === location) &&
         (status === '' || g.status === status)
     );
+
+    // Sorting Logic (New)
+    filteredGames.sort((a, b) => {
+        switch (sortValue) {
+            case 'price-desc': // Termahal
+                return (b.price || 0) - (a.price || 0);
+            case 'price-asc': // Termurah
+                return (a.price || 0) - (b.price || 0);
+            case 'title-desc': // Z-A
+                return b.title.localeCompare(a.title);
+            case 'title-asc': // A-Z
+            default:
+                return a.title.localeCompare(b.title);
+        }
+    });
     
     displayPage();
 }
@@ -532,7 +550,7 @@ function displayPage() {
     updateBulkActionUI();
 }
 
-['filter-title', 'filter-platform', 'filter-location', 'filter-status'].forEach(id => {
+['filter-title', 'filter-platform', 'filter-location', 'filter-status', 'sort-options'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.addEventListener('input', () => { currentPage = 1; applyFiltersAndSort(); });
 });
