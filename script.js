@@ -204,10 +204,8 @@ function renderGames(gamesToRender) {
 
     gamesToRender.forEach(game => {
         const card = document.createElement('div');
-        // Neobrutalism Card Style
         card.className = 'neo-box p-4 flex flex-col justify-between h-full transition hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] relative bg-white';
         
-        // Status Color Logic
         let statusColor = 'bg-gray-200';
         if(game.status === 'Dimainkan') statusColor = 'bg-cyan-300';
         if(game.status === 'Selesai') statusColor = 'bg-lime-400';
@@ -216,7 +214,6 @@ function renderGames(gamesToRender) {
             <div class="absolute top-4 right-4">
                 <input type="checkbox" data-id="${game.id}" class="game-checkbox w-6 h-6 border-3 border-black accent-black">
             </div>
-            
             <div class="mb-4 pr-8">
                 <h3 class="font-display font-black text-lg leading-tight mb-2 uppercase break-words">${game.title}</h3>
                 <div class="flex flex-wrap gap-2">
@@ -224,7 +221,6 @@ function renderGames(gamesToRender) {
                     <span class="neo-badge ${statusColor}">${game.status}</span>
                 </div>
             </div>
-            
             <div class="mt-auto border-t-3 border-black pt-3">
                 <div class="flex justify-between items-end mb-3">
                     <div class="text-xs font-bold text-gray-500 uppercase">Lokasi</div>
@@ -234,7 +230,6 @@ function renderGames(gamesToRender) {
                     <div class="text-xs font-bold text-gray-500 uppercase">Harga</div>
                     <div class="font-black text-lg">${game.price ? formatPrice(game.price) : 'Gratis'}</div>
                 </div>
-                
                 <div class="grid grid-cols-2 gap-2">
                     <button class="edit-btn neo-btn bg-white text-xs py-2 hover:bg-blue-200" data-id="${game.id}">EDIT</button>
                     <button class="delete-btn neo-btn bg-black text-white text-xs py-2 hover:bg-red-600" data-id="${game.id}">HAPUS</button>
@@ -244,7 +239,6 @@ function renderGames(gamesToRender) {
         gameListCards.appendChild(card);
     });
 
-    // Re-attach listeners
     document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', handleEdit));
     document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', handleDelete));
     document.querySelectorAll('.game-checkbox').forEach(cb => cb.addEventListener('change', updateBulkActionUI));
@@ -270,55 +264,86 @@ function renderList(type) {
     });
 }
 
-// --- UI LOGIC ---
+// --- UI LOGIC (UPDATED FOR MULTI-ROW) ---
 
-function createGameRowHTML(game) {
-    const g = game || {}; // FIX: Pastikan g selalu objek, meskipun game bernilai null
+function createGameRowHTML(game = null) {
+    const g = game || {};
+    const isEditMode = !!game;
     
-    // Dynamic Options
     const platformOptions = platforms.map(p => `<option value="${p.name}" ${g.platform === p.name ? 'selected' : ''}>${p.name}</option>`).join('');
     const locationOptions = locations.map(l => `<option value="${l.name}" ${g.location === l.name ? 'selected' : ''}>${l.name}</option>`).join('');
     
+    // Tombol hapus hanya muncul jika kita dalam mode tambah (bukan edit single)
+    const deleteBtn = isEditMode ? '' : `<button type="button" class="remove-row-btn absolute top-0 right-0 bg-red-500 text-white w-8 h-8 flex items-center justify-center border-l-2 border-b-2 border-black font-bold hover:bg-red-600 z-10" title="Hapus Baris">✕</button>`;
+
     return `
-        <div class="game-row space-y-4">
-            <div>
-                <label class="block font-black text-xs uppercase mb-1">JUDUL GAME</label>
-                <input type="text" class="game-title neo-input" value="${g.title || ''}" required>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="game-row relative p-4 border-2 border-black bg-gray-50 mb-4">
+            ${deleteBtn}
+            <div class="space-y-4">
                 <div>
-                    <label class="block font-black text-xs uppercase mb-1">PLATFORM</label>
-                    <select class="game-platform neo-input cursor-pointer">
-                        ${platformOptions || '<option>Loading...</option>'}
-                    </select>
+                    <label class="block font-black text-xs uppercase mb-1">JUDUL GAME</label>
+                    <input type="text" class="game-title neo-input" value="${g.title || ''}" placeholder="Judul Game..." required>
                 </div>
-                <div>
-                    <label class="block font-black text-xs uppercase mb-1">LOKASI</label>
-                    <select class="game-location neo-input cursor-pointer">
-                        ${locationOptions || '<option>Loading...</option>'}
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-black text-xs uppercase mb-1">HARGA (IDR)</label>
-                    <input type="number" class="game-price neo-input" value="${g.price || '0'}" min="0">
-                </div>
-                <div>
-                    <label class="block font-black text-xs uppercase mb-1">STATUS</label>
-                    <select class="game-status neo-input cursor-pointer">
-                        <option ${g.status === 'Belum dimainkan' ? 'selected' : ''}>Belum dimainkan</option>
-                        <option ${g.status === 'Dimainkan' ? 'selected' : ''}>Dimainkan</option>
-                        <option ${g.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
-                    </select>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-black text-xs uppercase mb-1">PLATFORM</label>
+                        <select class="game-platform neo-input cursor-pointer">
+                            ${platformOptions || '<option>Loading...</option>'}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-black text-xs uppercase mb-1">LOKASI</label>
+                        <select class="game-location neo-input cursor-pointer">
+                            ${locationOptions || '<option>Loading...</option>'}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-black text-xs uppercase mb-1">HARGA (IDR)</label>
+                        <input type="number" class="game-price neo-input" value="${g.price || '0'}" min="0">
+                    </div>
+                    <div>
+                        <label class="block font-black text-xs uppercase mb-1">STATUS</label>
+                        <select class="game-status neo-input cursor-pointer">
+                            <option ${g.status === 'Belum dimainkan' ? 'selected' : ''}>Belum dimainkan</option>
+                            <option ${g.status === 'Dimainkan' ? 'selected' : ''}>Dimainkan</option>
+                            <option ${g.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
     `;
 }
 
+function addNewGameRow() {
+    gameRowsContainer.insertAdjacentHTML('beforeend', createGameRowHTML());
+}
+
+// Event listener untuk tombol hapus di dalam baris
+if(gameRowsContainer) {
+    gameRowsContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-row-btn')) {
+            e.target.closest('.game-row').remove();
+        }
+    });
+}
+
 function openModal(game = null) {
     document.getElementById('game-id').value = game ? game.id : '';
-    modalTitle.textContent = game ? 'EDIT GAME' : 'TAMBAH GAME BARU';
-    gameRowsContainer.innerHTML = createGameRowHTML(game);
+    modalTitle.textContent = game ? 'EDIT GAME' : 'TAMBAH GAME (BATCH)';
+    
+    // Reset container
+    gameRowsContainer.innerHTML = '';
+
+    if (game) {
+        // Mode Edit: Hanya 1 baris, tombol tambah disembunyikan
+        gameRowsContainer.innerHTML = createGameRowHTML(game);
+        addRowButton.classList.add('hidden');
+    } else {
+        // Mode Tambah: Mulai dengan 1 baris, tombol tambah ditampilkan
+        addNewGameRow();
+        addRowButton.classList.remove('hidden');
+    }
     
     gameModal.classList.remove('hidden');
     gameModal.classList.add('flex');
@@ -334,32 +359,68 @@ function closeModal() {
 }
 
 if(addGameButton) addGameButton.addEventListener('click', () => openModal());
+if(addRowButton) addRowButton.addEventListener('click', addNewGameRow); // Event listener untuk tombol tambah row
 if(cancelButton) cancelButton.addEventListener('click', closeModal);
+
 if(gameForm) {
     gameForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!currentUser) return;
         
-        const row = gameRowsContainer.querySelector('.game-row');
-        const gameData = {
-            title: row.querySelector('.game-title').value,
-            platform: row.querySelector('.game-platform').value,
-            location: row.querySelector('.game-location').value,
-            price: parseInt(row.querySelector('.game-price').value, 10),
-            status: row.querySelector('.game-status').value,
-        };
-
+        const id = document.getElementById('game-id').value;
+        
         try {
-            const id = document.getElementById('game-id').value;
             if (id) {
+                // --- UPDATE SINGLE GAME ---
+                const row = gameRowsContainer.querySelector('.game-row');
+                const gameData = {
+                    title: row.querySelector('.game-title').value,
+                    platform: row.querySelector('.game-platform').value,
+                    location: row.querySelector('.game-location').value,
+                    price: parseInt(row.querySelector('.game-price').value, 10) || 0,
+                    status: row.querySelector('.game-status').value,
+                };
                 await updateDoc(doc(db, 'games', currentUser.uid, 'userGames', id), gameData);
                 showToast('DATA DIPERBARUI');
             } else {
-                await addDoc(collection(db, 'games', currentUser.uid, 'userGames'), gameData);
-                showToast('GAME DITAMBAHKAN');
+                // --- BATCH ADD GAMES ---
+                const rows = gameRowsContainer.querySelectorAll('.game-row');
+                if (rows.length === 0) {
+                    return showToast("Tidak ada data untuk disimpan", true);
+                }
+
+                const batch = writeBatch(db);
+                let count = 0;
+
+                rows.forEach(row => {
+                    const title = row.querySelector('.game-title').value.trim();
+                    if (title) {
+                        const gameData = {
+                            title: title,
+                            platform: row.querySelector('.game-platform').value,
+                            location: row.querySelector('.game-location').value,
+                            price: parseInt(row.querySelector('.game-price').value, 10) || 0,
+                            status: row.querySelector('.game-status').value,
+                        };
+                        // Buat referensi dokumen baru dengan ID otomatis
+                        const newGameRef = doc(collection(db, 'games', currentUser.uid, 'userGames'));
+                        batch.set(newGameRef, gameData);
+                        count++;
+                    }
+                });
+
+                if (count > 0) {
+                    await batch.commit();
+                    showToast(`${count} GAME DITAMBAHKAN`);
+                } else {
+                    return showToast("Mohon isi judul game setidaknya satu.", true);
+                }
             }
             closeModal();
-        } catch (err) { showToast(err.message, true); }
+        } catch (err) { 
+            console.error(err);
+            showToast("Terjadi kesalahan: " + err.message, true); 
+        }
     });
 }
 
