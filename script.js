@@ -813,3 +813,17 @@ if(editItemForm) {
         setTimeout(() => editItemModal.classList.add('hidden'), 200);
     });
 }
+
+// --- NAVBAR SCROLL EFFECT ---
+const navbar = document.getElementById('main-navbar');
+if (navbar) {
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 20) {
+            navbar.classList.remove('bg-white');
+            navbar.classList.add('bg-white/80', 'backdrop-blur-md');
+        } else {
+            navbar.classList.add('bg-white');
+            navbar.classList.remove('bg-white/80', 'backdrop-blur-md');
+        }
+    });
+}
