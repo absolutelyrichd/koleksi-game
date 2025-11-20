@@ -7,429 +7,471 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Chart.js for Statistics -->
+    
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- Google Fonts: Inter -->
+    <!-- Fonts: Lexend Mega (Judul) & Public Sans (Body) untuk kesan modern/brutal -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend+Mega:wght@400;700&family=Public+Sans:wght@500;700;900&display=swap" rel="stylesheet">
 
     <style>
+        :root {
+            --neo-black: #1a1a1a;
+            --neo-white: #ffffff;
+            --neo-bg: #e0e7ff; /* indigo-100 */
+            --neo-primary: #a3e635; /* lime-400 */
+            --neo-secondary: #22d3ee; /* cyan-400 */
+            --neo-accent: #f472b6; /* pink-400 */
+            --neo-warning: #facc15; /* yellow-400 */
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            /* Palet warna baru yang segar dengan gradien slate */
-            background-color: #0f172a; /* slate-900 */
-            background-image: radial-gradient(at 0% 0%, hsla(212,45%,18%,1) 0px, transparent 50%),
-                              radial-gradient(at 98% 12%, hsla(283,45%,22%,1) 0px, transparent 50%);
-            color: #f8fafc;
-            min-height: 100vh;
+            font-family: 'Public Sans', sans-serif;
+            background-color: var(--neo-bg);
+            color: var(--neo-black);
+            /* Pola dot background */
+            background-image: radial-gradient(var(--neo-black) 1px, transparent 1px);
+            background-size: 24px 24px;
         }
-        .tab-active {
-            background-color: #1e293b; /* slate-800 */
-            color: #f8fafc;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+        h1, h2, h3, h4, .font-display {
+            font-family: 'Lexend Mega', sans-serif;
         }
-        .tab-inactive {
-            background-color: transparent;
-            color: #d1d5db;
+
+        /* --- UTILITIES NEOBRUTALISM --- */
+        
+        /* Kotak Dasar */
+        .neo-box {
+            background-color: var(--neo-white);
+            border: 3px solid var(--neo-black);
+            box-shadow: 5px 5px 0px 0px var(--neo-black);
         }
+
+        /* Tombol Dasar */
+        .neo-btn {
+            border: 3px solid var(--neo-black);
+            box-shadow: 4px 4px 0px 0px var(--neo-black);
+            transition: all 0.1s ease;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .neo-btn:hover:not(:disabled) {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px 0px var(--neo-black);
+        }
+        
+        .neo-btn:active:not(:disabled) {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px var(--neo-black);
+        }
+
+        .neo-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Input Fields */
+        .neo-input {
+            width: 100%;
+            background-color: var(--neo-white);
+            border: 3px solid var(--neo-black);
+            padding: 0.75rem;
+            font-weight: 700;
+            outline: none;
+            transition: box-shadow 0.2s;
+            border-radius: 0;
+        }
+        .neo-input:focus {
+            background-color: #f0f9ff;
+            box-shadow: 4px 4px 0px 0px var(--neo-black);
+        }
+
+        /* Tab Navigation */
+        .tab-btn {
+            padding: 10px 20px;
+            border: 3px solid var(--neo-black);
+            background: var(--neo-white);
+            font-weight: 700;
+            margin-right: -3px; /* Overlap borders */
+            position: relative;
+            z-index: 0;
+        }
+        .tab-btn.active {
+            background: var(--neo-secondary);
+            z-index: 10;
+            box-shadow: 0px -4px 0px 0px var(--neo-black) inset;
+        }
+
+        /* Badge */
+        .neo-badge {
+            border: 2px solid var(--neo-black);
+            font-size: 0.75rem;
+            font-weight: 900;
+            padding: 2px 8px;
+            text-transform: uppercase;
+            box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.2);
+        }
+
+        /* Modal Backdrop */
         .modal-backdrop {
-            background-color: rgba(15, 23, 42, 0.5); /* slate-900/50 */
-            backdrop-filter: blur(8px);
+            background-color: rgba(26, 26, 26, 0.85);
+            backdrop-filter: blur(4px);
         }
-        /* Custom scrollbar */
+        
+        /* Scrollbar Kasar */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 12px;
         }
         ::-webkit-scrollbar-track {
-            background: #1e293b; /* slate-800 */
+            background: var(--neo-white);
+            border-left: 3px solid var(--neo-black);
         }
         ::-webkit-scrollbar-thumb {
-            background: #14b8a6; /* teal-500 */
-            border-radius: 10px;
+            background: var(--neo-accent);
+            border: 3px solid var(--neo-black);
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #2dd4bf; /* teal-400 */
+            background: var(--neo-primary);
         }
-        .pagination-button {
-            min-width: 40px;
-        }
-        .pagination-button.active {
-            background-color: #14b8a6; /* teal-500 */
-            color: #0f172a; /* slate-900 */
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-        .btn-disabled {
-            background-color: #334155; /* slate-700 */
-            color: #64748b; /* slate-500 */
-            cursor: not-allowed;
-        }
-        /* Sidebar active tab indicator */
-        .tab-button.tab-active {
-            position: relative;
-            overflow: hidden;
-        }
-        .tab-button.tab-active::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(to bottom, #2dd4bf, #14b8a6); /* teal gradient */
-            border-radius: 2px;
-        }
-        .sortable {
-            cursor: pointer;
-            user-select: none;
-        }
-        .sortable .sort-icon {
-            display: inline-block;
-            margin-left: 0.5rem;
-            width: 1em;
-        }
-        @media (max-width: 639px) {
-            .card-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
-            .card-item > div:first-child { border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
-            .card-item > div:last-child { margin-top: 1rem; }
-        }
-        /* Style baru untuk navigasi */
-        .nav-links-container .link-active {
-            position: relative;
-            color: white;
-        }
-        .nav-links-container .link-active::after {
-            content: '';
-            position: absolute;
-            bottom: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 6px;
-            height: 6px;
-            background-color: #2dd4bf; /* teal-400 */
-            border-radius: 50%;
-        }
-        #mobile-tabs .link-active::after { display: none; }
-        #tabs button { padding: 8px 12px; }
     </style>
 </head>
-<body class="antialiased">
+<body class="min-h-screen p-4 md:p-8">
 
-    <!-- Login Screen -->
-    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-md bg-slate-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8 text-center border border-slate-700">
-            <h1 class="text-3xl font-bold text-white mb-2">Dasbor Koleksi Game</h1>
-            <p class="text-slate-400 mb-8">Kelola dan lacak semua game favorit Anda di satu tempat.</p>
-            <button id="login-button" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold py-3 px-4 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105 shadow-lg">
-                <svg class="w-6 h-6 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48px" height="48px"><path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/><path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/><path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/><path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.021,35.591,44,30.138,44,24C44,22.659,43.862,21.35,43.611,20.083z"/></svg>
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="flex min-h-[80vh] items-center justify-center">
+        <div class="neo-box max-w-md w-full p-8 text-center bg-yellow-300">
+            <div class="inline-block bg-black text-white p-2 mb-4 font-display font-bold text-xl transform -rotate-2">
+                GAME COLLECTION
+            </div>
+            <h1 class="text-4xl font-black mb-2 uppercase">Area Terbatas</h1>
+            <p class="font-bold mb-8 border-b-4 border-black inline-block pb-1">Silakan identifikasi diri anda</p>
+            
+            <button id="login-button" class="neo-btn w-full bg-white py-4 flex items-center justify-center gap-3 hover:bg-cyan-300">
+                <svg class="w-6 h-6" viewBox="0 0 24 24"><path fill="currentColor" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27c3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10c5.35 0 9.25-3.67 9.25-9.09c0-1.15-.15-1.81-.15-1.81Z"/></svg>
                 Masuk dengan Google
             </button>
         </div>
     </div>
 
-    <!-- Main App Screen -->
-    <div id="app-screen" class="hidden flex flex-col h-screen">
-        <!-- Navbar -->
-        <header id="navbar" class="sticky top-4 z-40 p-2 mx-auto max-w-7xl">
-            <div class="bg-slate-900/50 backdrop-blur-lg rounded-full shadow-2xl border border-slate-700 flex items-center justify-between p-2 md:px-6 md:py-3">
-                <div class="flex items-center">
-                    <button id="open-sidebar-button" class="md:hidden text-white hover:text-teal-300 mr-4 p-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
-                    </button>
-                    <div class="flex items-center">
-                        <img src="https://i.ibb.co.com/jvqg4gS7/game-1.png" alt="Koleksi Game" class="w-12 h-auto">
-                    </div>
+    <!-- APP SCREEN -->
+    <div id="app-screen" class="hidden max-w-7xl mx-auto">
+        
+        <!-- NAVBAR -->
+        <header class="neo-box mb-8 p-4 flex flex-col md:flex-row justify-between items-center bg-white sticky top-2 z-40">
+            <div class="flex items-center gap-3 mb-4 md:mb-0">
+                <div class="w-12 h-12 bg-purple-400 border-3 border-black flex items-center justify-center font-display text-2xl font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                    GC
                 </div>
+                <div>
+                    <h1 class="text-xl font-black uppercase leading-none">Game<br>Collection</h1>
+                </div>
+            </div>
 
-                <nav id="tabs" class="hidden md:flex flex-grow justify-center space-x-6 nav-links-container">
-                    <button data-tab="tab-list" class="tab-button link-active text-white font-medium transition duration-200 hover:text-teal-300">Daftar Game</button>
-                    <button data-tab="tab-stats" class="tab-button text-white font-medium transition duration-200 hover:text-teal-300">Statistik</button>
-                    <button data-tab="tab-bulk" class="tab-button text-white font-medium transition duration-200 hover:text-teal-300">Aksi Masal</button>
-                    <button data-tab="tab-manage" class="tab-button text-white font-medium transition duration-200 hover:text-teal-300">Manajemen Data</button>
-                </nav>
+            <!-- TABS NAV -->
+            <nav id="tabs" class="flex flex-wrap justify-center gap-2">
+                <button data-tab="tab-list" class="tab-btn active">DAFTAR</button>
+                <button data-tab="tab-stats" class="tab-btn">STATISTIK</button>
+                <button data-tab="tab-manage" class="tab-btn">ATUR DATA</button>
+            </nav>
 
-                <div id="user-profile" class="flex items-center space-x-3">
-                    <img id="user-photo" src="https://placehold.co/40x40/e2e8f0/e2e8f0" alt="User Photo" class="w-10 h-10 rounded-full border-2 border-teal-400">
-                    <div class="hidden md:block">
-                        <p id="user-name" class="font-semibold text-sm text-white">Guest User</p>
-                        <button id="logout-button-text" class="text-xs text-teal-300 hover:text-teal-200">Keluar</button>
-                    </div>
+            <div class="flex items-center gap-3 mt-4 md:mt-0">
+                <img id="user-photo" src="" class="w-10 h-10 border-3 border-black bg-gray-300" alt="User">
+                <div class="hidden md:block text-right leading-tight">
+                    <p id="user-name" class="font-bold text-sm truncate max-w-[100px]">User</p>
+                    <button id="logout-button-text" class="text-xs font-black text-red-500 hover:underline uppercase">KELUAR</button>
                 </div>
             </div>
         </header>
 
-        <!-- Main Content Area -->
-        <div class="flex flex-grow md:gap-6 md:p-8 pt-4 md:pt-0">
-            <!-- Sidebar (for mobile only) -->
-            <aside id="sidebar" class="fixed inset-y-0 left-0 bg-slate-800 w-60 p-6 flex flex-col z-50 transform -translate-x-full transition-transform duration-300 md:hidden rounded-2xl border border-slate-700 shadow-2xl">
-                <div class="flex-grow flex flex-col">
-                    <div class="flex items-center justify-between mb-8">
-                        <h1 class="text-2xl font-bold text-white">Menu</h1>
-                        <button id="close-sidebar-button" class="md:hidden text-slate-400 hover:text-white">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                    </div>
-                    <nav id="mobile-tabs" class="flex flex-col space-y-2">
-                        <button data-tab="tab-list" class="tab-button tab-active flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-slate-700"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 6a2 2 0 012-2h12a2 2 0 012 2v1H2V6zM2 9v7a2 2 0 002 2h12a2 2 0 002-2V9H2zm4-4a1 1 0 100-2 1 1 0 000 2zM8 5a1 1 0 100-2 1 1 0 000 2z"/></svg>Daftar Game</button>
-                        <button data-tab="tab-stats" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-slate-700"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>Statistik</button>
-                        <button data-tab="tab-bulk" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-slate-700"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>Aksi Masal</button>
-                        <button data-tab="tab-manage" class="tab-button tab-inactive flex items-center py-2 px-4 rounded-lg transition duration-200 hover:bg-slate-700"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>Manajemen Data</button>
-                    </nav>
-                </div>
-            </aside>
-            <div id="mobile-menu-backdrop" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"></div>
+        <!-- MAIN CONTENT -->
+        <main>
             
-            <main class="flex-1 p-4 md:p-0 overflow-y-auto">
-                <!-- Tab: Daftar Game -->
-                <div id="tab-list" class="tab-content transition-all duration-300 ease-in-out">
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
-                        <h2 class="text-2xl sm:text-3xl font-bold text-white"></h2>
-                        <button id="add-game-button" class="w-full sm:w-auto bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 transform hover:scale-105 shadow-md">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
-                            Tambah Game
-                        </button>
-                    </div>
-                    <div class="bg-slate-800 p-4 md:p-6 rounded-xl shadow-lg border border-slate-700 mb-4">
-                        <h3 class="font-bold text-xl mb-4 text-white">Filter Game</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <input id="filter-title" type="text" placeholder="Filter berdasarkan judul..." class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white placeholder-slate-400">
-                            <select id="filter-platform" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white">
-                                <option value="">Semua Platform</option>
-                                <!-- Opsi platform akan diisi oleh JavaScript -->
-                            </select>
-                            <select id="filter-location" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white">
-                                <option value="">Semua Lokasi</option>
-                                <!-- Opsi lokasi akan diisi oleh JavaScript -->
-                            </select>
-                            <select id="filter-status" class="bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white">
-                                <option value="">Semua Status</option><option>Dimainkan</option><option>Belum dimainkan</option><option>Selesai</option>
+            <!-- TAB: LIST GAME -->
+            <div id="tab-list" class="tab-content">
+                <!-- Filters & Actions -->
+                <div class="neo-box p-4 bg-yellow-300 mb-8 flex flex-col lg:flex-row gap-4 items-end">
+                    <div class="w-full grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="md:col-span-1">
+                            <label class="font-black text-xs uppercase mb-1 block">Cari Judul</label>
+                            <input type="text" id="filter-title" class="neo-input" placeholder="Ketik judul...">
+                        </div>
+                        <div>
+                            <label class="font-black text-xs uppercase mb-1 block">Platform</label>
+                            <select id="filter-platform" class="neo-input cursor-pointer">
+                                <option value="">SEMUA</option>
                             </select>
                         </div>
-                     </div>
-                    <div class="hidden sm:block bg-slate-800 rounded-xl shadow-lg overflow-x-auto border border-slate-700">
-                        <table id="game-table" class="w-full text-left">
-                            <thead class="bg-slate-700/50">
-                                <tr>
-                                    <th class="p-4 w-12"><input type="checkbox" id="select-all-checkbox" class="rounded bg-slate-600 border-slate-500 text-teal-500 focus:ring-teal-400"></th>
-                                    <th id="title-header" class="p-4 font-semibold text-white sortable" data-sort="title">Judul Game <span class="sort-icon"></span></th>
-                                    <th id="platform-header" class="p-4 font-semibold text-white sortable" data-sort="platform">Platform <span class="sort-icon"></span></th>
-                                    <th id="location-header" class="p-4 font-semibold text-white sortable" data-sort="location">Lokasi <span class="sort-icon"></span></th>
-                                    <th id="price-header" class="p-4 font-semibold text-white sortable" data-sort="price">Harga <span class="sort-icon"></span></th>
-                                    <th id="status-header" class="p-4 font-semibold text-white sortable" data-sort="status">Status <span class="sort-icon"></span></th>
-                                    <th class="p-4 font-semibold text-white">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="game-list-body">
-                                <tr><td colspan="7" class="text-center p-8 text-slate-400">Memuat data game...</td></tr>
-                            </tbody>
-                        </table>
+                        <div>
+                            <label class="font-black text-xs uppercase mb-1 block">Lokasi</label>
+                            <select id="filter-location" class="neo-input cursor-pointer">
+                                <option value="">SEMUA</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="font-black text-xs uppercase mb-1 block">Status</label>
+                            <select id="filter-status" class="neo-input cursor-pointer">
+                                <option value="">SEMUA</option>
+                                <option>Belum dimainkan</option>
+                                <option>Dimainkan</option>
+                                <option>Selesai</option>
+                            </select>
+                        </div>
                     </div>
-                    <div id="game-list-cards" class="sm:hidden card-grid">
-                        <div id="game-list-cards-empty" class="text-center p-8 text-slate-400">Memuat data game...</div>
+                    <button id="add-game-button" class="neo-btn bg-lime-400 px-6 py-3 h-[52px] w-full lg:w-auto flex-shrink-0 flex items-center justify-center gap-2 whitespace-nowrap">
+                        <span class="text-xl leading-none">+</span> BARU
+                    </button>
+                </div>
+
+                <!-- Bulk Actions Bar (Hidden by default/logic handled in JS) -->
+                <div id="bulk-actions-bar" class="mb-4 flex justify-between items-center bg-black text-white p-3 border-3 border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hidden">
+                    <div class="font-bold px-2">
+                        <input type="checkbox" id="select-all-checkbox" class="w-5 h-5 accent-lime-400 mr-2 align-middle">
+                        <span id="selection-info">0 DIPILIH</span>
                     </div>
-                    <div id="pagination-container" class="flex justify-center items-center mt-6 space-x-1 sm:space-x-2"></div>
+                    <div class="flex gap-2">
+                        <button id="bulk-edit-button" class="bg-blue-500 text-white px-3 py-1 font-bold border-2 border-white hover:bg-blue-600 disabled:opacity-50">EDIT</button>
+                        <button id="bulk-delete-button" class="bg-red-500 text-white px-3 py-1 font-bold border-2 border-white hover:bg-red-600 disabled:opacity-50">HAPUS</button>
+                    </div>
                 </div>
 
-                <!-- Tab: Statistik -->
-                <div id="tab-stats" class="tab-content hidden opacity-0 translate-y-3 transition-all duration-300 ease-in-out">
-                     <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white"></h2>
-                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                         <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
-                            <h3 class="text-xl font-bold text-white mb-2">Total Harga Game</h3>
-                            <p id="total-price" class="text-3xl font-bold text-amber-400">Memuat...</p>
-                         </div>
-                         <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
-                             <h3 class="text-xl font-bold text-white mb-2">Game Termahal</h3>
-                             <p id="most-expensive-game" class="text-2xl font-bold text-amber-400">Memuat...</p>
-                         </div>
-                     </div>
-                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
-                            <h3 class="font-bold text-xl text-center mb-4 text-white">Game per Platform</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;"><canvas id="platform-chart"></canvas></div>
-                        </div>
-                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
-                            <h3 class="font-bold text-xl text-center mb-4 text-white">Game per Lokasi</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 280px;"><canvas id="location-chart"></canvas></div>
-                        </div>
-                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg col-span-1 lg:col-span-2 border border-slate-700">
-                             <h3 class="font-bold mb-4 text-xl text-center text-white">Status Permainan</h3>
-                            <div class="relative h-64 w-full mx-auto" style="max-width: 800px;"><canvas id="status-chart"></canvas></div>
-                        </div>
-                     </div>
+                <!-- Games Grid (Replaces Table) -->
+                <div id="game-list-cards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <!-- Cards injected by JS -->
+                    <div class="col-span-full text-center py-12 font-bold opacity-50 text-xl">MEMUAT DATA...</div>
                 </div>
+                
+                <!-- Pagination -->
+                <div id="pagination-container" class="flex justify-center gap-2 mt-10 font-bold"></div>
+                
+                <!-- Hidden elements required by JS logic to prevent errors -->
+                <div id="game-list-body" class="hidden"></div>
+                <div id="total-price" class="hidden"></div>
+                <div id="most-expensive-game" class="hidden"></div>
+            </div>
 
-                <!-- Tab: Aksi Masal -->
-                <div id="tab-bulk" class="tab-content hidden opacity-0 translate-y-3 transition-all duration-300 ease-in-out">
-                     <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white"></h2>
-                     <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
-                        <h3 class="font-bold text-xl mb-4 text-white">Tindakan untuk Game Terpilih</h3>
-                        <p id="selection-info" class="text-slate-400 mb-4">Pilih game dari 'Daftar Game' untuk melakukan aksi masal.</p>
-                        <div class="flex flex-wrap gap-4">
-                            <button id="bulk-edit-button" class="w-full sm:w-auto bg-blue-500 hover:bg-blue-400 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:btn-disabled transform hover:scale-105 shadow-md" disabled><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>Edit Game Terpilih</button>
-                            <button id="bulk-delete-button" class="w-full sm:w-auto bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center transition duration-300 disabled:btn-disabled transform hover:scale-105 shadow-md" disabled><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>Hapus Game Terpilih</button>
-                        </div>
-                     </div>
-                </div>
-
-                <!-- Tab: Manajemen Data -->
-                <div id="tab-manage" class="tab-content hidden opacity-0 translate-y-3 transition-all duration-300 ease-in-out">
-                    <h2 class="text-2xl sm:text-3xl font-bold mb-6 text-white"></h2>
-                    <!-- Kartu Impor/Ekspor -->
-                    <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700 mb-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 class="font-bold text-xl mb-2 text-white">Ekspor Data Game</h3>
-                                <p class="text-slate-400 mb-4">Unduh semua koleksi game Anda sebagai file JSON.</p>
-                                <button id="download-json-button" class="bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 transform hover:scale-105 shadow-md"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>Unduh JSON</button>
+            <!-- TAB: STATISTIK -->
+            <div id="tab-stats" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    
+                    <!-- Summary Card -->
+                    <div class="neo-box p-6 bg-pink-300">
+                        <h2 class="font-display text-2xl font-bold mb-6 border-b-3 border-black pb-2">RINGKASAN ASET</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white border-3 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                                <div class="text-xs font-bold text-gray-500 uppercase">Total Nilai</div>
+                                <div id="stats-total-price" class="text-2xl md:text-3xl font-black text-green-600 mt-1">Rp 0</div>
                             </div>
-                            <div>
-                                <h3 class="font-bold text-xl mb-2 text-white">Impor Data Game</h3>
-                                <p class="text-slate-400 mb-4">Muat koleksi game dari file JSON.</p>
-                                <button id="upload-json-button" class="bg-indigo-500 hover:bg-indigo-400 text-white font-bold py-2 px-4 rounded-lg flex items-center transition duration-300 transform hover:scale-105 shadow-md"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" /></svg>Muat JSON</button>
+                            <div class="bg-white border-3 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                                <div class="text-xs font-bold text-gray-500 uppercase">Item Termahal</div>
+                                <div id="stats-expensive" class="text-lg font-black mt-1 leading-tight">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Chart -->
+                    <div class="neo-box p-6 bg-white">
+                        <h3 class="font-bold text-xl mb-4 uppercase">Status Permainan</h3>
+                        <div class="relative h-64"><canvas id="status-chart"></canvas></div>
+                    </div>
+
+                    <!-- Platform Chart -->
+                    <div class="neo-box p-6 bg-white">
+                        <h3 class="font-bold text-xl mb-4 uppercase">Distribusi Platform</h3>
+                        <div class="relative h-64"><canvas id="platform-chart"></canvas></div>
+                    </div>
+
+                    <!-- Location Chart -->
+                    <div class="neo-box p-6 bg-white">
+                        <h3 class="font-bold text-xl mb-4 uppercase">Distribusi Lokasi</h3>
+                        <div class="relative h-64"><canvas id="location-chart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: MANAGE DATA -->
+            <div id="tab-manage" class="tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    <!-- JSON Backup -->
+                    <div class="neo-box bg-cyan-300 p-6 lg:col-span-1">
+                        <h3 class="font-display text-xl font-black mb-4 uppercase border-b-3 border-black pb-2">DATA JSON</h3>
+                        <p class="font-bold text-sm mb-4">Backup dan restore koleksi anda.</p>
+                        
+                        <div class="space-y-4">
+                            <button id="download-json-button" class="neo-btn w-full bg-white hover:bg-gray-100 py-3 flex items-center justify-center gap-2">
+                                <span>⬇️</span> UNDUH JSON
+                            </button>
+                            
+                            <div class="relative">
+                                <button id="upload-json-button" class="neo-btn w-full bg-black text-white hover:bg-gray-800 py-3 flex items-center justify-center gap-2">
+                                    <span>⬆️</span> UPLOAD JSON
+                                </button>
                                 <input type="file" id="json-file-input" class="hidden" accept=".json">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Kartu Manajemen Platform & Lokasi -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Kartu Manajemen Platform -->
-                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
-                            <h3 class="font-bold text-xl mb-4 text-white">Manajemen Platform</h3>
-                            <div class="flex gap-2 mb-4">
-                                <input type="text" id="new-platform-input" placeholder="Nama platform baru..." class="flex-grow bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white placeholder-slate-400">
-                                <button id="add-platform-button" class="bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold py-2 px-3 rounded-lg transition transform hover:scale-105 shadow-md flex-shrink-0">Tambah</button>
+                    <!-- Master Data Management -->
+                    <div class="neo-box bg-white p-6 lg:col-span-2">
+                        <h3 class="font-display text-xl font-black mb-6 uppercase border-b-3 border-black pb-2">MASTER DATA</h3>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- Platform Manager -->
+                            <div>
+                                <h4 class="font-bold mb-2 bg-black text-white inline-block px-2 py-1">PLATFORM</h4>
+                                <div class="flex gap-2 mb-3">
+                                    <input type="text" id="new-platform-input" class="neo-input py-2" placeholder="Nama baru...">
+                                    <button id="add-platform-button" class="neo-btn bg-lime-400 px-4">+</button>
+                                </div>
+                                <div id="platform-list-container" class="h-48 overflow-y-auto border-3 border-black p-2 bg-gray-50 space-y-2">
+                                    <!-- Items -->
+                                </div>
                             </div>
-                            <div id="platform-list-container" class="max-h-60 overflow-y-auto space-y-2 pr-2">
-                                <p class="text-slate-400">Memuat platform...</p>
-                            </div>
-                        </div>
 
-                        <!-- Kartu Manajemen Lokasi -->
-                        <div class="bg-slate-800 p-6 rounded-xl shadow-lg border border-slate-700">
-                            <h3 class="font-bold text-xl mb-4 text-white">Manajemen Lokasi</h3>
-                            <div class="flex gap-2 mb-4">
-                                <input type="text" id="new-location-input" placeholder="Nama lokasi baru..." class="flex-grow bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white placeholder-slate-400">
-                                <button id="add-location-button" class="bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold py-2 px-3 rounded-lg transition transform hover:scale-105 shadow-md flex-shrink-0">Tambah</button>
-                            </div>
-                            <div id="location-list-container" class="max-h-60 overflow-y-auto space-y-2 pr-2">
-                                <p class="text-slate-400">Memuat lokasi...</p>
+                            <!-- Location Manager -->
+                            <div>
+                                <h4 class="font-bold mb-2 bg-black text-white inline-block px-2 py-1">LOKASI</h4>
+                                <div class="flex gap-2 mb-3">
+                                    <input type="text" id="new-location-input" class="neo-input py-2" placeholder="Nama baru...">
+                                    <button id="add-location-button" class="neo-btn bg-lime-400 px-4">+</button>
+                                </div>
+                                <div id="location-list-container" class="h-48 overflow-y-auto border-3 border-black p-2 bg-gray-50 space-y-2">
+                                    <!-- Items -->
+                                </div>
                             </div>
                         </div>
                     </div>
 
                 </div>
-            </main>
-        </div>
+            </div>
+        </main>
     </div>
 
-    <!-- Add/Edit Game Modal -->
-    <div id="game-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-slate-700" id="modal-content">
-            <h3 id="modal-title" class="text-2xl font-bold mb-6 text-white"></h3>
-            <form id="game-form">
-                <div class="max-h-[70vh] overflow-y-auto pr-2">
-                    <input type="hidden" id="game-id">
-                    <div id="game-rows-container" class="space-y-4"></div>
+    <!-- === MODALS === -->
+
+    <!-- ADD/EDIT GAME MODAL -->
+    <div id="game-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
+        <div id="modal-content" class="neo-box bg-white w-full max-w-2xl m-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transform transition-all scale-95 opacity-0">
+            <div class="bg-lime-400 border-b-3 border-black p-4 flex justify-between items-center">
+                <h3 id="modal-title" class="font-display font-black text-xl uppercase">EDITOR GAME</h3>
+                <button id="cancel-button" class="font-bold text-xl hover:text-red-600">✕</button>
+            </div>
+            
+            <form id="game-form" class="p-6">
+                <input type="hidden" id="game-id">
+                <div id="game-rows-container" class="space-y-6 max-h-[60vh] overflow-y-auto px-2">
+                    <!-- Form Row injected by JS -->
                 </div>
-                <div class="flex flex-col sm:flex-row justify-between items-center mt-6 pt-4 border-t border-slate-700 gap-4">
-                    <button type="button" id="add-row-button" class="w-full sm:w-auto bg-green-500 hover:bg-green-400 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Tambah Baris</button>
-                    <div class="w-full sm:w-auto flex justify-end space-x-4">
-                        <button type="button" id="cancel-button" class="flex-1 sm:flex-none bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Batal</button>
-                        <button type="submit" id="save-form-button" class="flex-1 sm:flex-none bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Simpan</button>
-                    </div>
+                
+                <div class="mt-8 flex flex-col sm:flex-row gap-4 pt-4 border-t-3 border-black border-dashed">
+                    <button type="button" id="add-row-button" class="neo-btn bg-yellow-300 px-4 py-2 text-sm hidden">TAMBAH BARIS LAIN</button>
+                    <div class="flex-grow"></div>
+                    <button type="submit" id="save-form-button" class="neo-btn bg-black text-white px-8 py-3 hover:bg-gray-800 w-full sm:w-auto">SIMPAN DATA</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Bulk Edit Modal -->
-    <div id="bulk-edit-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-slate-800 w-full max-w-lg rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-slate-700" id="bulk-edit-modal-content">
-            <h3 class="text-2xl font-bold mb-6 text-white">Edit Game Secara Masal</h3>
-            <form id="bulk-edit-form">
-                <p id="bulk-edit-info" class="text-slate-400 mb-4"></p>
-                <div class="space-y-4">
-                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
-                        <input type="checkbox" id="bulk-update-platform-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-teal-500 focus:ring-teal-400">
-                        <div class="flex-grow">
-                            <label for="bulk-platform" class="block text-slate-300 text-sm font-bold mb-1">Platform</label>
-                            <select id="bulk-platform" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white">
-                                <!-- Opsi platform akan diisi oleh JavaScript -->
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
-                        <input type="checkbox" id="bulk-update-location-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-teal-500 focus:ring-teal-400">
-                        <div class="flex-grow">
-                            <label for="bulk-location" class="block text-slate-300 text-sm font-bold mb-1">Lokasi</label>
-                            <select id="bulk-location" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white">
-                                <!-- Opsi lokasi akan diisi oleh JavaScript -->
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
-                        <input type="checkbox" id="bulk-update-price-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-teal-500 focus:ring-teal-400">
-                        <div class="flex-grow">
-                            <label for="bulk-price" class="block text-slate-300 text-sm font-bold mb-1">Harga</label>
-                            <input type="number" id="bulk-price" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white" value="0" min="0">
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-4 p-3 bg-slate-700/50 rounded-lg border border-slate-600">
-                        <input type="checkbox" id="bulk-update-status-check" class="h-5 w-5 rounded bg-slate-600 border-slate-500 text-teal-500 focus:ring-teal-400">
-                        <div class="flex-grow">
-                            <label for="bulk-status" class="block text-slate-300 text-sm font-bold mb-1">Status</label>
-                            <select id="bulk-status" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white"><option>Belum dimainkan</option><option>Dimainkan</option><option>Selesai</option></select>
-                        </div>
+    <!-- BULK EDIT MODAL -->
+    <div id="bulk-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
+        <div id="bulk-edit-modal-content" class="neo-box bg-white w-full max-w-lg m-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transform transition-all scale-95 opacity-0">
+            <div class="bg-blue-400 border-b-3 border-black p-4">
+                <h3 class="font-display font-black text-xl uppercase text-white">EDIT MASAL</h3>
+            </div>
+            <form id="bulk-edit-form" class="p-6 space-y-4">
+                <p id="bulk-edit-info" class="font-bold mb-4 text-center bg-gray-100 p-2 border-2 border-black"></p>
+                
+                <!-- Fields -->
+                <div class="flex items-center gap-3">
+                    <input type="checkbox" id="bulk-update-platform-check" class="w-6 h-6 border-3 border-black">
+                    <div class="flex-grow">
+                        <label class="text-xs font-bold uppercase">Platform Baru</label>
+                        <select id="bulk-platform" class="neo-input py-2"></select>
                     </div>
                 </div>
-                <div class="flex justify-end space-x-4 mt-6 pt-4 border-t border-slate-700">
-                    <button type="button" id="bulk-edit-cancel-button" class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Batal</button>
-                    <button type="submit" class="bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Simpan Perubahan</button>
+                 <div class="flex items-center gap-3">
+                    <input type="checkbox" id="bulk-update-location-check" class="w-6 h-6 border-3 border-black">
+                    <div class="flex-grow">
+                        <label class="text-xs font-bold uppercase">Lokasi Baru</label>
+                        <select id="bulk-location" class="neo-input py-2"></select>
+                    </div>
+                </div>
+                 <div class="flex items-center gap-3">
+                    <input type="checkbox" id="bulk-update-price-check" class="w-6 h-6 border-3 border-black">
+                    <div class="flex-grow">
+                        <label class="text-xs font-bold uppercase">Harga Baru</label>
+                        <input type="number" id="bulk-price" class="neo-input py-2">
+                    </div>
+                </div>
+                 <div class="flex items-center gap-3">
+                    <input type="checkbox" id="bulk-update-status-check" class="w-6 h-6 border-3 border-black">
+                    <div class="flex-grow">
+                        <label class="text-xs font-bold uppercase">Status Baru</label>
+                        <select id="bulk-status" class="neo-input py-2">
+                            <option>Belum dimainkan</option>
+                            <option>Dimainkan</option>
+                            <option>Selesai</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" id="bulk-edit-cancel-button" class="neo-btn bg-white px-4 py-2">BATAL</button>
+                    <button type="submit" class="neo-btn bg-blue-500 text-white px-6 py-2">TERAPKAN</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="delete-confirm-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-slate-800 w-full max-w-sm rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-slate-700" id="delete-confirm-modal-content">
-            <h3 class="text-2xl font-bold mb-4 text-white">Konfirmasi Penghapusan</h3>
-            <p id="delete-confirm-message" class="text-slate-400 mb-6"></p>
-            <div class="flex justify-end space-x-4">
-                <button type="button" id="cancel-delete-button" class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Batal</button>
-                <button type="button" id="confirm-delete-button" class="bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Hapus</button>
+    <!-- DELETE CONFIRM MODAL -->
+    <div id="delete-confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
+        <div id="delete-confirm-modal-content" class="neo-box bg-red-100 w-full max-w-sm m-4 border-red-500 shadow-[8px_8px_0px_0px_rgba(239,68,68,1)] transform transition-all scale-95 opacity-0">
+            <div class="p-6 text-center">
+                <div class="text-5xl mb-4">⚠️</div>
+                <h3 class="font-display font-black text-xl uppercase mb-2">YAKIN HAPUS?</h3>
+                <p id="delete-confirm-message" class="font-bold mb-6">Tindakan ini tidak dapat dibatalkan.</p>
+                <div class="flex justify-center gap-4">
+                    <button id="cancel-delete-button" class="neo-btn bg-white px-4 py-2">JANGAN</button>
+                    <button id="confirm-delete-button" class="neo-btn bg-red-500 text-white px-6 py-2 hover:bg-red-600">YA, HAPUS</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- BARU: Edit Item (Platform/Lokasi) Modal -->
-    <div id="edit-item-modal" class="fixed inset-0 z-50 items-center justify-center hidden modal-backdrop">
-        <div class="bg-slate-800 w-full max-w-sm rounded-2xl shadow-2xl p-6 md:p-8 transform transition-all scale-95 opacity-0 border border-slate-700" id="edit-item-modal-content">
-            <h3 id="edit-item-modal-title" class="text-2xl font-bold mb-4 text-white">Edit Item</h3>
-            <form id="edit-item-form">
+    <!-- EDIT ITEM MODAL (Platform/Location) -->
+    <div id="edit-item-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
+        <div id="edit-item-modal-content" class="neo-box bg-white w-full max-w-sm m-4 transform transition-all scale-95 opacity-0">
+            <div class="bg-gray-200 border-b-3 border-black p-3">
+                <h3 id="edit-item-modal-title" class="font-display font-bold uppercase">EDIT ITEM</h3>
+            </div>
+            <form id="edit-item-form" class="p-6">
                 <input type="hidden" id="edit-item-id">
                 <input type="hidden" id="edit-item-type">
-                <div>
-                    <label for="edit-item-name-input" class="block text-slate-300 text-sm font-bold mb-2">Nama</label>
-                    <input type="text" id="edit-item-name-input" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2 focus:ring-2 focus:ring-teal-500 focus:outline-none text-white" required>
+                <div class="mb-6">
+                    <label class="font-black text-xs uppercase mb-1 block">Nama Baru</label>
+                    <input type="text" id="edit-item-name-input" class="neo-input" required>
                 </div>
-                <div class="flex justify-end space-x-4 mt-6">
-                    <button type="button" id="edit-item-cancel-button" class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Batal</button>
-                    <button type="submit" id="edit-item-save-button" class="bg-teal-500 hover:bg-teal-400 text-slate-900 font-bold py-2 px-4 rounded-lg transition transform hover:scale-105 shadow-md">Simpan</button>
+                <div class="flex justify-end gap-3">
+                    <button type="button" id="edit-item-cancel-button" class="neo-btn bg-white px-4 py-2">BATAL</button>
+                    <button type="submit" id="edit-item-save-button" class="neo-btn bg-lime-400 px-6 py-2">SIMPAN</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Custom Alert/Toast -->
-    <div id="toast" class="fixed bottom-5 right-1/2 translate-x-1/2 w-11/12 max-w-sm bg-green-500 text-white py-2 px-4 rounded-lg shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 z-50">
-        <p id="toast-message">Operasi berhasil!</p>
+    <!-- TOAST -->
+    <div id="toast" class="fixed bottom-5 left-5 right-5 md:left-auto md:right-5 md:w-80 neo-box bg-black text-white p-4 flex items-center gap-3 transform translate-y-24 opacity-0 transition-all duration-300 z-50">
+        <div class="text-2xl">💬</div>
+        <p id="toast-message" class="font-bold text-sm">Notifikasi</p>
     </div>
-	<script type="module" src="/script.js"></script>
+
+    <!-- SCRIPT -->
+    <script type="module" src="/script.js"></script>
 </body>
 </html>
