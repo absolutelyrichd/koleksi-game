@@ -45,7 +45,7 @@ const paginationContainer = document.getElementById('pagination-container');
 const statsTotalPrice = document.getElementById('stats-total-price');
 const statsExpensive = document.getElementById('stats-expensive');
 const bulkActionsBar = document.getElementById('bulk-actions-bar');
-const backToTopBtn = document.getElementById('back-to-top'); // New
+const backToTopBtn = document.getElementById('back-to-top'); 
 
 // Modals
 const gameModal = document.getElementById('game-modal');
@@ -150,16 +150,13 @@ function generatePlatformColor(str) {
     
     const colorOverrides = {
         'GOG': 'hsl(260, 90%, 75%)',             
-        
         'U-Connect': 'hsl(310, 90%, 70%)',       
         'Ubisoft': 'hsl(310, 90%, 70%)',
         'Ubisoft Connect': 'hsl(310, 90%, 70%)',
         'Uplay': 'hsl(310, 90%, 70%)',
-        
         'EA': 'hsl(30, 100%, 70%)',              
         'EA App': 'hsl(30, 100%, 70%)',
         'Origin': 'hsl(30, 100%, 70%)',
-
         'Steam': 'hsl(210, 90%, 75%)',           
         'Epic': 'hsl(0, 0%, 80%)',               
         'Switch': 'hsl(0, 90%, 75%)',            
@@ -233,7 +230,7 @@ function fetchLocations() {
     });
 }
 
-// --- RENDER FUNCTIONS (NEOBRUTALISM STYLE) ---
+// --- RENDER FUNCTIONS ---
 
 function renderGames(gamesToRender) {
     if(!gameListCards) return;
@@ -669,7 +666,7 @@ if(bulkEditForm) {
     });
 }
 
-// --- CHARTS (UPDATED COLORS) ---
+// --- CHARTS (UPDATED CONFIG) ---
 function updateCharts() {
     const totalPrice = games.reduce((sum, g) => sum + (g.price || 0), 0);
     const expensive = games.reduce((max, g) => (g.price > max.price ? g : max), { price: 0 });
@@ -684,25 +681,59 @@ function updateCharts() {
         sData[g.status] = (sData[g.status] || 0) + 1;
     });
 
-    const chartConfig = (type, labels, data, colors) => ({
-        type: type,
-        data: {
-            labels: labels,
-            datasets: [{
-                data: data,
-                backgroundColor: colors,
-                borderColor: '#000',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            plugins: { legend: { display: false } },
-            scales: type === 'bar' ? {
-                y: { grid: { color: '#000', lineWidth: 1 }, ticks: { color: '#000', font: { weight: 'bold' } } },
-                x: { grid: { display: false }, ticks: { color: '#000', font: { weight: 'bold' } } }
-            } : {}
-        }
-    });
+    // UPDATE: Logic Chart Config yang telah diperbaiki
+    // Menambahkan dukungan untuk menampilkan legenda di kanan khusus Pie/Doughnut
+    const chartConfig = (type, labels, data, colors) => {
+        const isPie = type === 'pie' || type === 'doughnut';
+        return {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: colors,
+                    borderColor: '#000',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false, // Wajib false agar mengisi container
+                layout: {
+                    padding: {
+                        top: 10,
+                        bottom: 10,
+                        left: 10,
+                        right: 10
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: isPie, // Hanya tampilkan legend untuk chart lingkaran
+                        position: 'right', // Posisi di kanan untuk mengisi ruang kosong
+                        labels: {
+                            color: '#000',
+                            font: {
+                                family: "'Public Sans', sans-serif",
+                                weight: 'bold',
+                                size: 11
+                            },
+                            boxWidth: 12,
+                            padding: 15
+                        }
+                    }
+                },
+                scales: type === 'bar' ? {
+                    y: { grid: { color: '#000', lineWidth: 1 }, ticks: { color: '#000', font: { weight: 'bold' } } },
+                    x: { grid: { display: false }, ticks: { color: '#000', font: { weight: 'bold' } } }
+                } : {
+                    // Sembunyikan axis untuk pie chart
+                    x: { display: false },
+                    y: { display: false }
+                }
+            }
+        };
+    };
 
     const sc = document.getElementById('status-chart');
     if(sc) {
@@ -710,17 +741,17 @@ function updateCharts() {
         statusChart = new Chart(sc, chartConfig('bar', Object.keys(sData), Object.values(sData), '#a3e635'));
     }
 
-    // Update Platform Chart agar warnanya sinkron dengan Badge
+    // Update Platform Chart 
     const pc = document.getElementById('platform-chart');
     if(pc) {
         if(platformChart) platformChart.destroy();
-        // Generate array warna berdasarkan label platform
         const platformLabels = Object.keys(pData);
         const platformColors = platformLabels.map(label => generatePlatformColor(label));
         
         platformChart = new Chart(pc, chartConfig('pie', platformLabels, Object.values(pData), platformColors));
     }
 
+    // Update Location Chart
     const lc = document.getElementById('location-chart');
     if(lc) {
         if(locationChart) locationChart.destroy();
@@ -811,7 +842,6 @@ if (navbar) {
     window.addEventListener('scroll', () => {
         if (window.scrollY > 20) {
             navbar.classList.remove('bg-white');
-            // More transparent and more blur
             navbar.classList.add('bg-white/30', 'backdrop-blur-xl');
         } else {
             navbar.classList.add('bg-white');
