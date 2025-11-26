@@ -45,7 +45,6 @@ const paginationContainer = document.getElementById('pagination-container');
 const statsTotalPrice = document.getElementById('stats-total-price');
 const statsExpensive = document.getElementById('stats-expensive');
 const bulkActionsBar = document.getElementById('bulk-actions-bar');
-const backToTopBtn = document.getElementById('back-to-top'); 
 
 // Modals
 const gameModal = document.getElementById('game-modal');
@@ -76,6 +75,11 @@ const editItemNameInput = document.getElementById('edit-item-name-input');
 const editItemId = document.getElementById('edit-item-id');
 const editItemType = document.getElementById('edit-item-type');
 const editItemCancelButton = document.getElementById('edit-item-cancel-button');
+
+// JSON Buttons
+const downloadJsonBtn = document.getElementById('download-json-button');
+const uploadJsonBtn = document.getElementById('upload-json-button');
+const jsonFileInput = document.getElementById('json-file-input');
 
 let gameIdToDelete = null; 
 let currentConfirmCallback = null;
@@ -150,13 +154,16 @@ function generatePlatformColor(str) {
     
     const colorOverrides = {
         'GOG': 'hsl(260, 90%, 75%)',             
+        
         'U-Connect': 'hsl(310, 90%, 70%)',       
         'Ubisoft': 'hsl(310, 90%, 70%)',
         'Ubisoft Connect': 'hsl(310, 90%, 70%)',
         'Uplay': 'hsl(310, 90%, 70%)',
+        
         'EA': 'hsl(30, 100%, 70%)',              
         'EA App': 'hsl(30, 100%, 70%)',
         'Origin': 'hsl(30, 100%, 70%)',
+
         'Steam': 'hsl(210, 90%, 75%)',           
         'Epic': 'hsl(0, 0%, 80%)',               
         'Switch': 'hsl(0, 90%, 75%)',            
@@ -230,7 +237,7 @@ function fetchLocations() {
     });
 }
 
-// --- RENDER FUNCTIONS ---
+// --- RENDER FUNCTIONS (NEOBRUTALISM STYLE) ---
 
 function renderGames(gamesToRender) {
     if(!gameListCards) return;
@@ -666,7 +673,7 @@ if(bulkEditForm) {
     });
 }
 
-// --- CHARTS (UPDATED CONFIG) ---
+// --- CHARTS (UPDATED COLORS) ---
 function updateCharts() {
     const totalPrice = games.reduce((sum, g) => sum + (g.price || 0), 0);
     const expensive = games.reduce((max, g) => (g.price > max.price ? g : max), { price: 0 });
@@ -681,59 +688,25 @@ function updateCharts() {
         sData[g.status] = (sData[g.status] || 0) + 1;
     });
 
-    // UPDATE: Logic Chart Config yang telah diperbaiki
-    // Menambahkan dukungan untuk menampilkan legenda di kanan khusus Pie/Doughnut
-    const chartConfig = (type, labels, data, colors) => {
-        const isPie = type === 'pie' || type === 'doughnut';
-        return {
-            type: type,
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: colors,
-                    borderColor: '#000',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false, // Wajib false agar mengisi container
-                layout: {
-                    padding: {
-                        top: 10,
-                        bottom: 10,
-                        left: 10,
-                        right: 10
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: isPie, // Hanya tampilkan legend untuk chart lingkaran
-                        position: 'right', // Posisi di kanan untuk mengisi ruang kosong
-                        labels: {
-                            color: '#000',
-                            font: {
-                                family: "'Public Sans', sans-serif",
-                                weight: 'bold',
-                                size: 11
-                            },
-                            boxWidth: 12,
-                            padding: 15
-                        }
-                    }
-                },
-                scales: type === 'bar' ? {
-                    y: { grid: { color: '#000', lineWidth: 1 }, ticks: { color: '#000', font: { weight: 'bold' } } },
-                    x: { grid: { display: false }, ticks: { color: '#000', font: { weight: 'bold' } } }
-                } : {
-                    // Sembunyikan axis untuk pie chart
-                    x: { display: false },
-                    y: { display: false }
-                }
-            }
-        };
-    };
+    const chartConfig = (type, labels, data, colors) => ({
+        type: type,
+        data: {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: colors,
+                borderColor: '#000',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: type === 'bar' ? {
+                y: { grid: { color: '#000', lineWidth: 1 }, ticks: { color: '#000', font: { weight: 'bold' } } },
+                x: { grid: { display: false }, ticks: { color: '#000', font: { weight: 'bold' } } }
+            } : {}
+        }
+    });
 
     const sc = document.getElementById('status-chart');
     if(sc) {
@@ -741,17 +714,17 @@ function updateCharts() {
         statusChart = new Chart(sc, chartConfig('bar', Object.keys(sData), Object.values(sData), '#a3e635'));
     }
 
-    // Update Platform Chart 
+    // Update Platform Chart agar warnanya sinkron dengan Badge
     const pc = document.getElementById('platform-chart');
     if(pc) {
         if(platformChart) platformChart.destroy();
+        // Generate array warna berdasarkan label platform
         const platformLabels = Object.keys(pData);
         const platformColors = platformLabels.map(label => generatePlatformColor(label));
         
         platformChart = new Chart(pc, chartConfig('pie', platformLabels, Object.values(pData), platformColors));
     }
 
-    // Update Location Chart
     const lc = document.getElementById('location-chart');
     if(lc) {
         if(locationChart) locationChart.destroy();
@@ -836,34 +809,149 @@ if(editItemForm) {
     });
 }
 
+// --- LOGIKA BARU: DOWNLOAD & UPLOAD JSON ---
+
+// 1. Download JSON
+if (downloadJsonBtn) {
+    downloadJsonBtn.addEventListener('click', () => {
+        if (!currentUser) return showToast("Harap login terlebih dahulu", true);
+        
+        // Buat objek data yang akan dibackup
+        const dataBackup = {
+            games: games,
+            platforms: platforms,
+            locations: locations,
+            backupDate: new Date().toISOString(),
+            appVersion: "1.0"
+        };
+
+        // Convert ke string JSON
+        const dataStr = JSON.stringify(dataBackup, null, 2);
+        
+        // Buat Blob dan Link untuk download
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", url);
+        downloadAnchor.setAttribute("download", `koleksi-game-backup-${new Date().toISOString().slice(0,10)}.json`);
+        
+        // Trigger klik
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        
+        // Bersihkan
+        document.body.removeChild(downloadAnchor);
+        URL.revokeObjectURL(url);
+        
+        showToast("Backup JSON diunduh!");
+    });
+}
+
+// 2. Upload JSON Trigger
+if (uploadJsonBtn && jsonFileInput) {
+    uploadJsonBtn.addEventListener('click', () => {
+        jsonFileInput.click();
+    });
+
+    jsonFileInput.addEventListener('change', async (e) => {
+        if (!currentUser) return showToast("Harap login terlebih dahulu", true);
+        
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        
+        reader.onload = async (event) => {
+            try {
+                const data = JSON.parse(event.target.result);
+                
+                // Validasi sederhana
+                if (!data.games && !data.platforms && !data.locations) {
+                    throw new Error("Format JSON tidak dikenali.");
+                }
+
+                const batch = writeBatch(db);
+                let count = 0;
+
+                // Import Platforms (Cek duplikat berdasarkan nama)
+                if (data.platforms && Array.isArray(data.platforms)) {
+                    data.platforms.forEach(p => {
+                        const exists = platforms.some(curr => curr.name.toLowerCase() === p.name.toLowerCase());
+                        if (!exists && p.name) {
+                            const newRef = doc(collection(db, 'games', currentUser.uid, 'userPlatforms'));
+                            batch.set(newRef, { name: p.name });
+                            count++;
+                        }
+                    });
+                }
+
+                // Import Locations (Cek duplikat berdasarkan nama)
+                if (data.locations && Array.isArray(data.locations)) {
+                    data.locations.forEach(l => {
+                        const exists = locations.some(curr => curr.name.toLowerCase() === l.name.toLowerCase());
+                        if (!exists && l.name) {
+                            const newRef = doc(collection(db, 'games', currentUser.uid, 'userLocations'));
+                            batch.set(newRef, { name: l.name });
+                            count++;
+                        }
+                    });
+                }
+
+                // Import Games (Cek duplikat judul + platform agar tidak double)
+                if (data.games && Array.isArray(data.games)) {
+                    data.games.forEach(g => {
+                        // Logic Cek Duplikat: Judul sama DAN Platform sama
+                        const isDuplicate = games.some(curr => 
+                            curr.title.toLowerCase() === g.title.toLowerCase() && 
+                            curr.platform === g.platform
+                        );
+
+                        if (!isDuplicate && g.title) {
+                            const newRef = doc(collection(db, 'games', currentUser.uid, 'userGames'));
+                            batch.set(newRef, {
+                                title: g.title,
+                                platform: g.platform || 'Other',
+                                location: g.location || 'Cloud',
+                                price: g.price || 0,
+                                status: g.status || 'Belum dimainkan'
+                            });
+                            count++;
+                        }
+                    });
+                }
+
+                if (count > 0) {
+                    await batch.commit();
+                    showToast(`Sukses! ${count} data baru ditambahkan.`);
+                } else {
+                    showToast("Tidak ada data baru (semua sudah ada).", true);
+                }
+
+            } catch (err) {
+                console.error("JSON Error:", err);
+                showToast("Gagal membaca file JSON: " + err.message, true);
+            }
+            
+            // Reset input agar bisa upload file yang sama lagi jika perlu
+            jsonFileInput.value = '';
+        };
+
+        reader.readAsText(file);
+    });
+}
+
 // --- NAVBAR SCROLL EFFECT ---
 const navbar = document.getElementById('main-navbar');
 if (navbar) {
     window.addEventListener('scroll', () => {
         if (window.scrollY > 20) {
             navbar.classList.remove('bg-white');
+            // More transparent and more blur
             navbar.classList.add('bg-white/30', 'backdrop-blur-xl');
         } else {
             navbar.classList.add('bg-white');
             navbar.classList.remove('bg-white/30', 'backdrop-blur-xl');
         }
-    });
-}
-
-// --- BACK TO TOP BUTTON ---
-if (backToTopBtn) {
-    window.addEventListener('scroll', () => {
-        if (window.scrollY > 300) {
-            backToTopBtn.classList.remove('hidden');
-        } else {
-            backToTopBtn.classList.add('hidden');
-        }
-    });
-
-    backToTopBtn.addEventListener('click', () => {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
     });
 }
