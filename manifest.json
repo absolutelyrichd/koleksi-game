@@ -1,6 +1,6 @@
 {
-  "name": "Dashboard Koleksi Game",
-  "short_name": "Koleksi Game",
+  "name": "RichD",
+  "short_name": "RichD",
   "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#ffffff",
