@@ -6,6 +6,8 @@ const urlsToCache = [
   '/', // Halaman utama (root)
   '/index.html',
   '/script.js', // Ganti dengan nama file JS utama kamu
+  '/images/icon-192.png',
+  '/images/icon-512.png'
 ];
 
 // 1. PHASE INSTALL: Menyimpan aset ke cache
