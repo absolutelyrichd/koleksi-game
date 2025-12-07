@@ -941,7 +941,7 @@ if (uploadJsonBtn && jsonFileInput) {
     });
 }
 
-// --- NAVBAR SCROLL EFFECT ---
+// --- NAVBAR SCROLL EFFECT --
 const navbar = document.getElementById('main-navbar');
 if (navbar) {
     window.addEventListener('scroll', () => {
