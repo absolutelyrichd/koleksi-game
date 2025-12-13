@@ -40,13 +40,13 @@
             font-family: 'Lexend Mega', sans-serif;
         }
 
-        /* --- UTILITIES NEOBRUTALISM --- */
+        /* --- UTILITIES NEOBRUTALISM (SOFT ROUNDED) --- */
         
         /* Kotak Dasar */
         .neo-box {
-            /* UPDATE: Hapus background-color default agar transparansi JS bekerja */
             border: 3px solid var(--neo-black);
             box-shadow: 5px 5px 0px 0px var(--neo-black);
+            border-radius: 12px; /* UPDATED: Rounded */
         }
 
         /* Tombol Dasar */
@@ -57,6 +57,7 @@
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 0.05em;
+            border-radius: 8px; /* UPDATED: Rounded */
         }
         
         .neo-btn:hover:not(:disabled) {
@@ -85,7 +86,7 @@
             font-weight: 700;
             outline: none;
             transition: box-shadow 0.2s;
-            border-radius: 0;
+            border-radius: 8px; /* UPDATED: Rounded */
         }
         .neo-input:focus {
             background-color: #f0f9ff;
@@ -101,6 +102,7 @@
             margin-right: -3px; /* Overlap borders */
             position: relative;
             z-index: 0;
+            border-radius: 12px 12px 0 0; /* UPDATED: Rounded Top Only */
         }
         .tab-btn.active {
             background: var(--neo-secondary);
@@ -116,6 +118,7 @@
             padding: 2px 8px;
             text-transform: uppercase;
             box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.2);
+            border-radius: 6px; /* UPDATED: Rounded */
         }
 
         /* Modal Backdrop */
@@ -135,6 +138,7 @@
         ::-webkit-scrollbar-thumb {
             background: var(--neo-accent);
             border: 3px solid var(--neo-black);
+            border-radius: 6px; /* UPDATED */
         }
         ::-webkit-scrollbar-thumb:hover {
             background: var(--neo-primary);
@@ -146,7 +150,7 @@
     <!-- LOGIN SCREEN -->
     <div id="login-screen" class="flex min-h-[80vh] items-center justify-center">
         <div class="neo-box max-w-md w-full p-8 text-center bg-yellow-300">
-            <div class="inline-block bg-black text-white p-2 mb-4 font-display font-bold text-xl transform -rotate-2">
+            <div class="inline-block bg-black text-white p-2 mb-4 font-display font-bold text-xl transform -rotate-2 rounded-sm">
                 GAME COLLECTION
             </div>
             <h1 class="text-4xl font-black mb-2 uppercase">Area Terbatas</h1>
@@ -163,10 +167,10 @@
     <div id="app-screen" class="hidden max-w-7xl mx-auto">
         
         <!-- NAVBAR -->
-        <!-- UPDATE: Added id="main-navbar" and transition classes -->
         <header id="main-navbar" class="neo-box mb-8 p-4 flex flex-col md:flex-row justify-between items-center bg-white sticky top-2 z-40 transition-all duration-300">
             <div class="flex items-center gap-3 mb-4 md:mb-0">
-                <div class="w-12 h-12 bg-purple-400 border-3 border-black flex items-center justify-center font-display text-2xl font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                <!-- UPDATED: rounded-lg for logo -->
+                <div class="w-12 h-12 bg-purple-400 border-3 border-black flex items-center justify-center font-display text-2xl font-bold shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] rounded-lg">
                     GC
                 </div>
                 <div>
@@ -182,7 +186,8 @@
             </nav>
 
             <div class="flex items-center gap-3 mt-4 md:mt-0">
-                <img id="user-photo" src="" class="w-10 h-10 border-3 border-black bg-gray-300" alt="User">
+                <!-- UPDATED: rounded-full for user photo -->
+                <img id="user-photo" src="" class="w-10 h-10 border-3 border-black bg-gray-300 rounded-full" alt="User">
                 <div class="hidden md:block text-right leading-tight">
                     <p id="user-name" class="font-bold text-sm truncate max-w-[100px]">User</p>
                     <button id="logout-button-text" class="text-xs font-black text-red-500 hover:underline uppercase">KELUAR</button>
@@ -226,7 +231,7 @@
                         
                          <!-- UPDATE: Sort Dropdown yang Lebih Mencolok -->
                          <div>
-                            <label class="font-black text-xs uppercase mb-1 block bg-black text-white inline-block px-1 transform -rotate-1">URUTKAN</label>
+                            <label class="font-black text-xs uppercase mb-1 block bg-black text-white inline-block px-1 transform -rotate-1 rounded-sm">URUTKAN</label>
                             <div class="relative">
                                 <select id="sort-options" class="neo-input cursor-pointer appearance-none border-3 border-black bg-pink-300 hover:bg-pink-400 transition-colors text-black font-black">
                                     <option value="title-asc">🅰️ Judul (A-Z)</option>
@@ -246,28 +251,28 @@
                     </button>
                 </div>
 
-                <!-- Bulk Actions Bar (Hidden by default/logic handled in JS) -->
-                <div id="bulk-actions-bar" class="mb-4 flex justify-between items-center bg-black text-white p-3 border-3 border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hidden">
+                <!-- Bulk Actions Bar -->
+                <div id="bulk-actions-bar" class="mb-4 flex justify-between items-center bg-black text-white p-3 border-3 border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hidden rounded-lg">
                     <div class="font-bold px-2">
-                        <input type="checkbox" id="select-all-checkbox" class="w-5 h-5 accent-lime-400 mr-2 align-middle">
+                        <input type="checkbox" id="select-all-checkbox" class="w-5 h-5 accent-lime-400 mr-2 align-middle rounded-sm">
                         <span id="selection-info">0 DIPILIH</span>
                     </div>
                     <div class="flex gap-2">
-                        <button id="bulk-edit-button" class="bg-blue-500 text-white px-3 py-1 font-bold border-2 border-white hover:bg-blue-600 disabled:opacity-50">EDIT</button>
-                        <button id="bulk-delete-button" class="bg-red-500 text-white px-3 py-1 font-bold border-2 border-white hover:bg-red-600 disabled:opacity-50">HAPUS</button>
+                        <button id="bulk-edit-button" class="bg-blue-500 text-white px-3 py-1 font-bold border-2 border-white hover:bg-blue-600 disabled:opacity-50 rounded-md">EDIT</button>
+                        <button id="bulk-delete-button" class="bg-red-500 text-white px-3 py-1 font-bold border-2 border-white hover:bg-red-600 disabled:opacity-50 rounded-md">HAPUS</button>
                     </div>
                 </div>
 
-                <!-- Games Grid (Replaces Table) -->
+                <!-- Games Grid -->
                 <div id="game-list-cards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     <!-- Cards injected by JS -->
-                    <div class="col-span-full text-center py-12 font-bold opacity-50 text-xl">MEMUAT DATA...</div>
+                    <div class="col-span-full text-center py-12 font-bold opacity-50 text-xl rounded-lg border-3 border-black border-dashed">MEMUAT DATA...</div>
                 </div>
                 
                 <!-- Pagination -->
                 <div id="pagination-container" class="flex justify-center gap-2 mt-10 font-bold"></div>
                 
-                <!-- Hidden elements required by JS logic to prevent errors -->
+                <!-- Hidden elements -->
                 <div id="game-list-body" class="hidden"></div>
                 <div id="total-price" class="hidden"></div>
                 <div id="most-expensive-game" class="hidden"></div>
@@ -281,11 +286,11 @@
                     <div class="neo-box p-6 bg-pink-300">
                         <h2 class="font-display text-2xl font-bold mb-6 border-b-3 border-black pb-2">RINGKASAN ASET</h2>
                         <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-white border-3 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                            <div class="bg-white border-3 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-lg">
                                 <div class="text-xs font-bold text-gray-500 uppercase">Total Nilai</div>
                                 <div id="stats-total-price" class="text-2xl md:text-3xl font-black text-green-600 mt-1">Rp 0</div>
                             </div>
-                            <div class="bg-white border-3 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                            <div class="bg-white border-3 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] rounded-lg">
                                 <div class="text-xs font-bold text-gray-500 uppercase">Item Termahal</div>
                                 <div id="stats-expensive" class="text-lg font-black mt-1 leading-tight">-</div>
                             </div>
@@ -301,14 +306,12 @@
                     <!-- Platform Chart -->
                     <div class="neo-box p-6 bg-white">
                         <h3 class="font-bold text-xl mb-4 uppercase">Distribusi Platform</h3>
-                        <!-- FIX: Added flex justify-center items-center -->
                         <div class="relative h-64 flex justify-center items-center"><canvas id="platform-chart"></canvas></div>
                     </div>
 
                     <!-- Location Chart -->
                     <div class="neo-box p-6 bg-white">
                         <h3 class="font-bold text-xl mb-4 uppercase">Distribusi Lokasi</h3>
-                        <!-- FIX: Added flex justify-center items-center -->
                         <div class="relative h-64 flex justify-center items-center"><canvas id="location-chart"></canvas></div>
                     </div>
                 </div>
@@ -344,24 +347,24 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <!-- Platform Manager -->
                             <div>
-                                <h4 class="font-bold mb-2 bg-black text-white inline-block px-2 py-1">PLATFORM</h4>
+                                <h4 class="font-bold mb-2 bg-black text-white inline-block px-2 py-1 rounded-sm">PLATFORM</h4>
                                 <div class="flex gap-2 mb-3">
                                     <input type="text" id="new-platform-input" class="neo-input py-2" placeholder="Nama baru...">
                                     <button id="add-platform-button" class="neo-btn bg-lime-400 px-4">+</button>
                                 </div>
-                                <div id="platform-list-container" class="h-48 overflow-y-auto border-3 border-black p-2 bg-gray-50 space-y-2">
+                                <div id="platform-list-container" class="h-48 overflow-y-auto border-3 border-black p-2 bg-gray-50 space-y-2 rounded-lg">
                                     <!-- Items -->
                                 </div>
                             </div>
 
                             <!-- Location Manager -->
                             <div>
-                                <h4 class="font-bold mb-2 bg-black text-white inline-block px-2 py-1">LOKASI</h4>
+                                <h4 class="font-bold mb-2 bg-black text-white inline-block px-2 py-1 rounded-sm">LOKASI</h4>
                                 <div class="flex gap-2 mb-3">
                                     <input type="text" id="new-location-input" class="neo-input py-2" placeholder="Nama baru...">
                                     <button id="add-location-button" class="neo-btn bg-lime-400 px-4">+</button>
                                 </div>
-                                <div id="location-list-container" class="h-48 overflow-y-auto border-3 border-black p-2 bg-gray-50 space-y-2">
+                                <div id="location-list-container" class="h-48 overflow-y-auto border-3 border-black p-2 bg-gray-50 space-y-2 rounded-lg">
                                     <!-- Items -->
                                 </div>
                             </div>
@@ -378,7 +381,7 @@
     <!-- ADD/EDIT GAME MODAL -->
     <div id="game-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
         <div id="modal-content" class="neo-box bg-white w-full max-w-2xl m-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transform transition-all scale-95 opacity-0">
-            <div class="bg-lime-400 border-b-3 border-black p-4 flex justify-between items-center">
+            <div class="bg-lime-400 border-b-3 border-black p-4 flex justify-between items-center rounded-t-lg">
                 <h3 id="modal-title" class="font-display font-black text-xl uppercase">EDITOR GAME</h3>
                 <button id="cancel-button" class="font-bold text-xl hover:text-red-600">✕</button>
             </div>
@@ -401,36 +404,36 @@
     <!-- BULK EDIT MODAL -->
     <div id="bulk-edit-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
         <div id="bulk-edit-modal-content" class="neo-box bg-white w-full max-w-lg m-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transform transition-all scale-95 opacity-0">
-            <div class="bg-blue-400 border-b-3 border-black p-4">
+            <div class="bg-blue-400 border-b-3 border-black p-4 rounded-t-lg">
                 <h3 class="font-display font-black text-xl uppercase text-white">EDIT MASAL</h3>
             </div>
             <form id="bulk-edit-form" class="p-6 space-y-4">
-                <p id="bulk-edit-info" class="font-bold mb-4 text-center bg-gray-100 p-2 border-2 border-black"></p>
+                <p id="bulk-edit-info" class="font-bold mb-4 text-center bg-gray-100 p-2 border-2 border-black rounded-lg"></p>
                 
                 <!-- Fields -->
                 <div class="flex items-center gap-3">
-                    <input type="checkbox" id="bulk-update-platform-check" class="w-6 h-6 border-3 border-black">
+                    <input type="checkbox" id="bulk-update-platform-check" class="w-6 h-6 border-3 border-black rounded-sm">
                     <div class="flex-grow">
                         <label class="text-xs font-bold uppercase">Platform Baru</label>
                         <select id="bulk-platform" class="neo-input py-2"></select>
                     </div>
                 </div>
                  <div class="flex items-center gap-3">
-                    <input type="checkbox" id="bulk-update-location-check" class="w-6 h-6 border-3 border-black">
+                    <input type="checkbox" id="bulk-update-location-check" class="w-6 h-6 border-3 border-black rounded-sm">
                     <div class="flex-grow">
                         <label class="text-xs font-bold uppercase">Lokasi Baru</label>
                         <select id="bulk-location" class="neo-input py-2"></select>
                     </div>
                 </div>
                  <div class="flex items-center gap-3">
-                    <input type="checkbox" id="bulk-update-price-check" class="w-6 h-6 border-3 border-black">
+                    <input type="checkbox" id="bulk-update-price-check" class="w-6 h-6 border-3 border-black rounded-sm">
                     <div class="flex-grow">
                         <label class="text-xs font-bold uppercase">Harga Baru</label>
                         <input type="number" id="bulk-price" class="neo-input py-2">
                     </div>
                 </div>
                  <div class="flex items-center gap-3">
-                    <input type="checkbox" id="bulk-update-status-check" class="w-6 h-6 border-3 border-black">
+                    <input type="checkbox" id="bulk-update-status-check" class="w-6 h-6 border-3 border-black rounded-sm">
                     <div class="flex-grow">
                         <label class="text-xs font-bold uppercase">Status Baru</label>
                         <select id="bulk-status" class="neo-input py-2">
@@ -467,7 +470,7 @@
     <!-- EDIT ITEM MODAL (Platform/Location) -->
     <div id="edit-item-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden modal-backdrop">
         <div id="edit-item-modal-content" class="neo-box bg-white w-full max-w-sm m-4 transform transition-all scale-95 opacity-0">
-            <div class="bg-gray-200 border-b-3 border-black p-3">
+            <div class="bg-gray-200 border-b-3 border-black p-3 rounded-t-lg">
                 <h3 id="edit-item-modal-title" class="font-display font-bold uppercase">EDIT ITEM</h3>
             </div>
             <form id="edit-item-form" class="p-6">

@@ -244,7 +244,7 @@ function renderGames(gamesToRender) {
     gameListCards.innerHTML = '';
     
     if (!gamesToRender || gamesToRender.length === 0) {
-        gameListCards.innerHTML = `<div class="col-span-full text-center py-12 border-3 border-black border-dashed bg-white opacity-75 font-bold">BELUM ADA GAME YANG COCOK.</div>`;
+        gameListCards.innerHTML = `<div class="col-span-full text-center py-12 border-3 border-black border-dashed bg-white opacity-75 font-bold rounded-lg">BELUM ADA GAME YANG COCOK.</div>`;
         return;
     }
 
@@ -260,7 +260,7 @@ function renderGames(gamesToRender) {
         
         card.innerHTML = `
             <div class="absolute top-4 right-4">
-                <input type="checkbox" data-id="${game.id}" class="game-checkbox w-6 h-6 border-3 border-black accent-black">
+                <input type="checkbox" data-id="${game.id}" class="game-checkbox w-6 h-6 border-3 border-black accent-black rounded-sm">
             </div>
             <div class="mb-4 pr-8">
                 <h3 class="font-display font-black text-lg leading-tight mb-2 uppercase break-words">${game.title}</h3>
@@ -300,11 +300,11 @@ function renderList(type) {
     
     list.forEach(item => {
         const div = document.createElement('div');
-        div.className = 'flex justify-between items-center bg-white border-2 border-black p-2 shadow-sm';
+        div.className = 'flex justify-between items-center bg-white border-2 border-black p-2 shadow-sm rounded-lg';
         
         let colorDot = '';
         if (type === 'platform') {
-            colorDot = `<span class="w-4 h-4 border-2 border-black mr-2 inline-block" style="background-color: ${generatePlatformColor(item.name)}"></span>`;
+            colorDot = `<span class="w-4 h-4 border-2 border-black mr-2 inline-block rounded-sm" style="background-color: ${generatePlatformColor(item.name)}"></span>`;
         }
 
         div.innerHTML = `
@@ -313,8 +313,8 @@ function renderList(type) {
                 <span class="font-bold text-sm">${item.name}</span>
             </div>
             <div class="flex gap-1">
-                <button class="edit-item-btn p-1 hover:bg-yellow-200 border border-transparent hover:border-black transition" data-id="${item.id}" data-type="${type}" data-name="${item.name}">✏️</button>
-                <button class="delete-item-btn p-1 hover:bg-red-200 border border-transparent hover:border-black transition" data-id="${item.id}" data-type="${type}" data-name="${item.name}">🗑️</button>
+                <button class="edit-item-btn p-1 hover:bg-yellow-200 border border-transparent hover:border-black transition rounded" data-id="${item.id}" data-type="${type}" data-name="${item.name}">✏️</button>
+                <button class="delete-item-btn p-1 hover:bg-red-200 border border-transparent hover:border-black transition rounded" data-id="${item.id}" data-type="${type}" data-name="${item.name}">🗑️</button>
             </div>
         `;
         container.appendChild(div);
@@ -330,10 +330,10 @@ function createGameRowHTML(game = null) {
     const platformOptions = platforms.map(p => `<option value="${p.name}" ${g.platform === p.name ? 'selected' : ''}>${p.name}</option>`).join('');
     const locationOptions = locations.map(l => `<option value="${l.name}" ${g.location === l.name ? 'selected' : ''}>${l.name}</option>`).join('');
     
-    const deleteBtn = isEditMode ? '' : `<button type="button" class="remove-row-btn absolute top-0 right-0 bg-red-500 text-white w-8 h-8 flex items-center justify-center border-l-2 border-b-2 border-black font-bold hover:bg-red-600 z-10" title="Hapus Baris">✕</button>`;
+    const deleteBtn = isEditMode ? '' : `<button type="button" class="remove-row-btn absolute top-0 right-0 bg-red-500 text-white w-8 h-8 flex items-center justify-center border-l-2 border-b-2 border-black font-bold hover:bg-red-600 z-10 rounded-tr-lg rounded-bl-lg" title="Hapus Baris">✕</button>`;
 
     return `
-        <div class="game-row relative p-4 border-2 border-black bg-gray-50 mb-4">
+        <div class="game-row relative p-4 border-2 border-black bg-gray-50 mb-4 rounded-lg">
             ${deleteBtn}
             <div class="space-y-4">
                 <div>
@@ -537,7 +537,7 @@ function displayPage() {
         for(let i=1; i<=totalPages; i++) {
             const btn = document.createElement('button');
             btn.textContent = i;
-            btn.className = `w-8 h-8 border-2 border-black font-bold ${i === currentPage ? 'bg-black text-white' : 'bg-white hover:bg-gray-200'}`;
+            btn.className = `w-8 h-8 border-2 border-black font-bold rounded-md ${i === currentPage ? 'bg-black text-white' : 'bg-white hover:bg-gray-200'}`;
             btn.onclick = () => { currentPage = i; displayPage(); };
             paginationContainer.appendChild(btn);
         }
@@ -941,7 +941,7 @@ if (uploadJsonBtn && jsonFileInput) {
     });
 }
 
-// --- NAVBAR SCROLL EFFECT --
+// --- NAVBAR SCROLL EFFECT ---
 const navbar = document.getElementById('main-navbar');
 if (navbar) {
     window.addEventListener('scroll', () => {
@@ -954,13 +954,4 @@ if (navbar) {
             navbar.classList.remove('bg-white/30', 'backdrop-blur-xl');
         }
     });
-}
-
-// Cek apakah browser mendukung Service Worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(reg => console.log('Service Worker Registered!', reg))
-      .catch(err => console.log('Service Worker Registration Failed:', err));
-  });
 }
