@@ -92,6 +92,30 @@
             background-color: #f0f9ff;
             box-shadow: 4px 4px 0px 0px var(--neo-black);
         }
+        
+        /* [PERBAIKAN TATA LETAK] Menyamakan tinggi input/select */
+        /* Mengatur semua input dan select filter agar tingginya seragam */
+        .filter-input-container {
+            /* Flex vertical untuk menampung label dan input */
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end; /* Memastikan input berada di bawah */
+            height: 100%; /* Penting agar semua div filter tingginya sama */
+        }
+        
+        /* Mengatur tinggi elemen form di dalam filter-input-container */
+        .filter-input-container .neo-input {
+            height: 48px; /* Menyetel tinggi tetap untuk input/select */
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        
+        /* Menghilangkan margin bawah pada label agar input naik */
+        .filter-label {
+            margin-bottom: 0.25rem; /* Mengganti mb-1 (0.25rem) dari 1rem sebelumnya */
+            line-height: 1.2;
+        }
+
 
         /* Tab Navigation */
         .tab-btn {
@@ -201,26 +225,35 @@
             <!-- TAB: LIST GAME -->
             <div id="tab-list" class="tab-content">
                 <!-- Filters & Actions -->
+                <!-- PERBAIKAN: Menggunakan h-full pada filter-input-container untuk menyelaraskan tinggi -->
                 <div class="neo-box p-4 bg-yellow-300 mb-8 flex flex-col lg:flex-row gap-4 items-end">
                     <div class="w-full grid grid-cols-1 md:grid-cols-5 gap-4">
-                        <div class="md:col-span-1">
-                            <label class="font-black text-xs uppercase mb-1 block">Cari Judul</label>
+                        
+                        <!-- FILTER: CARI JUDUL -->
+                        <div class="filter-input-container">
+                            <label class="font-black text-xs uppercase filter-label">Cari Judul</label>
                             <input type="text" id="filter-title" class="neo-input" placeholder="Ketik judul...">
                         </div>
-                        <div>
-                            <label class="font-black text-xs uppercase mb-1 block">Platform</label>
+                        
+                        <!-- FILTER: PLATFORM -->
+                        <div class="filter-input-container">
+                            <label class="font-black text-xs uppercase filter-label">Platform</label>
                             <select id="filter-platform" class="neo-input cursor-pointer">
                                 <option value="">SEMUA</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="font-black text-xs uppercase mb-1 block">Lokasi</label>
+                        
+                        <!-- FILTER: LOKASI -->
+                        <div class="filter-input-container">
+                            <label class="font-black text-xs uppercase filter-label">Lokasi</label>
                             <select id="filter-location" class="neo-input cursor-pointer">
                                 <option value="">SEMUA</option>
                             </select>
                         </div>
-                        <div>
-                            <label class="font-black text-xs uppercase mb-1 block">Status</label>
+                        
+                        <!-- FILTER: STATUS -->
+                        <div class="filter-input-container">
+                            <label class="font-black text-xs uppercase filter-label">Status</label>
                             <select id="filter-status" class="neo-input cursor-pointer">
                                 <option value="">SEMUA</option>
                                 <option>Belum dimainkan</option>
@@ -229,9 +262,9 @@
                             </select>
                         </div>
                         
-                         <!-- UPDATE: Sort Dropdown yang Lebih Mencolok -->
-                         <div>
-                            <label class="font-black text-xs uppercase mb-1 block bg-black text-white inline-block px-1 transform -rotate-1 rounded-sm">URUTKAN</label>
+                         <!-- URUTKAN (Sort) -->
+                         <div class="filter-input-container">
+                            <label class="font-black text-xs uppercase filter-label bg-black text-white inline-block px-1 transform -rotate-1 rounded-sm">URUTKAN</label>
                             <div class="relative">
                                 <select id="sort-options" class="neo-input cursor-pointer appearance-none border-3 border-black bg-pink-300 hover:bg-pink-400 transition-colors text-black font-black">
                                     <option value="title-asc">🅰️ Judul (A-Z)</option>
@@ -246,6 +279,7 @@
                         </div>
 
                     </div>
+                    <!-- Tombol BARU: Tinggi disesuaikan dengan tinggi input/select -->
                     <button id="add-game-button" class="neo-btn bg-lime-400 px-6 py-3 h-[52px] w-full lg:w-auto flex-shrink-0 flex items-center justify-center gap-2 whitespace-nowrap">
                         <span class="text-xl leading-none">+</span> BARU
                     </button>
