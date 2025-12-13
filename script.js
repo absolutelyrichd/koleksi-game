@@ -332,20 +332,15 @@ function createGameRowHTML(game = null) {
     
     const deleteBtn = isEditMode ? '' : `<button type="button" class="remove-row-btn absolute top-0 right-0 bg-red-500 text-white w-8 h-8 flex items-center justify-center border-l-2 border-b-2 border-black font-bold hover:bg-red-600 z-10 rounded-tr-lg rounded-bl-lg" title="Hapus Baris">✕</button>`;
 
-    // Perubahan di sini: Menggunakan grid 2 kolom dengan Judul mencakup seluruh tinggi (row-span)
     return `
         <div class="game-row relative p-4 border-2 border-black bg-gray-50 mb-4 rounded-lg">
             ${deleteBtn}
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Kolom Kiri: Judul (Mencakup 2 baris agar seimbang dengan 4 input di kanan) -->
-                <div class="md:row-span-2">
+            <div class="space-y-4">
+                <div>
                     <label class="block font-black text-xs uppercase mb-1">JUDUL GAME</label>
-                    <textarea class="game-title neo-input resize-none h-[180px] md:h-full" placeholder="Judul Game..." required>${g.title || ''}</textarea>
+                    <input type="text" class="game-title neo-input" value="${g.title || ''}" placeholder="Judul Game..." required>
                 </div>
-                
-                <!-- Kolom Kanan: 4 Input Kecil (Platform, Lokasi, Harga, Status) -->
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block font-black text-xs uppercase mb-1">PLATFORM</label>
                         <select class="game-platform neo-input cursor-pointer">
@@ -395,9 +390,6 @@ function openModal(game = null) {
 
     if (game) {
         gameRowsContainer.innerHTML = createGameRowHTML(game);
-        // Pastikan Judul di mode edit menggunakan textarea, tapi isinya hanya judul
-        const textarea = gameRowsContainer.querySelector('.game-title');
-        if (textarea) textarea.value = game.title || '';
         addRowButton.classList.add('hidden');
     } else {
         addNewGameRow();
@@ -432,8 +424,7 @@ if(gameForm) {
             if (id) {
                 const row = gameRowsContainer.querySelector('.game-row');
                 const gameData = {
-                    // Ambil nilai dari textarea
-                    title: row.querySelector('.game-title').value.trim(),
+                    title: row.querySelector('.game-title').value,
                     platform: row.querySelector('.game-platform').value,
                     location: row.querySelector('.game-location').value,
                     price: parseInt(row.querySelector('.game-price').value, 10) || 0,
