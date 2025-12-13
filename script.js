@@ -384,15 +384,14 @@ function createGameRowHTML(game = null) {
                             <option ${g.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
                         </select>
                     </div>
-                </div>
-                
-                <!-- NEW: Subs Indo Select Dropdown -->
-                <div class="pt-2">
-                    <label class="block font-black text-xs uppercase mb-1">SUBTITLE INDONESIA</label>
-                    <select class="game-subs-indo neo-input cursor-pointer">
-                        <option value="true" ${subsIndoValue === 'Ada' ? 'selected' : ''}>Ada</option>
-                        <option value="false" ${subsIndoValue === 'Tidak Ada' ? 'selected' : ''}>Tidak Ada</option>
-                    </select>
+                    <!-- PERBAIKAN: Subs Indo dipindahkan ke dalam GRID agar lebarnya sama dengan elemen di atasnya -->
+                    <div>
+                        <label class="block font-black text-xs uppercase mb-1">SUBTITLE INDONESIA</label>
+                        <select class="game-subs-indo neo-input cursor-pointer">
+                            <option value="true" ${subsIndoValue === 'Ada' ? 'selected' : ''}>Ada</option>
+                            <option value="false" ${subsIndoValue === 'Tidak Ada' ? 'selected' : ''}>Tidak Ada</option>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
