@@ -528,21 +528,24 @@ function applyFiltersAndSort() {
     const platformInput = document.getElementById('filter-platform');
     const locationInput = document.getElementById('filter-location');
     const statusInput = document.getElementById('filter-status');
+    const subsInput = document.getElementById('filter-subs'); // NEW: Filter Subs Indo
     const sortSelect = document.getElementById('sort-options'); 
 
-    if (!titleInput || !platformInput || !locationInput || !statusInput || !sortSelect) return;
+    if (!titleInput || !platformInput || !locationInput || !statusInput || !subsInput || !sortSelect) return;
 
     const title = titleInput.value.toLowerCase();
     const platform = platformInput.value;
     const location = locationInput.value;
     const status = statusInput.value;
+    const subs = subsInput.value; // "true", "false", or ""
     const sortValue = sortSelect.value;
 
     filteredGames = games.filter(g => 
         g.title.toLowerCase().includes(title) &&
         (platform === '' || g.platform === platform) &&
         (location === '' || g.location === location) &&
-        (status === '' || g.status === status)
+        (status === '' || g.status === status) &&
+        (subs === '' || String(g.subsIndo) === subs) // NEW: Cek Subs Indo
     );
 
     filteredGames.sort((a, b) => {
@@ -581,7 +584,8 @@ function displayPage() {
     updateBulkActionUI();
 }
 
-['filter-title', 'filter-platform', 'filter-location', 'filter-status', 'sort-options'].forEach(id => {
+// Menambahkan 'filter-subs' ke dalam daftar listener
+['filter-title', 'filter-platform', 'filter-location', 'filter-status', 'filter-subs', 'sort-options'].forEach(id => {
     const el = document.getElementById(id);
     if(el) el.addEventListener('input', () => { currentPage = 1; applyFiltersAndSort(); });
 });

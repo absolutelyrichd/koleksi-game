@@ -227,7 +227,8 @@
                 <!-- Filters & Actions -->
                 <!-- PERBAIKAN: Menggunakan h-full pada filter-input-container untuk menyelaraskan tinggi -->
                 <div class="neo-box p-4 bg-yellow-300 mb-8 flex flex-col lg:flex-row gap-4 items-end">
-                    <div class="w-full grid grid-cols-1 md:grid-cols-5 gap-4">
+                    <!-- UPDATED: Grid kolom diubah menjadi lg:grid-cols-6 untuk memuat filter baru -->
+                    <div class="w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                         
                         <!-- FILTER: CARI JUDUL -->
                         <div class="filter-input-container">
@@ -259,6 +260,16 @@
                                 <option>Belum dimainkan</option>
                                 <option>Dimainkan</option>
                                 <option>Selesai</option>
+                            </select>
+                        </div>
+
+                        <!-- FILTER BARU: SUBS INDO -->
+                        <div class="filter-input-container">
+                            <label class="font-black text-xs uppercase filter-label">Subs Indo</label>
+                            <select id="filter-subs" class="neo-input cursor-pointer">
+                                <option value="">SEMUA</option>
+                                <option value="true">Ada</option>
+                                <option value="false">Tidak Ada</option>
                             </select>
                         </div>
                         
