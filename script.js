@@ -460,7 +460,7 @@ if(gameForm) {
                     location: row.querySelector('.game-location').value,
                     price: parseInt(row.querySelector('.game-price').value, 10) || 0,
                     status: row.querySelector('.game-status').value,
-                    subsIndo: subsIndoValue, // NEW: Subs Indo (boolean)
+                    subsIndo: subsIndoValue, // Subs Indo (boolean)
                 };
                 await updateDoc(doc(db, 'games', currentUser.uid, 'userGames', id), gameData);
                 showToast('DATA DIPERBARUI');
@@ -482,7 +482,7 @@ if(gameForm) {
                             location: row.querySelector('.game-location').value,
                             price: parseInt(row.querySelector('.game-price').value, 10) || 0,
                             status: row.querySelector('.game-status').value,
-                            subsIndo: subsIndoValue, // NEW: Subs Indo (boolean)
+                            subsIndo: subsIndoValue, // Subs Indo (boolean)
                         };
                         const newGameRef = doc(collection(db, 'games', currentUser.uid, 'userGames'));
                         batch.set(newGameRef, gameData);
@@ -701,8 +701,11 @@ if(bulkEditForm) {
         if(document.getElementById('bulk-update-price-check').checked) data.price = parseInt(document.getElementById('bulk-price').value);
         if(document.getElementById('bulk-update-status-check').checked) data.status = document.getElementById('bulk-status').value;
 
-        // NEW: Bulk update Subs Indo is not implemented yet, just for future proofing
-        // if(document.getElementById('bulk-update-subs-indo-check').checked) data.subsIndo = document.getElementById('bulk-subs-indo').checked;
+        // NEW LOGIC: Bulk update Subs Indo
+        if(document.getElementById('bulk-update-subs-indo-check').checked) {
+            // Nilai dari select adalah string 'true' atau 'false'. Konversi ke boolean.
+            data.subsIndo = document.getElementById('bulk-subs-indo').value === 'true';
+        }
 
 
         const batch = writeBatch(db);
@@ -949,13 +952,13 @@ if (uploadJsonBtn && jsonFileInput) {
 
                         if (!isDuplicate && g.title) {
                             const newRef = doc(collection(db, 'games', currentUser.uid, 'userGames'));
-                            batch.set(newGameRef, {
+                            batch.set(newRef, { // Menggunakan newRef yang baru dibuat
                                 title: g.title,
                                 platform: g.platform || 'Other',
                                 location: g.location || 'Cloud',
                                 price: g.price || 0,
                                 status: g.status || 'Belum dimainkan',
-                                subsIndo: g.subsIndo || false // NEW: Subs Indo
+                                subsIndo: g.subsIndo || false // Subs Indo
                             });
                             count++;
                         }
