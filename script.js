@@ -206,7 +206,8 @@ function fetchGames() {
     if (unsubscribeGames) unsubscribeGames();
     const q = query(collection(db, 'games', currentUser.uid, 'userGames'), orderBy("title")); 
     unsubscribeGames = onSnapshot(q, (snapshot) => {
-        games = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Tambahkan default subsIndo = false jika belum ada
+        games = snapshot.docs.map(doc => ({ id: doc.id, subsIndo: false, ...doc.data() }));
         games.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }));
         applyFiltersAndSort();
         updateCharts();
@@ -258,6 +259,11 @@ function renderGames(gamesToRender) {
         
         const platformColor = generatePlatformColor(game.platform);
         
+        // Menambahkan Subs Indo badge jika subsIndo: true
+        const subsIndoBadge = game.subsIndo 
+            ? `<span class="neo-badge bg-fuchsia-400 border-fuchsia-600">SUB INDO ✅</span>` 
+            : '';
+        
         card.innerHTML = `
             <div class="absolute top-4 right-4">
                 <input type="checkbox" data-id="${game.id}" class="game-checkbox w-6 h-6 border-3 border-black accent-black rounded-sm">
@@ -269,19 +275,28 @@ function renderGames(gamesToRender) {
                     <span class="neo-badge ${statusColor}">${game.status}</span>
                 </div>
             </div>
-            <div class="mt-auto border-t-3 border-black pt-3">
-                <div class="flex justify-between items-end mb-3">
+            <div class="mt-auto border-t-3 border-black pt-3 space-y-2">
+                
+                <div class="flex justify-between items-end">
                     <div class="text-xs font-bold text-gray-500 uppercase">Lokasi</div>
                     <div class="font-bold text-sm">${game.location}</div>
                 </div>
-                <div class="flex justify-between items-end mb-4">
+                
+                <div class="flex justify-between items-end">
                     <div class="text-xs font-bold text-gray-500 uppercase">Harga</div>
                     <div class="font-black text-lg">${game.price ? formatPrice(game.price) : 'Gratis'}</div>
                 </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <button class="edit-btn neo-btn bg-white text-xs py-2 hover:bg-blue-200" data-id="${game.id}">EDIT</button>
-                    <button class="delete-btn neo-btn bg-black text-white text-xs py-2 hover:bg-red-600" data-id="${game.id}">HAPUS</button>
+                
+                <div class="flex justify-between items-end">
+                    <div class="text-xs font-bold text-gray-500 uppercase">Subs Indo</div>
+                    <div class="font-bold text-sm">${game.subsIndo ? 'Ada' : 'Tidak Ada'}</div>
                 </div>
+                
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2 mt-4">
+                <button class="edit-btn neo-btn bg-white text-xs py-2 hover:bg-blue-200" data-id="${game.id}">EDIT</button>
+                <button class="delete-btn neo-btn bg-black text-white text-xs py-2 hover:bg-red-600" data-id="${game.id}">HAPUS</button>
             </div>
         `;
         gameListCards.appendChild(card);
@@ -331,6 +346,10 @@ function createGameRowHTML(game = null) {
     const locationOptions = locations.map(l => `<option value="${l.name}" ${g.location === l.name ? 'selected' : ''}>${l.name}</option>`).join('');
     
     const deleteBtn = isEditMode ? '' : `<button type="button" class="remove-row-btn absolute top-0 right-0 bg-red-500 text-white w-8 h-8 flex items-center justify-center border-l-2 border-b-2 border-black font-bold hover:bg-red-600 z-10 rounded-tr-lg rounded-bl-lg" title="Hapus Baris">✕</button>`;
+    
+    // Logika untuk select Subs Indo
+    // Nilai select akan menjadi string 'true' atau 'false'
+    const subsIndoValue = g.subsIndo ? 'Ada' : 'Tidak Ada';
 
     return `
         <div class="game-row relative p-4 border-2 border-black bg-gray-50 mb-4 rounded-lg">
@@ -365,6 +384,15 @@ function createGameRowHTML(game = null) {
                             <option ${g.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
                         </select>
                     </div>
+                </div>
+                
+                <!-- NEW: Subs Indo Select Dropdown -->
+                <div class="pt-2">
+                    <label class="block font-black text-xs uppercase mb-1">SUBTITLE INDONESIA</label>
+                    <select class="game-subs-indo neo-input cursor-pointer">
+                        <option value="true" ${subsIndoValue === 'Ada' ? 'selected' : ''}>Ada</option>
+                        <option value="false" ${subsIndoValue === 'Tidak Ada' ? 'selected' : ''}>Tidak Ada</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -423,12 +451,16 @@ if(gameForm) {
         try {
             if (id) {
                 const row = gameRowsContainer.querySelector('.game-row');
+                // Mengambil nilai 'Ada' atau 'Tidak Ada', lalu konversi ke boolean
+                const subsIndoValue = row.querySelector('.game-subs-indo').value === 'true';
+                
                 const gameData = {
                     title: row.querySelector('.game-title').value,
                     platform: row.querySelector('.game-platform').value,
                     location: row.querySelector('.game-location').value,
                     price: parseInt(row.querySelector('.game-price').value, 10) || 0,
                     status: row.querySelector('.game-status').value,
+                    subsIndo: subsIndoValue, // NEW: Subs Indo (boolean)
                 };
                 await updateDoc(doc(db, 'games', currentUser.uid, 'userGames', id), gameData);
                 showToast('DATA DIPERBARUI');
@@ -441,12 +473,16 @@ if(gameForm) {
                 rows.forEach(row => {
                     const title = row.querySelector('.game-title').value.trim();
                     if (title) {
+                        // Mengambil nilai 'Ada' atau 'Tidak Ada', lalu konversi ke boolean
+                        const subsIndoValue = row.querySelector('.game-subs-indo').value === 'true';
+                        
                         const gameData = {
                             title: title,
                             platform: row.querySelector('.game-platform').value,
                             location: row.querySelector('.game-location').value,
                             price: parseInt(row.querySelector('.game-price').value, 10) || 0,
                             status: row.querySelector('.game-status').value,
+                            subsIndo: subsIndoValue, // NEW: Subs Indo (boolean)
                         };
                         const newGameRef = doc(collection(db, 'games', currentUser.uid, 'userGames'));
                         batch.set(newGameRef, gameData);
@@ -664,6 +700,10 @@ if(bulkEditForm) {
         if(document.getElementById('bulk-update-location-check').checked) data.location = document.getElementById('bulk-location').value;
         if(document.getElementById('bulk-update-price-check').checked) data.price = parseInt(document.getElementById('bulk-price').value);
         if(document.getElementById('bulk-update-status-check').checked) data.status = document.getElementById('bulk-status').value;
+
+        // NEW: Bulk update Subs Indo is not implemented yet, just for future proofing
+        // if(document.getElementById('bulk-update-subs-indo-check').checked) data.subsIndo = document.getElementById('bulk-subs-indo').checked;
+
 
         const batch = writeBatch(db);
         ids.forEach(id => batch.update(doc(db, 'games', currentUser.uid, 'userGames', id), data));
@@ -909,12 +949,13 @@ if (uploadJsonBtn && jsonFileInput) {
 
                         if (!isDuplicate && g.title) {
                             const newRef = doc(collection(db, 'games', currentUser.uid, 'userGames'));
-                            batch.set(newRef, {
+                            batch.set(newGameRef, {
                                 title: g.title,
                                 platform: g.platform || 'Other',
                                 location: g.location || 'Cloud',
                                 price: g.price || 0,
-                                status: g.status || 'Belum dimainkan'
+                                status: g.status || 'Belum dimainkan',
+                                subsIndo: g.subsIndo || false // NEW: Subs Indo
                             });
                             count++;
                         }
